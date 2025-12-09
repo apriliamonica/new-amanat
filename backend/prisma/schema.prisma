@@ -1,0 +1,191 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Role enum sesuai 5 role utama + 3 Kepala Bagian
+enum Role {
+  SEKRETARIS_KANTOR
+  KETUA_PENGURUS
+  SEKRETARIS_PENGURUS
+  BENDAHARA
+  KEPALA_BAGIAN_PSDM
+  KEPALA_BAGIAN_KEUANGAN
+  KEPALA_BAGIAN_UMUM
+}
+
+enum StatusSurat {
+  DITERIMA
+  DIPROSES
+  DISPOSISI
+  DITINDAKLANJUTI
+  MENUNGGU_VALIDASI
+  MENUNGGU_TTD
+  DITANDATANGANI
+  SELESAI
+  DITOLAK
+  DIKEMBALIKAN
+}
+
+enum StatusDisposisi {
+  PENDING
+  DITERUSKAN
+  DITINDAKLANJUTI
+  SELESAI
+}
+
+enum JenisSurat {
+  INTERNAL
+  EKSTERNAL
+}
+
+enum KategoriSurat {
+  ADMINISTRATIF
+  KEUANGAN
+  FASILITAS
+  UMUM
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  nama      String
+  role      Role
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  suratMasukDibuat  SuratMasuk[]    @relation("SuratMasukCreator")
+  suratKeluarDibuat SuratKeluar[]   @relation("SuratKeluarCreator")
+  disposisiDari     Disposisi[]     @relation("DisposisiFrom")
+  disposisiKe       Disposisi[]     @relation("DisposisiTo")
+  lampiranUpload    Lampiran[]      @relation("LampiranUploader")
+  tracking          TrackingSurat[] @relation("TrackingUser")
+}
+
+model SuratMasuk {
+  id              String        @id @default(uuid())
+  nomorSurat      String
+  tanggalSurat    DateTime
+  tanggalDiterima DateTime      @default(now())
+  pengirim        String
+  perihal         String
+  jenisSurat      JenisSurat
+  kategori        KategoriSurat
+  status          StatusSurat   @default(DITERIMA)
+  fileUrl         String?
+  filePublicId    String?
+  keterangan      String?
+  isLengkap       Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  createdById String
+  createdBy   User   @relation("SuratMasukCreator", fields: [createdById], references: [id])
+
+  disposisi    Disposisi[]
+  lampiran     Lampiran[]
+  tracking     TrackingSurat[]
+  suratBalasan SuratKeluar?    @relation("SuratBalasan")
+}
+
+model SuratKeluar {
+  id           String        @id @default(uuid())
+  nomorSurat   String?
+  tanggalSurat DateTime?
+  tujuan       String
+  perihal      String
+  jenisSurat   JenisSurat
+  kategori     KategoriSurat
+  status       StatusSurat   @default(DIPROSES)
+  isiSurat     String?       @db.Text
+  fileUrl      String?
+  filePublicId String?
+  isSigned     Boolean       @default(false)
+  signedAt     DateTime?
+  keterangan   String?
+  ekspedisi    String?
+  tanggalKirim DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  createdById String
+  createdBy   User   @relation("SuratKeluarCreator", fields: [createdById], references: [id])
+
+  suratMasukId String?     @unique
+  suratMasuk   SuratMasuk? @relation("SuratBalasan", fields: [suratMasukId], references: [id])
+
+  disposisi Disposisi[]
+  lampiran  Lampiran[]
+  tracking  TrackingSurat[]
+}
+
+model Disposisi {
+  id               String          @id @default(uuid())
+  instruksi        String
+  catatan          String?
+  status           StatusDisposisi @default(PENDING)
+  tanggalDisposisi DateTime        @default(now())
+  tanggalSelesai   DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  fromUserId String
+  fromUser   User   @relation("DisposisiFrom", fields: [fromUserId], references: [id])
+  toUserId   String
+  toUser     User   @relation("DisposisiTo", fields: [toUserId], references: [id])
+
+  suratMasukId String?
+  suratMasuk   SuratMasuk? @relation(fields: [suratMasukId], references: [id])
+  suratKeluarId String?
+  suratKeluar   SuratKeluar? @relation(fields: [suratKeluarId], references: [id])
+
+  isRequestLampiran Boolean @default(false)
+}
+
+model Lampiran {
+  id           String   @id @default(uuid())
+  namaFile     String
+  fileUrl      String
+  filePublicId String
+  keterangan   String?
+  createdAt    DateTime @default(now())
+
+  uploadedById String
+  uploadedBy   User   @relation("LampiranUploader", fields: [uploadedById], references: [id])
+
+  suratMasukId  String?
+  suratMasuk    SuratMasuk?  @relation(fields: [suratMasukId], references: [id])
+  suratKeluarId String?
+  suratKeluar   SuratKeluar? @relation(fields: [suratKeluarId], references: [id])
+}
+
+model TrackingSurat {
+  id         String   @id @default(uuid())
+  aksi       String
+  keterangan String?
+  timestamp  DateTime @default(now())
+
+  userId String
+  user   User   @relation("TrackingUser", fields: [userId], references: [id])
+
+  suratMasukId  String?
+  suratMasuk    SuratMasuk?  @relation(fields: [suratMasukId], references: [id])
+  suratKeluarId String?
+  suratKeluar   SuratKeluar? @relation(fields: [suratKeluarId], references: [id])
+}
+
+model NomorSuratCounter {
+  id        String   @id @default(uuid())
+  tahun     Int      @unique
+  counter   Int      @default(0)
+  updatedAt DateTime @updatedAt
+}
