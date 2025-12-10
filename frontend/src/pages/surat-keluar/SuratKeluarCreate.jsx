@@ -5,7 +5,6 @@ import { suratKeluarAPI } from "../../api/axios";
 import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
-import { JENIS_SURAT } from "../../utils/constants";
 
 const SuratKeluarCreate = () => {
   const navigate = useNavigate();
@@ -15,7 +14,6 @@ const SuratKeluarCreate = () => {
   const [formData, setFormData] = useState({
     tujuan: "",
     perihal: "",
-    jenisSurat: "EKSTERNAL",
     isiSurat: "",
     keterangan: "",
   });
@@ -146,22 +144,6 @@ const SuratKeluarCreate = () => {
                   minLength={5}
                   required
                 />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label className="form-label">Jenis Surat *</label>
-                  <select
-                    name="jenisSurat"
-                    className="form-input"
-                    value={formData.jenisSurat}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value={JENIS_SURAT.INTERNAL}>Internal</option>
-                    <option value={JENIS_SURAT.EKSTERNAL}>Eksternal</option>
-                  </select>
-                </div>
               </div>
 
               {/* Content based on mode */}

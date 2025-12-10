@@ -12,6 +12,7 @@ import {
   XCircle,
   User,
   Truck,
+  Edit,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -31,7 +32,9 @@ import {
   isKabag,
   canValidate,
   ROLE_SHORT_NAMES,
+  ROLE_NAMES,
   KATEGORI_NAMES,
+  STATUS_SURAT,
 } from "../../utils/constants";
 import { formatDate, formatDateTime } from "../../utils/helpers";
 
@@ -262,7 +265,27 @@ const SuratKeluarDetail = () => {
                 </div>
               </Card.Header>
               <Card.Body className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                {/* Info Alert for Request */}
+                {surat.status === STATUS_SURAT.PENGAJUAN && (
+                  <div className="col-span-2 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+                    <div className="text-blue-600 mt-0.5">
+                      <FileText size={20} />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-blue-800">
+                        Permintaan Surat Keluar
+                      </h4>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Surat ini diajukan oleh{" "}
+                        <strong>{surat.createdBy?.nama}</strong> (
+                        {ROLE_NAMES[surat.createdBy?.role]}). Silakan periksa
+                        draft/lampiran di bawah ini sebelum memproses.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4 col-span-2">
                   <div>
                     <p className="text-sm text-gray-500">Tujuan</p>
                     <p className="font-medium">{surat.tujuan}</p>
@@ -275,10 +298,7 @@ const SuratKeluarDetail = () => {
                         : "-"}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Jenis Surat</p>
-                    <p className="font-medium">{surat.jenisSurat}</p>
-                  </div>
+
                   <div>
                     <p className="text-sm text-gray-500">Kategori</p>
                     <p className="font-medium">
@@ -286,7 +306,11 @@ const SuratKeluarDetail = () => {
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Dibuat Oleh</p>
+                    <p className="text-sm text-gray-500">
+                      {surat.status === STATUS_SURAT.PENGAJUAN
+                        ? "Diajukan Oleh"
+                        : "Dibuat Oleh"}
+                    </p>
                     <p className="font-medium">{surat.createdBy?.nama}</p>
                   </div>
                   {surat.signedAt && (
@@ -337,6 +361,15 @@ const SuratKeluarDetail = () => {
                   >
                     <CheckCircle size={18} />
                     Proses Permintaan
+                  </Button>
+                )}
+                {isAdmin(user?.role) && surat.status !== "SELESAI" && (
+                  <Button
+                    variant="secondary"
+                    onClick={() => navigate(`/surat-keluar/edit/${surat.id}`)}
+                  >
+                    <Edit size={18} />
+                    Edit Surat
                   </Button>
                 )}
                 {canShowValidasi && (

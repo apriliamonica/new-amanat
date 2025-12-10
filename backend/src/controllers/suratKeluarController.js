@@ -96,8 +96,7 @@ const getSuratKeluarById = async (req, res) => {
 // Create surat keluar (Admin only)
 const createSuratKeluar = async (req, res) => {
   try {
-    const { tujuan, perihal, jenisSurat, isiSurat, keterangan, suratMasukId } =
-      req.body;
+    const { tujuan, perihal, isiSurat, keterangan, suratMasukId } = req.body;
 
     let fileUrl = null;
     let filePublicId = null;
@@ -127,7 +126,10 @@ const createSuratKeluar = async (req, res) => {
         tanggalSurat,
         tujuan,
         perihal,
-        jenisSurat: jenisSurat || "EKSTERNAL",
+        tujuan,
+        perihal,
+        jenisSurat: "INTERNAL",
+        kategori: "UMUM", // Default value
         kategori: "UMUM", // Default value
         isiSurat,
         keterangan,
@@ -170,8 +172,7 @@ const createSuratKeluar = async (req, res) => {
 const updateSuratKeluar = async (req, res) => {
   try {
     const { id } = req.params;
-    const { tujuan, perihal, jenisSurat, isiSurat, keterangan, status } =
-      req.body;
+    const { tujuan, perihal, isiSurat, keterangan, status } = req.body;
 
     const existingSurat = await prisma.suratKeluar.findUnique({
       where: { id },
@@ -210,7 +211,6 @@ const updateSuratKeluar = async (req, res) => {
       data: {
         tujuan,
         perihal,
-        jenisSurat,
         isiSurat,
         keterangan,
         fileUrl,

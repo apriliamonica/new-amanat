@@ -184,9 +184,7 @@ const SuratKeluarList = () => {
                     <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
                       Perihal
                     </th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                      Jenis
-                    </th>
+
                     <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
                       Tanggal
                     </th>
@@ -217,17 +215,7 @@ const SuratKeluarList = () => {
                         <td className="px-4 py-3 text-sm text-gray-700">
                           {truncateText(surat.perihal, 35)}
                         </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`text-xs px-2 py-0.5 rounded ${
-                              surat.jenisSurat === "INTERNAL"
-                                ? "bg-blue-100 text-blue-700"
-                                : "bg-orange-100 text-orange-700"
-                            }`}
-                          >
-                            {surat.jenisSurat}
-                          </span>
-                        </td>
+
                         <td className="px-4 py-3 text-sm text-gray-600">
                           {surat.tanggalSurat
                             ? formatDate(surat.tanggalSurat)
