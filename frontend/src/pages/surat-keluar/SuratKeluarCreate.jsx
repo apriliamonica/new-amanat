@@ -165,6 +165,37 @@ const SuratKeluarCreate = () => {
                 />
               </div>
 
+              {!isKabag && (
+                <div>
+                  <label className="form-label">
+                    Jenis Surat (Format Nomor)
+                  </label>
+                  <select
+                    name="jenisSuratId"
+                    className="form-input"
+                    value={formData.jenisSuratId}
+                    onChange={handleChange}
+                  >
+                    <option value="">
+                      -- Pilih Jenis Surat (Default: SK) --
+                    </option>
+                    {jenisSuratOptions.map((jenis) => (
+                      <option key={jenis.id} value={jenis.id}>
+                        {jenis.nama} ({jenis.kode})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Nomor surat akan digenerate sesuai kode jenis yang dipilih
+                    (misal: .../
+                    {jenisSuratOptions.find(
+                      (j) => j.id === formData.jenisSuratId
+                    )?.kode || "SK"}
+                    /...).
+                  </p>
+                </div>
+              )}
+
               {/* Content based on mode */}
               {mode === "create" && (
                 <div>
