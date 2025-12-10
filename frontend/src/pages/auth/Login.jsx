@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import Button from '../../components/common/Button';
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import Button from "../../components/common/Button";
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -14,7 +14,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/dashboard';
+  const from = location.state?.from?.pathname || "/dashboard";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,18 +30,18 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-400 via-yellow-300 to-orange-300 p-4">
       <div className="w-full max-w-md">
         {/* Logo & Title */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl shadow-xl mb-4">
-            <span className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/90 rounded-2xl shadow-xl mb-4">
+            <span className="text-4xl font-bold bg-gradient-to-r from-green-600 to-orange-500 bg-clip-text text-transparent">
               A
             </span>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">AMANAT</h1>
-          <p className="text-blue-100">Sistem Manajemen Persuratan</p>
-          <p className="text-blue-200 text-sm">Yayasan PTU DLSM</p>
+          <h1 className="text-3xl font-bold text-green-800 mb-2">AMANAT</h1>
+          <p className="text-green-700">Sistem Manajemen Persuratan</p>
+          <p className="text-green-600 text-sm">Yayasan PTU DLSM</p>
         </div>
 
         {/* Login Form */}
@@ -83,7 +83,7 @@ const Login = () => {
                   size={20}
                 />
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="form-input pl-10 pr-10"
@@ -106,7 +106,7 @@ const Login = () => {
               loading={loading}
               className="w-full mt-6"
             >
-              {loading ? 'Memproses...' : 'Masuk'}
+              {loading ? "Memproses..." : "Masuk"}
             </Button>
           </form>
 
@@ -118,7 +118,7 @@ const Login = () => {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-blue-100 text-sm mt-6">
+        <p className="text-center text-green-700 text-sm mt-6">
           © 2024 AMANAT - Yayasan PTU DLSM
         </p>
       </div>
