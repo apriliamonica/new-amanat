@@ -57,10 +57,16 @@ const SuratKeluarDetail = () => {
     isRequestLampiran: false,
   });
   const [submitting, setSubmitting] = useState(false);
+  const [openedFiles, setOpenedFiles] = useState([]);
 
   useEffect(() => {
     fetchSurat();
     fetchUsers();
+    // Load opened files from localStorage
+    const stored = localStorage.getItem("openedFiles");
+    if (stored) {
+      setOpenedFiles(JSON.parse(stored));
+    }
   }, [id]);
 
   const fetchSurat = async () => {
@@ -163,6 +169,15 @@ const SuratKeluarDetail = () => {
       setShowLampiranModal(false);
     } catch (error) {
       console.error("Upload lampiran error:", error);
+    }
+  };
+
+  // Track file opened
+  const handleFileOpen = (fileUrl) => {
+    if (!openedFiles.includes(fileUrl)) {
+      const newOpenedFiles = [...openedFiles, fileUrl];
+      setOpenedFiles(newOpenedFiles);
+      localStorage.setItem("openedFiles", JSON.stringify(newOpenedFiles));
     }
   };
 
@@ -278,10 +293,16 @@ const SuratKeluarDetail = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="file-link inline-flex items-center gap-2"
+                      onClick={() => handleFileOpen(surat.fileUrl)}
                     >
                       <Download size={18} />
                       Lihat/Download File Surat
                     </a>
+                    {openedFiles.includes(surat.fileUrl) && (
+                      <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                        ✓ Sudah dibuka
+                      </span>
+                    )}
                   </div>
                 )}
               </Card.Body>
@@ -447,17 +468,23 @@ const SuratKeluarDetail = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="file-link flex items-center gap-3 p-4 hover:bg-gray-50"
+                        onClick={() => handleFileOpen(l.fileUrl)}
                       >
                         <FileText size={20} className="text-gray-400" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">
                             {l.namaFile}
+                            {openedFiles.includes(l.fileUrl) && (
+                              <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                                ✓ Sudah dibuka
+                              </span>
+                            )}
                           </p>
                           <p className="text-xs text-gray-500">
                             {l.uploadedBy?.nama}
                           </p>
                         </div>
-                        <Download size={16} className="text-blue-600" />
+                        <Download size={16} />
                       </a>
                     ))}
                   </div>

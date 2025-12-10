@@ -48,10 +48,16 @@ const SuratMasukDetail = () => {
     catatan: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [openedFiles, setOpenedFiles] = useState([]);
 
   useEffect(() => {
     fetchSurat();
     fetchUsers();
+    // Load opened files from localStorage
+    const stored = localStorage.getItem("openedFiles");
+    if (stored) {
+      setOpenedFiles(JSON.parse(stored));
+    }
   }, [id]);
 
   const fetchSurat = async () => {
@@ -115,6 +121,15 @@ const SuratMasukDetail = () => {
     if (isAdmin(user?.role)) return true;
     // Check if user has received disposisi for this surat
     return surat?.disposisi?.some((d) => d.toUserId === user?.id);
+  };
+
+  // Track file opened
+  const handleFileOpen = (fileUrl) => {
+    if (!openedFiles.includes(fileUrl)) {
+      const newOpenedFiles = [...openedFiles, fileUrl];
+      setOpenedFiles(newOpenedFiles);
+      localStorage.setItem("openedFiles", JSON.stringify(newOpenedFiles));
+    }
   };
 
   if (loading) {
@@ -210,10 +225,16 @@ const SuratMasukDetail = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="file-link inline-flex items-center gap-2"
+                      onClick={() => handleFileOpen(surat.fileUrl)}
                     >
                       <Download size={18} />
                       Lihat/Download File Surat
                     </a>
+                    {openedFiles.includes(surat.fileUrl) && (
+                      <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                        ✓ Sudah dibuka
+                      </span>
+                    )}
                   </div>
                 )}
               </Card.Body>
@@ -352,11 +373,17 @@ const SuratMasukDetail = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="file-link flex items-center gap-3 p-4 hover:bg-gray-50"
+                        onClick={() => handleFileOpen(l.fileUrl)}
                       >
                         <FileText size={20} className="text-gray-400" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">
                             {l.namaFile}
+                            {openedFiles.includes(l.fileUrl) && (
+                              <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                                ✓ Sudah dibuka
+                              </span>
+                            )}
                           </p>
                           <p className="text-xs text-gray-500">
                             {l.uploadedBy?.nama}
