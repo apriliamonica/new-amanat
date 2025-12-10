@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   FileText,
@@ -12,14 +12,19 @@ import {
   XCircle,
   User,
   Truck,
-} from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { suratKeluarAPI, disposisiAPI, userAPI, lampiranAPI } from '../../api/axios';
-import Header from '../../components/layout/Header';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import Modal from '../../components/common/Modal';
-import StatusBadge from '../../components/common/StatusBadge';
+} from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import {
+  suratKeluarAPI,
+  disposisiAPI,
+  userAPI,
+  lampiranAPI,
+} from "../../api/axios";
+import Header from "../../components/layout/Header";
+import Card from "../../components/common/Card";
+import Button from "../../components/common/Button";
+import Modal from "../../components/common/Modal";
+import StatusBadge from "../../components/common/StatusBadge";
 import {
   isAdmin,
   isKetua,
@@ -27,8 +32,8 @@ import {
   canValidate,
   ROLE_SHORT_NAMES,
   KATEGORI_NAMES,
-} from '../../utils/constants';
-import { formatDate, formatDateTime } from '../../utils/helpers';
+} from "../../utils/constants";
+import { formatDate, formatDateTime } from "../../utils/helpers";
 
 const SuratKeluarDetail = () => {
   const { id } = useParams();
@@ -43,12 +48,12 @@ const SuratKeluarDetail = () => {
   const [showDisposisiModal, setShowDisposisiModal] = useState(false);
   const [showLampiranModal, setShowLampiranModal] = useState(false);
   const [users, setUsers] = useState([]);
-  const [catatan, setCatatan] = useState('');
-  const [ekspedisi, setEkspedisi] = useState('');
+  const [catatan, setCatatan] = useState("");
+  const [ekspedisi, setEkspedisi] = useState("");
   const [disposisiForm, setDisposisiForm] = useState({
-    toUserId: '',
-    instruksi: '',
-    catatan: '',
+    toUserId: "",
+    instruksi: "",
+    catatan: "",
     isRequestLampiran: false,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -63,7 +68,7 @@ const SuratKeluarDetail = () => {
       const response = await suratKeluarAPI.getById(id);
       setSurat(response.data.suratKeluar);
     } catch (error) {
-      console.error('Fetch surat error:', error);
+      console.error("Fetch surat error:", error);
     } finally {
       setLoading(false);
     }
@@ -74,7 +79,7 @@ const SuratKeluarDetail = () => {
       const response = await userAPI.getAll();
       setUsers(response.data.users?.filter((u) => u.id !== user.id) || []);
     } catch (error) {
-      console.error('Fetch users error:', error);
+      console.error("Fetch users error:", error);
     }
   };
 
@@ -83,10 +88,10 @@ const SuratKeluarDetail = () => {
     try {
       await suratKeluarAPI.validate(id, { isApproved, catatan });
       setShowValidasiModal(false);
-      setCatatan('');
+      setCatatan("");
       fetchSurat();
     } catch (error) {
-      console.error('Validasi error:', error);
+      console.error("Validasi error:", error);
     } finally {
       setSubmitting(false);
     }
@@ -97,10 +102,10 @@ const SuratKeluarDetail = () => {
     try {
       await suratKeluarAPI.sign(id, { isApproved, catatan });
       setShowTTDModal(false);
-      setCatatan('');
+      setCatatan("");
       fetchSurat();
     } catch (error) {
-      console.error('TTD error:', error);
+      console.error("TTD error:", error);
     } finally {
       setSubmitting(false);
     }
@@ -111,11 +116,11 @@ const SuratKeluarDetail = () => {
     try {
       await suratKeluarAPI.send(id, { ekspedisi, catatan });
       setShowKirimModal(false);
-      setCatatan('');
-      setEkspedisi('');
+      setCatatan("");
+      setEkspedisi("");
       fetchSurat();
     } catch (error) {
-      console.error('Kirim error:', error);
+      console.error("Kirim error:", error);
     } finally {
       setSubmitting(false);
     }
@@ -130,10 +135,15 @@ const SuratKeluarDetail = () => {
         suratKeluarId: id,
       });
       setShowDisposisiModal(false);
-      setDisposisiForm({ toUserId: '', instruksi: '', catatan: '', isRequestLampiran: false });
+      setDisposisiForm({
+        toUserId: "",
+        instruksi: "",
+        catatan: "",
+        isRequestLampiran: false,
+      });
       fetchSurat();
     } catch (error) {
-      console.error('Create disposisi error:', error);
+      console.error("Create disposisi error:", error);
     } finally {
       setSubmitting(false);
     }
@@ -144,15 +154,15 @@ const SuratKeluarDetail = () => {
     if (!file) return;
 
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('suratKeluarId', id);
+    formData.append("file", file);
+    formData.append("suratKeluarId", id);
 
     try {
       await lampiranAPI.upload(formData);
       fetchSurat();
       setShowLampiranModal(false);
     } catch (error) {
-      console.error('Upload lampiran error:', error);
+      console.error("Upload lampiran error:", error);
     }
   };
 
@@ -173,16 +183,18 @@ const SuratKeluarDetail = () => {
   }
 
   // Determine available actions
-  const canShowValidasi = canValidate(user?.role) && surat.status === 'MENUNGGU_VALIDASI';
-  const canShowTTD = isKetua(user?.role) && surat.status === 'MENUNGGU_TTD';
-  const canShowKirim = isAdmin(user?.role) && surat.isSigned && surat.status !== 'SELESAI';
+  const canShowValidasi =
+    canValidate(user?.role) && surat.status === "MENUNGGU_VALIDASI";
+  const canShowTTD = isKetua(user?.role) && surat.status === "MENUNGGU_TTD";
+  const canShowKirim =
+    isAdmin(user?.role) && surat.isSigned && surat.status !== "SELESAI";
 
   return (
     <div className="min-h-screen">
       <Header title="Detail Surat Keluar" />
 
       <div className="p-6 space-y-6">
-        <Button variant="ghost" onClick={() => navigate('/surat-keluar')}>
+        <Button variant="ghost" onClick={() => navigate("/surat-keluar")}>
           <ArrowLeft size={20} />
           Kembali
         </Button>
@@ -195,9 +207,11 @@ const SuratKeluarDetail = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-sm text-gray-500 mb-1">
-                      {surat.nomorSurat || 'Draft - Belum ada nomor'}
+                      {surat.nomorSurat || "Draft - Belum ada nomor"}
                     </p>
-                    <h2 className="text-xl font-bold text-gray-800">{surat.perihal}</h2>
+                    <h2 className="text-xl font-bold text-gray-800">
+                      {surat.perihal}
+                    </h2>
                   </div>
                   <div className="flex items-center gap-2">
                     <StatusBadge status={surat.status} />
@@ -219,7 +233,9 @@ const SuratKeluarDetail = () => {
                   <div>
                     <p className="text-sm text-gray-500">Tanggal Surat</p>
                     <p className="font-medium">
-                      {surat.tanggalSurat ? formatDate(surat.tanggalSurat) : '-'}
+                      {surat.tanggalSurat
+                        ? formatDate(surat.tanggalSurat)
+                        : "-"}
                     </p>
                   </div>
                   <div>
@@ -228,7 +244,9 @@ const SuratKeluarDetail = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Kategori</p>
-                    <p className="font-medium">{KATEGORI_NAMES[surat.kategori]}</p>
+                    <p className="font-medium">
+                      {KATEGORI_NAMES[surat.kategori]}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Dibuat Oleh</p>
@@ -237,7 +255,9 @@ const SuratKeluarDetail = () => {
                   {surat.signedAt && (
                     <div>
                       <p className="text-sm text-gray-500">Ditandatangani</p>
-                      <p className="font-medium">{formatDate(surat.signedAt)}</p>
+                      <p className="font-medium">
+                        {formatDate(surat.signedAt)}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -257,7 +277,7 @@ const SuratKeluarDetail = () => {
                       href={surat.fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                      className="file-link inline-flex items-center gap-2"
                     >
                       <Download size={18} />
                       Lihat/Download File Surat
@@ -267,31 +287,46 @@ const SuratKeluarDetail = () => {
               </Card.Body>
               <Card.Footer className="flex flex-wrap gap-3">
                 {canShowValidasi && (
-                  <Button variant="success" onClick={() => setShowValidasiModal(true)}>
+                  <Button
+                    variant="success"
+                    onClick={() => setShowValidasiModal(true)}
+                  >
                     <CheckCircle size={18} />
                     Validasi Surat
                   </Button>
                 )}
                 {canShowTTD && (
-                  <Button variant="warning" onClick={() => setShowTTDModal(true)}>
+                  <Button
+                    variant="warning"
+                    onClick={() => setShowTTDModal(true)}
+                  >
                     <PenTool size={18} />
                     Tanda Tangan
                   </Button>
                 )}
                 {canShowKirim && (
-                  <Button variant="primary" onClick={() => setShowKirimModal(true)}>
+                  <Button
+                    variant="primary"
+                    onClick={() => setShowKirimModal(true)}
+                  >
                     <Truck size={18} />
                     Kirim Surat
                   </Button>
                 )}
                 {isAdmin(user?.role) && (
-                  <Button variant="secondary" onClick={() => setShowDisposisiModal(true)}>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setShowDisposisiModal(true)}
+                  >
                     <Send size={18} />
                     Minta Lampiran
                   </Button>
                 )}
                 {(isAdmin(user?.role) || isKabag(user?.role)) && (
-                  <Button variant="ghost" onClick={() => setShowLampiranModal(true)}>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setShowLampiranModal(true)}
+                  >
                     <Paperclip size={18} />
                     Upload Lampiran
                   </Button>
@@ -312,9 +347,13 @@ const SuratKeluarDetail = () => {
                   {surat.tracking?.map((track, index) => (
                     <div key={track.id} className="p-4 flex gap-4">
                       <div className="flex flex-col items-center">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          index === 0 ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
-                        }`}>
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            index === 0
+                              ? "bg-blue-100 text-blue-600"
+                              : "bg-gray-100 text-gray-400"
+                          }`}
+                        >
                           <CheckCircle size={16} />
                         </div>
                         {index < surat.tracking.length - 1 && (
@@ -322,8 +361,12 @@ const SuratKeluarDetail = () => {
                         )}
                       </div>
                       <div className="flex-1 pb-4">
-                        <p className="font-medium text-gray-800">{track.aksi}</p>
-                        <p className="text-sm text-gray-500">{track.keterangan}</p>
+                        <p className="font-medium text-gray-800">
+                          {track.aksi}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {track.keterangan}
+                        </p>
                         <p className="text-xs text-gray-400 mt-1">
                           {track.user?.nama} • {formatDateTime(track.timestamp)}
                         </p>
@@ -403,11 +446,13 @@ const SuratKeluarDetail = () => {
                         href={l.fileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-4 hover:bg-gray-50"
+                        className="file-link flex items-center gap-3 p-4 hover:bg-gray-50"
                       >
                         <FileText size={20} className="text-gray-400" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{l.namaFile}</p>
+                          <p className="text-sm font-medium truncate">
+                            {l.namaFile}
+                          </p>
                           <p className="text-xs text-gray-500">
                             {l.uploadedBy?.nama}
                           </p>
@@ -538,7 +583,10 @@ const SuratKeluarDetail = () => {
             />
           </div>
           <div className="flex gap-3 justify-end">
-            <Button variant="secondary" onClick={() => setShowKirimModal(false)}>
+            <Button
+              variant="secondary"
+              onClick={() => setShowKirimModal(false)}
+            >
               Batal
             </Button>
             <Button
@@ -587,7 +635,10 @@ const SuratKeluarDetail = () => {
               placeholder="Masukkan instruksi disposisi..."
               value={disposisiForm.instruksi}
               onChange={(e) =>
-                setDisposisiForm({ ...disposisiForm, instruksi: e.target.value })
+                setDisposisiForm({
+                  ...disposisiForm,
+                  instruksi: e.target.value,
+                })
               }
               required
             />
@@ -598,11 +649,17 @@ const SuratKeluarDetail = () => {
               id="isRequestLampiran"
               checked={disposisiForm.isRequestLampiran}
               onChange={(e) =>
-                setDisposisiForm({ ...disposisiForm, isRequestLampiran: e.target.checked })
+                setDisposisiForm({
+                  ...disposisiForm,
+                  isRequestLampiran: e.target.checked,
+                })
               }
               className="w-4 h-4 text-blue-600 rounded border-gray-300"
             />
-            <label htmlFor="isRequestLampiran" className="text-sm text-gray-700">
+            <label
+              htmlFor="isRequestLampiran"
+              className="text-sm text-gray-700"
+            >
               Tandai sebagai permintaan lampiran
             </label>
           </div>
@@ -628,7 +685,9 @@ const SuratKeluarDetail = () => {
         title="Upload Lampiran"
       >
         <div className="space-y-4">
-          <p className="text-gray-600">Pilih file untuk diupload sebagai lampiran.</p>
+          <p className="text-gray-600">
+            Pilih file untuk diupload sebagai lampiran.
+          </p>
           <input
             type="file"
             onChange={handleUploadLampiran}

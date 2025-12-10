@@ -102,7 +102,12 @@ const SuratKeluarCreate = () => {
           <Card.Body>
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="form-label">Tujuan *</label>
+                <label className="form-label">
+                  Tujuan *{" "}
+                  <span className="text-xs text-gray-400">
+                    (min. 3 karakter)
+                  </span>
+                </label>
                 <input
                   type="text"
                   name="tujuan"
@@ -110,12 +115,18 @@ const SuratKeluarCreate = () => {
                   placeholder="Nama penerima surat"
                   value={formData.tujuan}
                   onChange={handleChange}
+                  minLength={3}
                   required
                 />
               </div>
 
               <div>
-                <label className="form-label">Perihal *</label>
+                <label className="form-label">
+                  Perihal *{" "}
+                  <span className="text-xs text-gray-400">
+                    (min. 5 karakter)
+                  </span>
+                </label>
                 <input
                   type="text"
                   name="perihal"
@@ -123,6 +134,7 @@ const SuratKeluarCreate = () => {
                   placeholder="Perihal surat"
                   value={formData.perihal}
                   onChange={handleChange}
+                  minLength={5}
                   required
                 />
               </div>
@@ -196,7 +208,12 @@ const SuratKeluarCreate = () => {
               )}
 
               <div>
-                <label className="form-label">Keterangan</label>
+                <label className="form-label">
+                  Keterangan{" "}
+                  <span className="text-xs text-gray-400">
+                    (min. 10 karakter)
+                  </span>
+                </label>
                 <textarea
                   name="keterangan"
                   className="form-input"
@@ -204,6 +221,7 @@ const SuratKeluarCreate = () => {
                   placeholder="Keterangan tambahan (opsional)"
                   value={formData.keterangan}
                   onChange={handleChange}
+                  minLength={10}
                 />
               </div>
 

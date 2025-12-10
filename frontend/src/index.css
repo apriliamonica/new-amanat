@@ -56,6 +56,19 @@ body {
   @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
 }
 
+/* Link Visited State */
+a.file-link {
+  @apply text-blue-600 hover:text-blue-700 transition-colors;
+}
+
+a.file-link:visited {
+  @apply text-purple-600;
+}
+
+a.file-link:visited:hover {
+  @apply text-purple-700;
+}
+
 /* Status Badge Colors */
 .status-diterima {
   @apply bg-blue-100 text-blue-700;

@@ -131,7 +131,12 @@ const SuratMasukCreate = () => {
               </div>
 
               <div>
-                <label className="form-label">Pengirim *</label>
+                <label className="form-label">
+                  Pengirim *{" "}
+                  <span className="text-xs text-gray-400">
+                    (min. 3 karakter)
+                  </span>
+                </label>
                 <input
                   type="text"
                   name="pengirim"
@@ -139,12 +144,18 @@ const SuratMasukCreate = () => {
                   placeholder="Nama pengirim surat"
                   value={formData.pengirim}
                   onChange={handleChange}
+                  minLength={3}
                   required
                 />
               </div>
 
               <div>
-                <label className="form-label">Perihal *</label>
+                <label className="form-label">
+                  Perihal *{" "}
+                  <span className="text-xs text-gray-400">
+                    (min. 5 karakter)
+                  </span>
+                </label>
                 <input
                   type="text"
                   name="perihal"
@@ -152,12 +163,18 @@ const SuratMasukCreate = () => {
                   placeholder="Perihal surat"
                   value={formData.perihal}
                   onChange={handleChange}
+                  minLength={5}
                   required
                 />
               </div>
 
               <div>
-                <label className="form-label">Keterangan</label>
+                <label className="form-label">
+                  Keterangan{" "}
+                  <span className="text-xs text-gray-400">
+                    (min. 10 karakter)
+                  </span>
+                </label>
                 <textarea
                   name="keterangan"
                   className="form-input"
@@ -165,6 +182,7 @@ const SuratMasukCreate = () => {
                   placeholder="Keterangan tambahan (opsional)"
                   value={formData.keterangan}
                   onChange={handleChange}
+                  minLength={10}
                 />
               </div>
 
