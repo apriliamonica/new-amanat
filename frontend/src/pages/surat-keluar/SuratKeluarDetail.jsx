@@ -172,6 +172,26 @@ const SuratKeluarDetail = () => {
     }
   };
 
+  const handleProses = async () => {
+    if (
+      !window.confirm(
+        "Proses permintaan ini menjadi Surat Keluar resmi? Nomor surat akan digenerate otomatis."
+      )
+    )
+      return;
+
+    setSubmitting(true);
+    try {
+      await suratKeluarAPI.update(id, { status: STATUS_SURAT.DIPROSES });
+      fetchSurat();
+    } catch (error) {
+      console.error("Proses surat error:", error);
+      alert("Gagal memproses surat");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   // Track file opened
   const handleFileOpen = (fileUrl) => {
     if (!openedFiles.includes(fileUrl)) {
@@ -203,6 +223,8 @@ const SuratKeluarDetail = () => {
   const canShowTTD = isKetua(user?.role) && surat.status === "MENUNGGU_TTD";
   const canShowKirim =
     isAdmin(user?.role) && surat.isSigned && surat.status !== "SELESAI";
+  const canShowProses =
+    isAdmin(user?.role) && surat.status === STATUS_SURAT.PENGAJUAN;
 
   return (
     <div className="min-h-screen">
@@ -307,6 +329,16 @@ const SuratKeluarDetail = () => {
                 )}
               </Card.Body>
               <Card.Footer className="flex flex-wrap gap-3">
+                {canShowProses && (
+                  <Button
+                    variant="primary"
+                    onClick={handleProses}
+                    loading={submitting}
+                  >
+                    <CheckCircle size={18} />
+                    Proses Permintaan
+                  </Button>
+                )}
                 {canShowValidasi && (
                   <Button
                     variant="success"

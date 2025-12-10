@@ -20,6 +20,9 @@ const SuratKeluarCreate = () => {
     keterangan: "",
   });
 
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const isKabag = user.role?.startsWith("KEPALA_BAGIAN");
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -48,7 +51,7 @@ const SuratKeluarCreate = () => {
       navigate("/surat-keluar");
     } catch (error) {
       console.error("Create surat error:", error);
-      alert("Gagal membuat surat keluar");
+      alert(isKabag ? "Gagal mengajukan surat" : "Gagal membuat surat keluar");
     } finally {
       setLoading(false);
     }
@@ -56,7 +59,9 @@ const SuratKeluarCreate = () => {
 
   return (
     <div className="min-h-screen">
-      <Header title="Buat Surat Keluar" />
+      <Header
+        title={isKabag ? "Ajukan Permintaan Surat" : "Buat Surat Keluar"}
+      />
 
       <div className="p-6">
         <Button
@@ -70,7 +75,11 @@ const SuratKeluarCreate = () => {
 
         <Card className="max-w-3xl mx-auto">
           <Card.Header>
-            <h2 className="text-lg font-semibold">Buat Surat Keluar Baru</h2>
+            <h2 className="text-lg font-semibold">
+              {isKabag
+                ? "Form Pengajuan Surat Keluar"
+                : "Buat Surat Keluar Baru"}
+            </h2>
             {/* Mode Toggle */}
             <div className="flex gap-2 mt-4">
               <button
@@ -233,8 +242,12 @@ const SuratKeluarCreate = () => {
                 >
                   Batal
                 </Button>
-                <Button variant="primary" type="submit" loading={loading}>
-                  Simpan Draft
+                <Button type="submit" disabled={loading}>
+                  {loading
+                    ? "Menyimpan..."
+                    : isKabag
+                    ? "Kirim Pengajuan"
+                    : "Simpan Surat Keluar"}
                 </Button>
               </div>
             </form>

@@ -7,6 +7,7 @@ import {
   FileText,
   CheckCircle,
   PenTool,
+  Clock,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { suratKeluarAPI } from "../../api/axios";
@@ -14,7 +15,13 @@ import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import StatusBadge from "../../components/common/StatusBadge";
-import { isAdmin, isKetua, canValidate } from "../../utils/constants";
+import {
+  isAdmin,
+  isKetua,
+  canValidate,
+  isKabag,
+  STATUS_SURAT,
+} from "../../utils/constants";
 import { formatDate, truncateText } from "../../utils/helpers";
 
 const SuratKeluarList = () => {
@@ -23,6 +30,7 @@ const SuratKeluarList = () => {
   const [suratList, setSuratList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("surat"); // 'surat' | 'request'
 
   useEffect(() => {
     fetchSurat();
@@ -41,6 +49,14 @@ const SuratKeluarList = () => {
 
   // Filter
   const filteredSurat = suratList.filter((surat) => {
+    // Tab filter (only for Admin)
+    if (isAdmin(user?.role)) {
+      if (activeTab === "surat" && surat.status === STATUS_SURAT.PENGAJUAN)
+        return false;
+      if (activeTab === "request" && surat.status !== STATUS_SURAT.PENGAJUAN)
+        return false;
+    }
+
     const matchSearch =
       (surat.nomorSurat || "")
         .toLowerCase()
@@ -52,6 +68,9 @@ const SuratKeluarList = () => {
 
   // Get action label based on status and role
   const getActionLabel = (surat) => {
+    if (isAdmin(user?.role) && surat.status === STATUS_SURAT.PENGAJUAN) {
+      return { label: "Proses", icon: PenTool, color: "text-blue-600" };
+    }
     if (isKetua(user?.role) && surat.status === "MENUNGGU_TTD") {
       return { label: "Tanda Tangan", icon: PenTool, color: "text-orange-600" };
     }
@@ -74,6 +93,43 @@ const SuratKeluarList = () => {
       <Header title="Surat Keluar" />
 
       <div className="p-6 space-y-6">
+        {/* Helper function to check for "Pending" count could be nice, currently just UI */}
+
+        {/* Tabs for Admin */}
+        {isAdmin(user?.role) && (
+          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+            <button
+              onClick={() => setActiveTab("surat")}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                activeTab === "surat"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Surat Keluar
+            </button>
+            <button
+              onClick={() => setActiveTab("request")}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
+                activeTab === "request"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Permintaan Surat
+              {suratList.filter((s) => s.status === STATUS_SURAT.PENGAJUAN)
+                .length > 0 && (
+                <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                  {
+                    suratList.filter((s) => s.status === STATUS_SURAT.PENGAJUAN)
+                      .length
+                  }
+                </span>
+              )}
+            </button>
+          </div>
+        )}
+
         {/* Actions Bar */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="relative flex-1 max-w-md">
@@ -90,11 +146,11 @@ const SuratKeluarList = () => {
             />
           </div>
 
-          {isAdmin(user?.role) && (
+          {(isAdmin(user?.role) || isKabag(user?.role)) && (
             <Link to="/surat-keluar/create">
               <Button variant="primary">
                 <Plus size={20} />
-                Buat Surat Keluar
+                {isKabag(user?.role) ? "Ajukan Surat" : "Buat Surat Keluar"}
               </Button>
             </Link>
           )}

@@ -22,6 +22,7 @@ enum Role {
 }
 
 enum StatusSurat {
+  PENGAJUAN
   DITERIMA
   DIPROSES
   DISPOSISI

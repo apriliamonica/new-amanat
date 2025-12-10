@@ -107,13 +107,24 @@ const createSuratKeluar = async (req, res) => {
       filePublicId = req.file.filename;
     }
 
-    // Auto-generate nomor surat
-    const nomorSurat = await generateNomorSurat();
+    // Check role, if Kabag only request (PENGAJUAN)
+    const isKabag = req.user.role.startsWith("KEPALA_BAGIAN");
+
+    let nomorSurat = null;
+    let tanggalSurat = null;
+    let status = "PENGAJUAN";
+
+    if (!isKabag) {
+      // Admin/Sekretaris instantly process and generate number
+      nomorSurat = await generateNomorSurat();
+      tanggalSurat = new Date();
+      status = "DIPROSES";
+    }
 
     const suratKeluar = await prisma.suratKeluar.create({
       data: {
         nomorSurat,
-        tanggalSurat: new Date(),
+        tanggalSurat,
         tujuan,
         perihal,
         jenisSurat: jenisSurat || "EKSTERNAL",
@@ -124,7 +135,7 @@ const createSuratKeluar = async (req, res) => {
         filePublicId,
         createdById: req.user.id,
         suratMasukId: suratMasukId || null,
-        status: "DIPROSES",
+        status,
       },
       include: {
         createdBy: {
@@ -136,8 +147,10 @@ const createSuratKeluar = async (req, res) => {
     // Create tracking entry
     await prisma.trackingSurat.create({
       data: {
-        aksi: "Surat keluar dibuat",
-        keterangan: `Surat nomor ${nomorSurat} untuk ${tujuan} dibuat oleh ${req.user.nama}`,
+        aksi: isKabag ? "Permintaan surat diajukan" : "Surat keluar dibuat",
+        keterangan: isKabag
+          ? `Permintaan surat untuk ${tujuan} diajukan oleh ${req.user.nama}`
+          : `Surat nomor ${nomorSurat} untuk ${tujuan} dibuat oleh ${req.user.nama}`,
         userId: req.user.id,
         suratKeluarId: suratKeluar.id,
       },
@@ -157,7 +170,8 @@ const createSuratKeluar = async (req, res) => {
 const updateSuratKeluar = async (req, res) => {
   try {
     const { id } = req.params;
-    const { tujuan, perihal, jenisSurat, isiSurat, keterangan } = req.body;
+    const { tujuan, perihal, jenisSurat, isiSurat, keterangan, status } =
+      req.body;
 
     const existingSurat = await prisma.suratKeluar.findUnique({
       where: { id },
@@ -169,6 +183,8 @@ const updateSuratKeluar = async (req, res) => {
 
     let fileUrl = existingSurat.fileUrl;
     let filePublicId = existingSurat.filePublicId;
+    let nomorSurat = existingSurat.nomorSurat;
+    let tanggalSurat = existingSurat.tanggalSurat;
 
     if (req.file) {
       // Delete old file from Cloudinary
@@ -177,6 +193,16 @@ const updateSuratKeluar = async (req, res) => {
       }
       fileUrl = req.file.path;
       filePublicId = req.file.filename;
+    }
+
+    // Handle converting PENGAJUAN to DIPROSES
+    if (
+      existingSurat.status === "PENGAJUAN" &&
+      status === "DIPROSES" &&
+      !existingSurat.nomorSurat
+    ) {
+      nomorSurat = await generateNomorSurat();
+      tanggalSurat = new Date();
     }
 
     const suratKeluar = await prisma.suratKeluar.update({
@@ -189,6 +215,9 @@ const updateSuratKeluar = async (req, res) => {
         keterangan,
         fileUrl,
         filePublicId,
+        status: status || existingSurat.status,
+        nomorSurat,
+        tanggalSurat,
       },
       include: {
         createdBy: {
@@ -196,6 +225,18 @@ const updateSuratKeluar = async (req, res) => {
         },
       },
     });
+
+    // Add tracking if status changed
+    if (status && status !== existingSurat.status) {
+      await prisma.trackingSurat.create({
+        data: {
+          aksi: `Surat diupdate ke ${status}`,
+          keterangan: `Status diubah oleh ${req.user.nama}`,
+          userId: req.user.id,
+          suratKeluarId: suratKeluar.id,
+        },
+      });
+    }
 
     res.json({
       message: "Surat keluar berhasil diupdate",

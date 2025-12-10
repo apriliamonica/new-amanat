@@ -4,11 +4,11 @@
 const hasRole = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {
-      return res.status(401).json({ message: 'Tidak terautentikasi' });
+      return res.status(401).json({ message: "Tidak terautentikasi" });
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'Akses ditolak' });
+      return res.status(403).json({ message: "Akses ditolak" });
     }
 
     next();
@@ -16,41 +16,49 @@ const hasRole = (...allowedRoles) => {
 };
 
 // Only Sekretaris Kantor (Admin)
-const isAdmin = hasRole('SEKRETARIS_KANTOR');
+const isAdmin = hasRole("SEKRETARIS_KANTOR");
 
 // Ketua Pengurus
-const isKetua = hasRole('KETUA_PENGURUS');
+const isKetua = hasRole("KETUA_PENGURUS");
 
 // Sekretaris Pengurus
-const isSekpeng = hasRole('SEKRETARIS_PENGURUS');
+const isSekpeng = hasRole("SEKRETARIS_PENGURUS");
 
 // Bendahara
-const isBendahara = hasRole('BENDAHARA');
+const isBendahara = hasRole("BENDAHARA");
 
 // Any Kepala Bagian
 const isKabag = hasRole(
-  'KEPALA_BAGIAN_PSDM',
-  'KEPALA_BAGIAN_KEUANGAN',
-  'KEPALA_BAGIAN_UMUM'
+  "KEPALA_BAGIAN_PSDM",
+  "KEPALA_BAGIAN_KEUANGAN",
+  "KEPALA_BAGIAN_UMUM"
 );
 
 // Can validate surat keluar (Sekpeng or Bendahara)
-const canValidate = hasRole('SEKRETARIS_PENGURUS', 'BENDAHARA');
+const canValidate = hasRole("SEKRETARIS_PENGURUS", "BENDAHARA");
 
 // Can create disposisi (Admin, Ketua, Sekpeng, Bendahara)
 const canDisposisi = hasRole(
-  'SEKRETARIS_KANTOR',
-  'KETUA_PENGURUS',
-  'SEKRETARIS_PENGURUS',
-  'BENDAHARA'
+  "SEKRETARIS_KANTOR",
+  "KETUA_PENGURUS",
+  "SEKRETARIS_PENGURUS",
+  "BENDAHARA"
+);
+
+// Can create surat keluar (Admin and all Kabag)
+const canCreateSurat = hasRole(
+  "SEKRETARIS_KANTOR",
+  "KEPALA_BAGIAN_PSDM",
+  "KEPALA_BAGIAN_KEUANGAN",
+  "KEPALA_BAGIAN_UMUM"
 );
 
 // All roles except Kabag
 const isPetinggi = hasRole(
-  'SEKRETARIS_KANTOR',
-  'KETUA_PENGURUS',
-  'SEKRETARIS_PENGURUS',
-  'BENDAHARA'
+  "SEKRETARIS_KANTOR",
+  "KETUA_PENGURUS",
+  "SEKRETARIS_PENGURUS",
+  "BENDAHARA"
 );
 
 module.exports = {
@@ -62,5 +70,6 @@ module.exports = {
   isKabag,
   canValidate,
   canDisposisi,
+  canCreateSurat,
   isPetinggi,
 };
