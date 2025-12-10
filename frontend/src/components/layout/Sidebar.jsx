@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
   X,
+  Settings,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -66,6 +67,12 @@ const Sidebar = () => {
         path: "/users",
         icon: Users,
         label: "Kelola User",
+        roles: [ROLES.SEKRETARIS_KANTOR],
+      });
+      baseItems.push({
+        path: "/admin/jenis-surat",
+        icon: Settings,
+        label: "Jenis Surat",
         roles: [ROLES.SEKRETARIS_KANTOR],
       });
     }

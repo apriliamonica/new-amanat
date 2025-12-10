@@ -20,6 +20,7 @@ import {
   disposisiAPI,
   userAPI,
   lampiranAPI,
+  jenisSuratAPI,
 } from "../../api/axios";
 import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
@@ -59,18 +60,35 @@ const SuratKeluarDetail = () => {
     catatan: "",
     isRequestLampiran: false,
   });
+  const [showProsesModal, setShowProsesModal] = useState(false);
+  const [jenisSuratOptions, setJenisSuratOptions] = useState([]);
+  const [selectedJenisSuratId, setSelectedJenisSuratId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [openedFiles, setOpenedFiles] = useState([]);
 
   useEffect(() => {
     fetchSurat();
     fetchUsers();
+    if (isAdmin(user?.role)) {
+      fetchJenisSurat();
+    }
     // Load opened files from localStorage
     const stored = localStorage.getItem("openedFiles");
     if (stored) {
       setOpenedFiles(JSON.parse(stored));
     }
-  }, [id]);
+  }, [id, user?.role]);
+
+  const fetchJenisSurat = async () => {
+    try {
+      const response = await jenisSuratAPI.getAll();
+      if (response.data.success) {
+        setJenisSuratOptions(response.data.data);
+      }
+    } catch (error) {
+      console.error("Fetch jenis surat error:", error);
+    }
+  };
 
   const fetchSurat = async () => {
     try {
@@ -175,18 +193,19 @@ const SuratKeluarDetail = () => {
     }
   };
 
-  const handleProses = async () => {
-    if (
-      !window.confirm(
-        "Proses permintaan ini menjadi Surat Keluar resmi? Nomor surat akan digenerate otomatis."
-      )
-    )
-      return;
+  const handleProses = () => {
+    setShowProsesModal(true);
+  };
 
+  const confirmProses = async () => {
     setSubmitting(true);
     try {
-      await suratKeluarAPI.update(id, { status: STATUS_SURAT.DIPROSES });
+      await suratKeluarAPI.update(id, {
+        status: STATUS_SURAT.DIPROSES,
+        jenisSuratId: selectedJenisSuratId || undefined,
+      });
       fetchSurat();
+      setShowProsesModal(false);
     } catch (error) {
       console.error("Proses surat error:", error);
       alert("Gagal memproses surat");
@@ -768,6 +787,56 @@ const SuratKeluarDetail = () => {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Proses Request Modal */}
+      <Modal
+        isOpen={showProsesModal}
+        onClose={() => setShowProsesModal(false)}
+        title="Proses Surat Keluar"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Anda akan memproses permintaan ini menjadi Surat Keluar resmi.
+            Silakan pilih jenis surat untuk menentukan format nomor surat.
+          </p>
+          <div>
+            <label className="form-label">Jenis Surat</label>
+            <select
+              className="form-input"
+              value={selectedJenisSuratId}
+              onChange={(e) => setSelectedJenisSuratId(e.target.value)}
+            >
+              <option value="">-- Pilih Jenis Surat (Default: SK) --</option>
+              {jenisSuratOptions.map((jenis) => (
+                <option key={jenis.id} value={jenis.id}>
+                  {jenis.nama} ({jenis.kode})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="bg-blue-50 p-3 rounded text-sm text-blue-700">
+            Preview Nomor: .../
+            {jenisSuratOptions.find((j) => j.id === selectedJenisSuratId)
+              ?.kode || "SK"}
+            /...
+          </div>
+          <div className="flex gap-3 justify-end pt-4">
+            <Button
+              variant="secondary"
+              onClick={() => setShowProsesModal(false)}
+            >
+              Batal
+            </Button>
+            <Button
+              variant="primary"
+              onClick={confirmProses}
+              loading={submitting}
+            >
+              Proses & Generate Nomor
+            </Button>
+          </div>
+        </div>
       </Modal>
 
       {/* Lampiran Modal */}

@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Upload, FileText, Edit } from "lucide-react";
-import { suratKeluarAPI } from "../../api/axios";
+import { suratKeluarAPI, jenisSuratAPI } from "../../api/axios";
 import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
@@ -11,15 +11,34 @@ const SuratKeluarCreate = () => {
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState(null);
   const [mode, setMode] = useState("upload"); // 'upload' or 'create'
+  const [jenisSuratOptions, setJenisSuratOptions] = useState([]);
   const [formData, setFormData] = useState({
     tujuan: "",
     perihal: "",
     isiSurat: "",
     keterangan: "",
+    jenisSuratId: "",
   });
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isKabag = user.role?.startsWith("KEPALA_BAGIAN");
+
+  useEffect(() => {
+    if (!isKabag) {
+      fetchJenisSurat();
+    }
+  }, [isKabag]);
+
+  const fetchJenisSurat = async () => {
+    try {
+      const response = await jenisSuratAPI.getAll();
+      if (response.data.success) {
+        setJenisSuratOptions(response.data.data);
+      }
+    } catch (error) {
+      console.error("Fetch jenis surat error:", error);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;

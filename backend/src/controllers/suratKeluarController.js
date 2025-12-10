@@ -96,7 +96,14 @@ const getSuratKeluarById = async (req, res) => {
 // Create surat keluar (Admin only)
 const createSuratKeluar = async (req, res) => {
   try {
-    const { tujuan, perihal, isiSurat, keterangan, suratMasukId } = req.body;
+    const {
+      tujuan,
+      perihal,
+      isiSurat,
+      keterangan,
+      suratMasukId,
+      jenisSuratId,
+    } = req.body;
 
     let fileUrl = null;
     let filePublicId = null;
@@ -115,7 +122,17 @@ const createSuratKeluar = async (req, res) => {
 
     if (!isKabag) {
       // Admin/Sekretaris instantly process and generate number
-      nomorSurat = await generateNomorSurat();
+
+      // Determine kode jenis
+      let kodeJenis = "SK";
+      if (jenisSuratId) {
+        const jenis = await prisma.jenisSurat.findUnique({
+          where: { id: jenisSuratId },
+        });
+        if (jenis) kodeJenis = jenis.kode;
+      }
+
+      nomorSurat = await generateNomorSurat(kodeJenis);
       tanggalSurat = new Date();
       status = "DIPROSES";
     }
@@ -126,10 +143,7 @@ const createSuratKeluar = async (req, res) => {
         tanggalSurat,
         tujuan,
         perihal,
-        tujuan,
-        perihal,
-        jenisSurat: "INTERNAL",
-        kategori: "UMUM", // Default value
+        jenisSuratId, // Link to JenisSurat model
         kategori: "UMUM", // Default value
         isiSurat,
         keterangan,
@@ -172,7 +186,8 @@ const createSuratKeluar = async (req, res) => {
 const updateSuratKeluar = async (req, res) => {
   try {
     const { id } = req.params;
-    const { tujuan, perihal, isiSurat, keterangan, status } = req.body;
+    const { tujuan, perihal, isiSurat, keterangan, status, jenisSuratId } =
+      req.body;
 
     const existingSurat = await prisma.suratKeluar.findUnique({
       where: { id },
@@ -202,7 +217,18 @@ const updateSuratKeluar = async (req, res) => {
       status === "DIPROSES" &&
       !existingSurat.nomorSurat
     ) {
-      nomorSurat = await generateNomorSurat();
+      // Use provided jenisSuratId or existing one
+      const targetJenisId = jenisSuratId || existingSurat.jenisSuratId;
+      let kodeJenis = "SK";
+
+      if (targetJenisId) {
+        const jenis = await prisma.jenisSurat.findUnique({
+          where: { id: targetJenisId },
+        });
+        if (jenis) kodeJenis = jenis.kode;
+      }
+
+      nomorSurat = await generateNomorSurat(kodeJenis);
       tanggalSurat = new Date();
     }
 
@@ -216,6 +242,7 @@ const updateSuratKeluar = async (req, res) => {
         fileUrl,
         filePublicId,
         status: status || existingSurat.status,
+        jenisSuratId: jenisSuratId || undefined,
         nomorSurat,
         tanggalSurat,
       },

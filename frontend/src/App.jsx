@@ -16,6 +16,7 @@ import SuratKeluarCreate from "./pages/surat-keluar/SuratKeluarCreate";
 import SuratKeluarEdit from "./pages/surat-keluar/SuratKeluarEdit";
 import DisposisiList from "./pages/disposisi/DisposisiList";
 import UserList from "./pages/users/UserList";
+import JenisSuratManager from "./pages/admin/JenisSuratManager";
 
 import { ROLES, getKabagRoles } from "./utils/constants";
 
@@ -87,6 +88,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={[ROLES.SEKRETARIS_KANTOR]}>
                   <UserList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/jenis-surat"
+              element={
+                <ProtectedRoute allowedRoles={[ROLES.SEKRETARIS_KANTOR]}>
+                  <JenisSuratManager />
                 </ProtectedRoute>
               }
             />

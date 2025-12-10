@@ -42,7 +42,7 @@ enum StatusDisposisi {
   SELESAI
 }
 
-enum JenisSurat {
+enum SifatSurat {
   INTERNAL
   EKSTERNAL
 }
@@ -79,7 +79,7 @@ model SuratMasuk {
   tanggalDiterima DateTime      @default(now())
   pengirim        String
   perihal         String
-  jenisSurat      JenisSurat
+  jenisSurat      SifatSurat
   kategori        KategoriSurat
   status          StatusSurat   @default(DITERIMA)
   fileUrl         String?
@@ -104,7 +104,8 @@ model SuratKeluar {
   tanggalSurat DateTime?
   tujuan       String
   perihal      String
-  jenisSurat   JenisSurat
+  jenisSuratId String?
+  jenisSurat   JenisSurat?   @relation(fields: [jenisSuratId], references: [id])
   kategori     KategoriSurat
   status       StatusSurat   @default(DIPROSES)
   isiSurat     String?       @db.Text
@@ -189,4 +190,15 @@ model NomorSuratCounter {
   tahun     Int      @unique
   counter   Int      @default(0)
   updatedAt DateTime @updatedAt
+}
+
+model JenisSurat {
+  id        String   @id @default(uuid())
+  kode      String   @unique // e.g., "SK", "UND", "ST"
+  nama      String   // e.g., "Surat Keputusan", "Undangan"
+  format    String?  // Optional format string if needed
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  suratKeluar SuratKeluar[]
 }

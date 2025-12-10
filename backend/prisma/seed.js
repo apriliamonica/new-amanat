@@ -1,57 +1,57 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
+const { PrismaClient } = require("@prisma/client");
+const bcrypt = require("bcryptjs");
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Seeding database...');
+  console.log("Seeding database...");
 
   // Hash password
-  const hashedPassword = await bcrypt.hash('password123', 10);
+  const hashedPassword = await bcrypt.hash("password123", 10);
 
   // Create users for each role
   const users = [
     {
-      email: 'sekretaris@amanat.id',
+      email: "sekretaris@amanat.id",
       password: hashedPassword,
-      nama: 'Admin Sekretaris Kantor',
-      role: 'SEKRETARIS_KANTOR',
+      nama: "Admin Sekretaris Kantor",
+      role: "SEKRETARIS_KANTOR",
     },
     {
-      email: 'ketua@amanat.id',
+      email: "ketua@amanat.id",
       password: hashedPassword,
-      nama: 'Ketua Pengurus Yayasan',
-      role: 'KETUA_PENGURUS',
+      nama: "Ketua Pengurus Yayasan",
+      role: "KETUA_PENGURUS",
     },
     {
-      email: 'sekpeng@amanat.id',
+      email: "sekpeng@amanat.id",
       password: hashedPassword,
-      nama: 'Sekretaris Pengurus Yayasan',
-      role: 'SEKRETARIS_PENGURUS',
+      nama: "Sekretaris Pengurus Yayasan",
+      role: "SEKRETARIS_PENGURUS",
     },
     {
-      email: 'bendahara@amanat.id',
+      email: "bendahara@amanat.id",
       password: hashedPassword,
-      nama: 'Bendahara Pengurus Yayasan',
-      role: 'BENDAHARA',
+      nama: "Bendahara Pengurus Yayasan",
+      role: "BENDAHARA",
     },
     {
-      email: 'kabag.psdm@amanat.id',
+      email: "kabag.psdm@amanat.id",
       password: hashedPassword,
-      nama: 'Kepala Bagian PSDM',
-      role: 'KEPALA_BAGIAN_PSDM',
+      nama: "Kepala Bagian PSDM",
+      role: "KEPALA_BAGIAN_PSDM",
     },
     {
-      email: 'kabag.keuangan@amanat.id',
+      email: "kabag.keuangan@amanat.id",
       password: hashedPassword,
-      nama: 'Kepala Bagian Keuangan',
-      role: 'KEPALA_BAGIAN_KEUANGAN',
+      nama: "Kepala Bagian Keuangan",
+      role: "KEPALA_BAGIAN_KEUANGAN",
     },
     {
-      email: 'kabag.umum@amanat.id',
+      email: "kabag.umum@amanat.id",
       password: hashedPassword,
-      nama: 'Kepala Bagian Umum',
-      role: 'KEPALA_BAGIAN_UMUM',
+      nama: "Kepala Bagian Umum",
+      role: "KEPALA_BAGIAN_UMUM",
     },
   ];
 
@@ -76,7 +76,25 @@ async function main() {
   });
   console.log(`Initialized nomor surat counter for year ${currentYear}`);
 
-  console.log('Seeding completed!');
+  // Seed default Jenis Surat
+  const jenisSuratData = [
+    { kode: "SK", nama: "Surat Keputusan" },
+    { kode: "UND", nama: "Surat Undangan" },
+    { kode: "ST", nama: "Surat Tugas" },
+    { kode: "SM", nama: "Surat Masuk" }, // Optional
+    { kode: "SP", nama: "Surat Peringatan" },
+  ];
+
+  for (const jenis of jenisSuratData) {
+    await prisma.jenisSurat.upsert({
+      where: { kode: jenis.kode },
+      update: {},
+      create: jenis,
+    });
+    console.log(`Created jenis surat: ${jenis.kode}`);
+  }
+
+  console.log("Seeding completed!");
 }
 
 main()
