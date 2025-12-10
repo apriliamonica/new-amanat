@@ -1,22 +1,28 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Search, Eye, FileText, CheckCircle, PenTool } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { suratKeluarAPI } from '../../api/axios';
-import Header from '../../components/layout/Header';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import StatusBadge from '../../components/common/StatusBadge';
-import { isAdmin, isKetua, canValidate, KATEGORI_NAMES } from '../../utils/constants';
-import { formatDate, truncateText } from '../../utils/helpers';
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Plus,
+  Search,
+  Eye,
+  FileText,
+  CheckCircle,
+  PenTool,
+} from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { suratKeluarAPI } from "../../api/axios";
+import Header from "../../components/layout/Header";
+import Card from "../../components/common/Card";
+import Button from "../../components/common/Button";
+import StatusBadge from "../../components/common/StatusBadge";
+import { isAdmin, isKetua, canValidate } from "../../utils/constants";
+import { formatDate, truncateText } from "../../utils/helpers";
 
 const SuratKeluarList = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [suratList, setSuratList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchSurat();
@@ -27,7 +33,7 @@ const SuratKeluarList = () => {
       const response = await suratKeluarAPI.getAll();
       setSuratList(response.data.suratKeluar);
     } catch (error) {
-      console.error('Fetch surat error:', error);
+      console.error("Fetch surat error:", error);
     } finally {
       setLoading(false);
     }
@@ -36,22 +42,23 @@ const SuratKeluarList = () => {
   // Filter
   const filteredSurat = suratList.filter((surat) => {
     const matchSearch =
-      (surat.nomorSurat || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (surat.nomorSurat || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
       surat.perihal.toLowerCase().includes(searchTerm.toLowerCase()) ||
       surat.tujuan.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchStatus = !filterStatus || surat.status === filterStatus;
-    return matchSearch && matchStatus;
+    return matchSearch;
   });
 
   // Get action label based on status and role
   const getActionLabel = (surat) => {
-    if (isKetua(user?.role) && surat.status === 'MENUNGGU_TTD') {
-      return { label: 'Tanda Tangan', icon: PenTool, color: 'text-orange-600' };
+    if (isKetua(user?.role) && surat.status === "MENUNGGU_TTD") {
+      return { label: "Tanda Tangan", icon: PenTool, color: "text-orange-600" };
     }
-    if (canValidate(user?.role) && surat.status === 'MENUNGGU_VALIDASI') {
-      return { label: 'Validasi', icon: CheckCircle, color: 'text-green-600' };
+    if (canValidate(user?.role) && surat.status === "MENUNGGU_VALIDASI") {
+      return { label: "Validasi", icon: CheckCircle, color: "text-green-600" };
     }
-    return { label: 'Lihat', icon: Eye, color: 'text-gray-600' };
+    return { label: "Lihat", icon: Eye, color: "text-gray-600" };
   };
 
   if (loading) {
@@ -69,17 +76,18 @@ const SuratKeluarList = () => {
       <div className="p-6 space-y-6">
         {/* Actions Bar */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
-          <div className="flex flex-col sm:flex-row gap-3 flex-1">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder="Cari nomor surat, perihal, tujuan..."
-                className="form-input pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+          <div className="relative flex-1 max-w-md">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={20}
+            />
+            <input
+              type="text"
+              placeholder="Cari nomor surat, perihal, tujuan..."
+              className="form-input pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
 
           {isAdmin(user?.role) && (
@@ -92,7 +100,7 @@ const SuratKeluarList = () => {
           )}
         </div>
 
-        {/* Surat List */}
+        {/* Surat Table */}
         {filteredSurat.length === 0 ? (
           <Card className="p-12 text-center">
             <FileText className="mx-auto mb-4 text-gray-300" size={48} />
@@ -101,66 +109,102 @@ const SuratKeluarList = () => {
             </h3>
             <p className="text-gray-400">
               {searchTerm
-                ? 'Coba ubah filter pencarian Anda'
-                : 'Belum ada surat keluar yang tersedia'}
+                ? "Coba ubah filter pencarian Anda"
+                : "Belum ada surat keluar yang tersedia"}
             </p>
           </Card>
         ) : (
-          <div className="grid gap-4">
-            {filteredSurat.map((surat) => {
-              const action = getActionLabel(surat);
-              return (
-                <Card
-                  key={surat.id}
-                  hover
-                  onClick={() => navigate(`/surat-keluar/${surat.id}`)}
-                  className="p-5"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-sm font-mono text-gray-500">
-                          {surat.nomorSurat || 'Draft'}
-                        </span>
-                        <StatusBadge status={surat.status} size="small" />
-                        {surat.isSigned && (
-                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded flex items-center gap-1">
-                            <PenTool size={12} />
-                            Signed
+          <Card className="overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+                      No. Surat
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+                      Tujuan
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+                      Perihal
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+                      Jenis
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+                      Tanggal
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+                      Status
+                    </th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold text-gray-600">
+                      Aksi
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {filteredSurat.map((surat) => {
+                    const action = getActionLabel(surat);
+                    return (
+                      <tr
+                        key={surat.id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="px-4 py-3 text-sm font-mono text-gray-700">
+                          {surat.nomorSurat || (
+                            <span className="text-gray-400 italic">Draft</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-700">
+                          {truncateText(surat.tujuan, 25)}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-700">
+                          {truncateText(surat.perihal, 35)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded ${
+                              surat.jenisSurat === "INTERNAL"
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-orange-100 text-orange-700"
+                            }`}
+                          >
+                            {surat.jenisSurat}
                           </span>
-                        )}
-                      </div>
-                      <h3 className="font-semibold text-gray-800 mb-1">
-                        {truncateText(surat.perihal, 80)}
-                      </h3>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
-                        <span>Tujuan: {surat.tujuan}</span>
-                        {surat.tanggalSurat && (
-                          <span>Tanggal: {formatDate(surat.tanggalSurat)}</span>
-                        )}
-                        <span className="bg-gray-100 px-2 py-0.5 rounded text-xs">
-                          {KATEGORI_NAMES[surat.kategori]}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 sm:flex-shrink-0">
-                      {surat._count?.lampiran > 0 && (
-                        <span className="text-xs bg-gray-100 px-2 py-1 rounded flex items-center gap-1">
-                          <FileText size={14} />
-                          {surat._count.lampiran}
-                        </span>
-                      )}
-                      <Button variant="ghost" size="small">
-                        <action.icon size={18} className={action.color} />
-                        {action.label}
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {surat.tanggalSurat
+                            ? formatDate(surat.tanggalSurat)
+                            : "-"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <StatusBadge status={surat.status} size="small" />
+                          {surat.isSigned && (
+                            <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded inline-flex items-center gap-1">
+                              <PenTool size={10} />
+                              Signed
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <Button
+                            variant="ghost"
+                            size="small"
+                            onClick={() =>
+                              navigate(`/surat-keluar/${surat.id}`)
+                            }
+                          >
+                            <action.icon size={16} className={action.color} />
+                            {action.label}
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
         )}
       </div>
     </div>

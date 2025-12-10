@@ -1,6 +1,6 @@
-const prisma = require('../config/database');
-const { cloudinary } = require('../config/cloudinary');
-const { isKabagRole } = require('../utils/helpers');
+const prisma = require("../config/database");
+const { cloudinary } = require("../config/cloudinary");
+const { isKabagRole } = require("../utils/helpers");
 
 // Get all surat masuk (filtered by role)
 const getAllSuratMasuk = async (req, res) => {
@@ -9,7 +9,7 @@ const getAllSuratMasuk = async (req, res) => {
     let whereCondition = {};
 
     // Admin sees all, others see only disposed to them
-    if (role !== 'SEKRETARIS_KANTOR') {
+    if (role !== "SEKRETARIS_KANTOR") {
       whereCondition = {
         OR: [
           { disposisi: { some: { toUserId: userId } } },
@@ -29,19 +29,19 @@ const getAllSuratMasuk = async (req, res) => {
             fromUser: { select: { id: true, nama: true, role: true } },
             toUser: { select: { id: true, nama: true, role: true } },
           },
-          orderBy: { tanggalDisposisi: 'desc' },
+          orderBy: { tanggalDisposisi: "desc" },
         },
         _count: {
           select: { lampiran: true },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     res.json({ suratMasuk });
   } catch (error) {
-    console.error('Get surat masuk error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Get surat masuk error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -61,7 +61,7 @@ const getSuratMasukById = async (req, res) => {
             fromUser: { select: { id: true, nama: true, role: true } },
             toUser: { select: { id: true, nama: true, role: true } },
           },
-          orderBy: { tanggalDisposisi: 'asc' },
+          orderBy: { tanggalDisposisi: "asc" },
         },
         lampiran: {
           include: {
@@ -72,20 +72,20 @@ const getSuratMasukById = async (req, res) => {
           include: {
             user: { select: { id: true, nama: true, role: true } },
           },
-          orderBy: { timestamp: 'asc' },
+          orderBy: { timestamp: "asc" },
         },
         suratBalasan: true,
       },
     });
 
     if (!suratMasuk) {
-      return res.status(404).json({ message: 'Surat tidak ditemukan' });
+      return res.status(404).json({ message: "Surat tidak ditemukan" });
     }
 
     res.json({ suratMasuk });
   } catch (error) {
-    console.error('Get surat masuk by id error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Get surat masuk by id error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -95,10 +95,10 @@ const createSuratMasuk = async (req, res) => {
     const {
       nomorSurat,
       tanggalSurat,
+      tanggalDiterima,
       pengirim,
       perihal,
       jenisSurat,
-      kategori,
       keterangan,
       isLengkap,
     } = req.body;
@@ -115,16 +115,19 @@ const createSuratMasuk = async (req, res) => {
       data: {
         nomorSurat,
         tanggalSurat: new Date(tanggalSurat),
+        tanggalDiterima: tanggalDiterima
+          ? new Date(tanggalDiterima)
+          : new Date(),
         pengirim,
         perihal,
-        jenisSurat,
-        kategori,
+        jenisSurat: jenisSurat || "EKSTERNAL",
+        kategori: "UMUM", // Default value
         keterangan,
-        isLengkap: isLengkap === 'true' || isLengkap === true,
+        isLengkap: isLengkap === "true" || isLengkap === true,
         fileUrl,
         filePublicId,
         createdById: req.user.id,
-        status: 'DITERIMA',
+        status: "DITERIMA",
       },
       include: {
         createdBy: {
@@ -136,7 +139,7 @@ const createSuratMasuk = async (req, res) => {
     // Create tracking entry
     await prisma.trackingSurat.create({
       data: {
-        aksi: 'Surat masuk diterima',
+        aksi: "Surat masuk diterima",
         keterangan: `Surat dari ${pengirim} diterima oleh ${req.user.nama}`,
         userId: req.user.id,
         suratMasukId: suratMasuk.id,
@@ -144,12 +147,12 @@ const createSuratMasuk = async (req, res) => {
     });
 
     res.status(201).json({
-      message: 'Surat masuk berhasil dibuat',
+      message: "Surat masuk berhasil dibuat",
       suratMasuk,
     });
   } catch (error) {
-    console.error('Create surat masuk error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Create surat masuk error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -160,10 +163,10 @@ const updateSuratMasuk = async (req, res) => {
     const {
       nomorSurat,
       tanggalSurat,
+      tanggalDiterima,
       pengirim,
       perihal,
       jenisSurat,
-      kategori,
       keterangan,
       isLengkap,
     } = req.body;
@@ -173,7 +176,7 @@ const updateSuratMasuk = async (req, res) => {
     });
 
     if (!existingSurat) {
-      return res.status(404).json({ message: 'Surat tidak ditemukan' });
+      return res.status(404).json({ message: "Surat tidak ditemukan" });
     }
 
     let fileUrl = existingSurat.fileUrl;
@@ -193,12 +196,14 @@ const updateSuratMasuk = async (req, res) => {
       data: {
         nomorSurat,
         tanggalSurat: tanggalSurat ? new Date(tanggalSurat) : undefined,
+        tanggalDiterima: tanggalDiterima
+          ? new Date(tanggalDiterima)
+          : undefined,
         pengirim,
         perihal,
         jenisSurat,
-        kategori,
         keterangan,
-        isLengkap: isLengkap === 'true' || isLengkap === true,
+        isLengkap: isLengkap === "true" || isLengkap === true,
         fileUrl,
         filePublicId,
       },
@@ -210,12 +215,12 @@ const updateSuratMasuk = async (req, res) => {
     });
 
     res.json({
-      message: 'Surat masuk berhasil diupdate',
+      message: "Surat masuk berhasil diupdate",
       suratMasuk,
     });
   } catch (error) {
-    console.error('Update surat masuk error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Update surat masuk error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -241,12 +246,12 @@ const updateStatusSuratMasuk = async (req, res) => {
     });
 
     res.json({
-      message: 'Status surat berhasil diupdate',
+      message: "Status surat berhasil diupdate",
       suratMasuk,
     });
   } catch (error) {
-    console.error('Update status error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Update status error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -260,7 +265,7 @@ const deleteSuratMasuk = async (req, res) => {
     });
 
     if (!existingSurat) {
-      return res.status(404).json({ message: 'Surat tidak ditemukan' });
+      return res.status(404).json({ message: "Surat tidak ditemukan" });
     }
 
     // Delete file from Cloudinary
@@ -275,10 +280,10 @@ const deleteSuratMasuk = async (req, res) => {
 
     await prisma.suratMasuk.delete({ where: { id } });
 
-    res.json({ message: 'Surat masuk berhasil dihapus' });
+    res.json({ message: "Surat masuk berhasil dihapus" });
   } catch (error) {
-    console.error('Delete surat masuk error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Delete surat masuk error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 

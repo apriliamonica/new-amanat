@@ -1,24 +1,24 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Upload, FileText } from 'lucide-react';
-import { suratMasukAPI } from '../../api/axios';
-import Header from '../../components/layout/Header';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import { JENIS_SURAT, KATEGORI_SURAT, KATEGORI_NAMES } from '../../utils/constants';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Upload, FileText } from "lucide-react";
+import { suratMasukAPI } from "../../api/axios";
+import Header from "../../components/layout/Header";
+import Card from "../../components/common/Card";
+import Button from "../../components/common/Button";
+import { JENIS_SURAT } from "../../utils/constants";
 
 const SuratMasukCreate = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState(null);
   const [formData, setFormData] = useState({
-    nomorSurat: '',
-    tanggalSurat: '',
-    pengirim: '',
-    perihal: '',
-    jenisSurat: 'EKSTERNAL',
-    kategori: 'UMUM',
-    keterangan: '',
+    nomorSurat: "",
+    tanggalSurat: "",
+    tanggalDiterima: new Date().toISOString().split("T")[0], // Default hari ini
+    pengirim: "",
+    perihal: "",
+    jenisSurat: "EKSTERNAL",
+    keterangan: "",
     isLengkap: true,
   });
 
@@ -26,7 +26,7 @@ const SuratMasukCreate = () => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
@@ -44,14 +44,14 @@ const SuratMasukCreate = () => {
         data.append(key, formData[key]);
       });
       if (file) {
-        data.append('file', file);
+        data.append("file", file);
       }
 
       await suratMasukAPI.create(data);
-      navigate('/surat-masuk');
+      navigate("/surat-masuk");
     } catch (error) {
-      console.error('Create surat error:', error);
-      alert('Gagal membuat surat masuk');
+      console.error("Create surat error:", error);
+      alert("Gagal membuat surat masuk");
     } finally {
       setLoading(false);
     }
@@ -62,7 +62,11 @@ const SuratMasukCreate = () => {
       <Header title="Tambah Surat Masuk" />
 
       <div className="p-6">
-        <Button variant="ghost" onClick={() => navigate('/surat-masuk')} className="mb-4">
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/surat-masuk")}
+          className="mb-4"
+        >
           <ArrowLeft size={20} />
           Kembali
         </Button>
@@ -99,6 +103,33 @@ const SuratMasukCreate = () => {
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="form-label">Tanggal Diterima *</label>
+                  <input
+                    type="date"
+                    name="tanggalDiterima"
+                    className="form-input"
+                    value={formData.tanggalDiterima}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="form-label">Jenis Surat *</label>
+                  <select
+                    name="jenisSurat"
+                    className="form-input"
+                    value={formData.jenisSurat}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value={JENIS_SURAT.INTERNAL}>Internal</option>
+                    <option value={JENIS_SURAT.EKSTERNAL}>Eksternal</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <label className="form-label">Pengirim *</label>
                 <input
@@ -123,36 +154,6 @@ const SuratMasukCreate = () => {
                   onChange={handleChange}
                   required
                 />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label className="form-label">Jenis Surat *</label>
-                  <select
-                    name="jenisSurat"
-                    className="form-input"
-                    value={formData.jenisSurat}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value={JENIS_SURAT.INTERNAL}>Internal</option>
-                    <option value={JENIS_SURAT.EKSTERNAL}>Eksternal</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="form-label">Kategori *</label>
-                  <select
-                    name="kategori"
-                    className="form-input"
-                    value={formData.kategori}
-                    onChange={handleChange}
-                    required
-                  >
-                    {Object.entries(KATEGORI_NAMES).map(([key, value]) => (
-                      <option key={key} value={key}>{value}</option>
-                    ))}
-                  </select>
-                </div>
               </div>
 
               <div>
@@ -187,7 +188,9 @@ const SuratMasukCreate = () => {
                       <div className="text-gray-500">
                         <Upload className="mx-auto mb-2" size={32} />
                         <p>Klik untuk upload file</p>
-                        <p className="text-sm text-gray-400">PDF, DOC, DOCX, JPG, PNG</p>
+                        <p className="text-sm text-gray-400">
+                          PDF, DOC, DOCX, JPG, PNG
+                        </p>
                       </div>
                     )}
                   </label>
@@ -211,7 +214,7 @@ const SuratMasukCreate = () => {
               <div className="flex gap-3 justify-end pt-4 border-t">
                 <Button
                   variant="secondary"
-                  onClick={() => navigate('/surat-masuk')}
+                  onClick={() => navigate("/surat-masuk")}
                   type="button"
                 >
                   Batal

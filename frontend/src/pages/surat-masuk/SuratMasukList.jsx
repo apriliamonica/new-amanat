@@ -1,23 +1,21 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Search, Eye, FileText, Filter } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { suratMasukAPI } from '../../api/axios';
-import Header from '../../components/layout/Header';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import StatusBadge from '../../components/common/StatusBadge';
-import { isAdmin, KATEGORI_NAMES, JENIS_SURAT } from '../../utils/constants';
-import { formatDate, truncateText } from '../../utils/helpers';
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Plus, Search, Eye, FileText } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { suratMasukAPI } from "../../api/axios";
+import Header from "../../components/layout/Header";
+import Card from "../../components/common/Card";
+import Button from "../../components/common/Button";
+import StatusBadge from "../../components/common/StatusBadge";
+import { isAdmin, JENIS_SURAT } from "../../utils/constants";
+import { formatDate, truncateText } from "../../utils/helpers";
 
 const SuratMasukList = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [suratList, setSuratList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-  const [filterKategori, setFilterKategori] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchSurat();
@@ -28,7 +26,7 @@ const SuratMasukList = () => {
       const response = await suratMasukAPI.getAll();
       setSuratList(response.data.suratMasuk);
     } catch (error) {
-      console.error('Fetch surat error:', error);
+      console.error("Fetch surat error:", error);
     } finally {
       setLoading(false);
     }
@@ -40,9 +38,7 @@ const SuratMasukList = () => {
       surat.nomorSurat.toLowerCase().includes(searchTerm.toLowerCase()) ||
       surat.perihal.toLowerCase().includes(searchTerm.toLowerCase()) ||
       surat.pengirim.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchStatus = !filterStatus || surat.status === filterStatus;
-    const matchKategori = !filterKategori || surat.kategori === filterKategori;
-    return matchSearch && matchStatus && matchKategori;
+    return matchSearch;
   });
 
   if (loading) {
@@ -60,30 +56,18 @@ const SuratMasukList = () => {
       <div className="p-6 space-y-6">
         {/* Actions Bar */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
-          <div className="flex flex-col sm:flex-row gap-3 flex-1">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder="Cari nomor surat, perihal, pengirim..."
-                className="form-input pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            {/* Filters */}
-            <select
-              className="form-input max-w-[180px]"
-              value={filterKategori}
-              onChange={(e) => setFilterKategori(e.target.value)}
-            >
-              <option value="">Semua Kategori</option>
-              {Object.entries(KATEGORI_NAMES).map(([key, value]) => (
-                <option key={key} value={key}>{value}</option>
-              ))}
-            </select>
+          <div className="relative flex-1 max-w-md">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={20}
+            />
+            <input
+              type="text"
+              placeholder="Cari nomor surat, perihal, pengirim..."
+              className="form-input pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
 
           {/* Add Button (Admin only) */}
@@ -97,7 +81,7 @@ const SuratMasukList = () => {
           )}
         </div>
 
-        {/* Surat List */}
+        {/* Surat Table */}
         {filteredSurat.length === 0 ? (
           <Card className="p-12 text-center">
             <FileText className="mx-auto mb-4 text-gray-300" size={48} />
@@ -105,63 +89,94 @@ const SuratMasukList = () => {
               Tidak ada surat masuk
             </h3>
             <p className="text-gray-400">
-              {searchTerm || filterKategori
-                ? 'Coba ubah filter pencarian Anda'
-                : 'Belum ada surat masuk yang tersedia'}
+              {searchTerm
+                ? "Coba ubah filter pencarian Anda"
+                : "Belum ada surat masuk yang tersedia"}
             </p>
           </Card>
         ) : (
-          <div className="grid gap-4">
-            {filteredSurat.map((surat) => (
-              <Card
-                key={surat.id}
-                hover
-                onClick={() => navigate(`/surat-masuk/${surat.id}`)}
-                className="p-5"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-sm font-mono text-gray-500">
+          <Card className="overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+                      No. Surat
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+                      Pengirim
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+                      Perihal
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+                      Jenis
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+                      Tgl Surat
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+                      Tgl Diterima
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+                      Status
+                    </th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold text-gray-600">
+                      Aksi
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {filteredSurat.map((surat) => (
+                    <tr
+                      key={surat.id}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-4 py-3 text-sm font-mono text-gray-700">
                         {surat.nomorSurat}
-                      </span>
-                      <StatusBadge status={surat.status} size="small" />
-                      <span className={`text-xs px-2 py-0.5 rounded ${
-                        surat.jenisSurat === 'INTERNAL' 
-                          ? 'bg-blue-100 text-blue-700' 
-                          : 'bg-orange-100 text-orange-700'
-                      }`}>
-                        {surat.jenisSurat}
-                      </span>
-                    </div>
-                    <h3 className="font-semibold text-gray-800 mb-1">
-                      {truncateText(surat.perihal, 80)}
-                    </h3>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
-                      <span>Dari: {surat.pengirim}</span>
-                      <span>Tanggal: {formatDate(surat.tanggalSurat)}</span>
-                      <span className="bg-gray-100 px-2 py-0.5 rounded text-xs">
-                        {KATEGORI_NAMES[surat.kategori]}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 sm:flex-shrink-0">
-                    {surat._count?.lampiran > 0 && (
-                      <span className="text-xs bg-gray-100 px-2 py-1 rounded flex items-center gap-1">
-                        <FileText size={14} />
-                        {surat._count.lampiran}
-                      </span>
-                    )}
-                    <Button variant="ghost" size="small">
-                      <Eye size={18} />
-                      Lihat
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {truncateText(surat.pengirim, 25)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {truncateText(surat.perihal, 35)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded ${
+                            surat.jenisSurat === "INTERNAL"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-orange-100 text-orange-700"
+                          }`}
+                        >
+                          {surat.jenisSurat}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {formatDate(surat.tanggalSurat)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {formatDate(surat.tanggalDiterima)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={surat.status} size="small" />
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <Button
+                          variant="ghost"
+                          size="small"
+                          onClick={() => navigate(`/surat-masuk/${surat.id}`)}
+                        >
+                          <Eye size={16} />
+                          Lihat
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
         )}
       </div>
     </div>
