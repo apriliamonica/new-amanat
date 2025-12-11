@@ -48,6 +48,9 @@ const canDisposisi = hasRole(
 // Can create surat keluar (Admin and all Kabag)
 const canCreateSurat = hasRole(
   "SEKRETARIS_KANTOR",
+  "KETUA_PENGURUS",
+  "SEKRETARIS_PENGURUS",
+  "BENDAHARA",
   "KEPALA_BAGIAN_PSDM",
   "KEPALA_BAGIAN_KEUANGAN",
   "KEPALA_BAGIAN_UMUM"

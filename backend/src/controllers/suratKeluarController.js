@@ -113,15 +113,21 @@ const createSuratKeluar = async (req, res) => {
       filePublicId = req.file.filename;
     }
 
-    // Check role, if Kabag only request (PENGAJUAN)
-    const isKabag = req.user.role.startsWith("KEPALA_BAGIAN");
+    console.log("Create Surat Keluar Request:", {
+      userRole: req.user.role,
+      body: req.body,
+      file: req.file ? "Present" : "None",
+    });
+
+    // Check role, if not Admin then request (PENGAJUAN)
+    const isRequester = req.user.role !== "SEKRETARIS_KANTOR";
 
     let nomorSurat = null;
     let tanggalSurat = null;
     let status = "PENGAJUAN";
 
-    if (!isKabag) {
-      // Admin/Sekretaris instantly process and generate number
+    if (!isRequester) {
+      // Admin instantly process and generate number
 
       // Determine kode jenis
       let kodeJenis = "SK";
@@ -163,8 +169,8 @@ const createSuratKeluar = async (req, res) => {
     // Create tracking entry
     await prisma.trackingSurat.create({
       data: {
-        aksi: isKabag ? "Permintaan surat diajukan" : "Surat keluar dibuat",
-        keterangan: isKabag
+        aksi: isRequester ? "Permintaan surat diajukan" : "Surat keluar dibuat",
+        keterangan: isRequester
           ? `Permintaan surat untuk ${tujuan} diajukan oleh ${req.user.nama}`
           : `Surat nomor ${nomorSurat} untuk ${tujuan} dibuat oleh ${req.user.nama}`,
         userId: req.user.id,

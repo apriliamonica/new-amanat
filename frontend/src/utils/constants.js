@@ -115,6 +115,28 @@ export const isKetua = (role) => role === ROLES.KETUA_PENGURUS;
 export const canValidate = (role) =>
   [ROLES.SEKRETARIS_PENGURUS, ROLES.BENDAHARA].includes(role);
 
+// Check if role can create disposisi
+export const canDisposisi = (role) =>
+  [
+    ROLES.SEKRETARIS_KANTOR,
+    ROLES.KETUA_PENGURUS,
+    ROLES.SEKRETARIS_PENGURUS,
+    ROLES.BENDAHARA,
+  ].includes(role);
+
+// Check if role can create/request surat
+export const SURAT_CREATOR_ROLES = [
+  ROLES.SEKRETARIS_KANTOR,
+  ROLES.KETUA_PENGURUS,
+  ROLES.SEKRETARIS_PENGURUS,
+  ROLES.BENDAHARA,
+  ROLES.KEPALA_BAGIAN_PSDM,
+  ROLES.KEPALA_BAGIAN_KEUANGAN,
+  ROLES.KEPALA_BAGIAN_UMUM,
+];
+
+export const canCreateSurat = (role) => SURAT_CREATOR_ROLES.includes(role);
+
 // Check if role is Kabag
 export const isKabag = (role) =>
   [

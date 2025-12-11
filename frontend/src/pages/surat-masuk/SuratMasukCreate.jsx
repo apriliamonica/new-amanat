@@ -200,20 +200,6 @@ const SuratMasukCreate = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  name="isLengkap"
-                  id="isLengkap"
-                  checked={formData.isLengkap}
-                  onChange={handleChange}
-                  className="w-4 h-4 text-blue-600 rounded border-gray-300"
-                />
-                <label htmlFor="isLengkap" className="text-sm text-gray-700">
-                  Surat sudah lengkap sesuai standar
-                </label>
-              </div>
-
               <div className="flex gap-3 justify-end pt-4 border-t">
                 <Button
                   variant="secondary"

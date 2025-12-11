@@ -32,6 +32,7 @@ import {
   isKetua,
   isKabag,
   canValidate,
+  canDisposisi,
   ROLE_SHORT_NAMES,
   ROLE_NAMES,
   KATEGORI_NAMES,
@@ -382,7 +383,13 @@ const SuratKeluarDetail = () => {
                     Proses Permintaan
                   </Button>
                 )}
-                {isAdmin(user?.role) && surat.status !== "SELESAI" && (
+                {(isAdmin(user?.role) ||
+                  (surat.createdById === user?.id &&
+                    [
+                      STATUS_SURAT.PENGAJUAN,
+                      STATUS_SURAT.DITOLAK,
+                      STATUS_SURAT.DIKEMBALIKAN,
+                    ].includes(surat.status))) && (
                   <Button
                     variant="secondary"
                     onClick={() => navigate(`/surat-keluar/edit/${surat.id}`)}
@@ -418,13 +425,13 @@ const SuratKeluarDetail = () => {
                     Kirim Surat
                   </Button>
                 )}
-                {isAdmin(user?.role) && (
+                {canDisposisi(user?.role) && (
                   <Button
                     variant="secondary"
                     onClick={() => setShowDisposisiModal(true)}
                   >
                     <Send size={18} />
-                    Minta Lampiran
+                    Buat Disposisi
                   </Button>
                 )}
                 {(isAdmin(user?.role) || isKabag(user?.role)) && (
@@ -717,7 +724,7 @@ const SuratKeluarDetail = () => {
       <Modal
         isOpen={showDisposisiModal}
         onClose={() => setShowDisposisiModal(false)}
-        title="Minta Lampiran"
+        title="Buat Disposisi"
       >
         <form onSubmit={handleDisposisi} className="space-y-4">
           <div>

@@ -18,7 +18,7 @@ import DisposisiList from "./pages/disposisi/DisposisiList";
 import UserList from "./pages/users/UserList";
 import JenisSuratManager from "./pages/admin/JenisSuratManager";
 
-import { ROLES, getKabagRoles } from "./utils/constants";
+import { ROLES, getKabagRoles, SURAT_CREATOR_ROLES } from "./utils/constants";
 
 function App() {
   return (
@@ -63,9 +63,7 @@ function App() {
             <Route
               path="/surat-keluar/create"
               element={
-                <ProtectedRoute
-                  allowedRoles={[ROLES.SEKRETARIS_KANTOR, ...getKabagRoles()]}
-                >
+                <ProtectedRoute allowedRoles={SURAT_CREATOR_ROLES}>
                   <SuratKeluarCreate />
                 </ProtectedRoute>
               }

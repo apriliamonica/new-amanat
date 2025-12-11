@@ -21,13 +21,19 @@ const SuratKeluarCreate = () => {
   });
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const isKabag = user.role?.startsWith("KEPALA_BAGIAN");
+  // Safety check: if user role is missing, we can't determine mode
+  if (!user.role) {
+    navigate("/login");
+    return null;
+  }
+
+  const isRequestMode = user.role !== "SEKRETARIS_KANTOR";
 
   useEffect(() => {
-    if (!isKabag) {
+    if (!isRequestMode) {
       fetchJenisSurat();
     }
-  }, [isKabag]);
+  }, [isRequestMode]);
 
   const fetchJenisSurat = async () => {
     try {
@@ -68,17 +74,36 @@ const SuratKeluarCreate = () => {
       navigate("/surat-keluar");
     } catch (error) {
       console.error("Create surat error:", error);
-      alert(isKabag ? "Gagal mengajukan surat" : "Gagal membuat surat keluar");
+      const errorMessage =
+        error.response?.data?.message || error.message || "Terjadi kesalahan";
+      alert(
+        (isRequestMode
+          ? "Gagal mengajukan surat: "
+          : "Gagal membuat surat keluar: ") + errorMessage
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  // Derived variables for render
+  const pageTitle = isRequestMode
+    ? "Ajukan Permintaan Surat"
+    : "Buat Surat Keluar";
+  const cardTitle = isRequestMode
+    ? "Form Pengajuan Surat Keluar"
+    : "Buat Surat Keluar Baru";
+  const uploadLabel = isRequestMode ? "(Opsional)" : "*";
+  const submitButtonText = loading
+    ? "Menyimpan..."
+    : isRequestMode
+    ? "Kirim Pengajuan"
+    : "Simpan Surat Keluar";
+  const isUploadRequired = !isRequestMode && mode === "upload";
+
   return (
     <div className="min-h-screen">
-      <Header
-        title={isKabag ? "Ajukan Permintaan Surat" : "Buat Surat Keluar"}
-      />
+      <Header title={pageTitle} />
 
       <div className="p-6">
         <Button
@@ -92,11 +117,7 @@ const SuratKeluarCreate = () => {
 
         <Card className="max-w-3xl mx-auto">
           <Card.Header>
-            <h2 className="text-lg font-semibold">
-              {isKabag
-                ? "Form Pengajuan Surat Keluar"
-                : "Buat Surat Keluar Baru"}
-            </h2>
+            <h2 className="text-lg font-semibold">{cardTitle}</h2>
             {/* Mode Toggle */}
             <div className="flex gap-2 mt-4">
               <button
@@ -109,7 +130,7 @@ const SuratKeluarCreate = () => {
                 }`}
               >
                 <Upload size={18} />
-                Upload File
+                Upload File {isRequestMode && "(Opsional)"}
               </button>
               <button
                 type="button"
@@ -165,7 +186,7 @@ const SuratKeluarCreate = () => {
                 />
               </div>
 
-              {!isKabag && (
+              {!isRequestMode && (
                 <div>
                   <label className="form-label">
                     Jenis Surat (Format Nomor)
@@ -218,7 +239,9 @@ const SuratKeluarCreate = () => {
 
               {mode === "upload" && (
                 <div>
-                  <label className="form-label">Upload File Surat *</label>
+                  <label className="form-label">
+                    Upload File Surat {uploadLabel}
+                  </label>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors">
                     <input
                       type="file"
@@ -226,7 +249,7 @@ const SuratKeluarCreate = () => {
                       className="hidden"
                       id="file-upload"
                       accept=".pdf,.doc,.docx"
-                      required={mode === "upload"}
+                      required={isUploadRequired}
                     />
                     <label htmlFor="file-upload" className="cursor-pointer">
                       {file ? (
@@ -275,11 +298,7 @@ const SuratKeluarCreate = () => {
                   Batal
                 </Button>
                 <Button type="submit" disabled={loading}>
-                  {loading
-                    ? "Menyimpan..."
-                    : isKabag
-                    ? "Kirim Pengajuan"
-                    : "Simpan Surat Keluar"}
+                  {submitButtonText}
                 </Button>
               </div>
             </form>
