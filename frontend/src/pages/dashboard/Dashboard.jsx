@@ -76,7 +76,7 @@ const Dashboard = () => {
           bgColor: "bg-yellow-50",
         },
         {
-          title: "Disposisi Pending",
+          title: "Disposisi Saat Ini",
           value: stats.disposisiPending || 0,
           icon: Clock,
           color: "bg-purple-500",

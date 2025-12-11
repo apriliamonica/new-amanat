@@ -40,8 +40,10 @@ const Login = () => {
             </span>
           </div>
           <h1 className="text-3xl font-bold text-green-800 mb-2">AMANAT</h1>
-          <p className="text-green-700">Sistem Manajemen Persuratan</p>
-          <p className="text-green-600 text-sm">Yayasan PTU DLSM</p>
+          <p className="text-green-700">Sistem Manajemen Surat</p>
+          <p className="text-green-600 text-sm">
+            Yayasan Perguruan Tinggi Universitas De La Salle Manado
+          </p>
         </div>
 
         {/* Login Form */}
