@@ -65,7 +65,7 @@ const getSuratKeluarById = async (req, res) => {
             fromUser: { select: { id: true, nama: true, role: true } },
             toUser: { select: { id: true, nama: true, role: true } },
           },
-          orderBy: { tanggalDisposisi: "asc" },
+          orderBy: { tanggalDisposisi: "desc" },
         },
         lampiran: {
           include: {
@@ -76,7 +76,7 @@ const getSuratKeluarById = async (req, res) => {
           include: {
             user: { select: { id: true, nama: true, role: true } },
           },
-          orderBy: { timestamp: "asc" },
+          orderBy: { timestamp: "desc" },
         },
         suratMasuk: true,
       },
