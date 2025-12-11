@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Mail,
   Send,
@@ -9,14 +9,19 @@ import {
   CheckCircle,
   AlertCircle,
   PenTool,
-} from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { dashboardAPI } from '../../api/axios';
-import Header from '../../components/layout/Header';
-import Card from '../../components/common/Card';
-import StatusBadge from '../../components/common/StatusBadge';
-import { ROLE_NAMES, isAdmin, isKetua, canValidate } from '../../utils/constants';
-import { formatRelativeTime } from '../../utils/helpers';
+} from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { dashboardAPI } from "../../api/axios";
+import Header from "../../components/layout/Header";
+import Card from "../../components/common/Card";
+import StatusBadge from "../../components/common/StatusBadge";
+import {
+  ROLE_NAMES,
+  isAdmin,
+  isKetua,
+  canValidate,
+} from "../../utils/constants";
+import { formatRelativeTime } from "../../utils/helpers";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -34,7 +39,7 @@ const Dashboard = () => {
         setStats(statsRes.data.stats);
         setActivities(activitiesRes.data.activities);
       } catch (error) {
-        console.error('Dashboard fetch error:', error);
+        console.error("Dashboard fetch error:", error);
       } finally {
         setLoading(false);
       }
@@ -50,77 +55,77 @@ const Dashboard = () => {
     if (isAdmin(user?.role)) {
       return [
         {
-          title: 'Total Surat Masuk',
+          title: "Total Surat Masuk",
           value: stats.totalSuratMasuk || 0,
           icon: Mail,
-          color: 'bg-blue-500',
-          bgColor: 'bg-blue-50',
+          color: "bg-blue-500",
+          bgColor: "bg-blue-50",
         },
         {
-          title: 'Total Surat Keluar',
+          title: "Total Surat Keluar",
           value: stats.totalSuratKeluar || 0,
           icon: Send,
-          color: 'bg-green-500',
-          bgColor: 'bg-green-50',
+          color: "bg-green-500",
+          bgColor: "bg-green-50",
         },
         {
-          title: 'Surat Masuk Baru',
+          title: "Surat Masuk Baru",
           value: stats.suratMasukBaru || 0,
           icon: AlertCircle,
-          color: 'bg-yellow-500',
-          bgColor: 'bg-yellow-50',
+          color: "bg-yellow-500",
+          bgColor: "bg-yellow-50",
         },
         {
-          title: 'Disposisi Pending',
+          title: "Disposisi Pending",
           value: stats.disposisiPending || 0,
           icon: Clock,
-          color: 'bg-purple-500',
-          bgColor: 'bg-purple-50',
+          color: "bg-purple-500",
+          bgColor: "bg-purple-50",
         },
       ];
     }
 
     const cards = [
       {
-        title: 'Disposisi Diterima',
+        title: "Disposisi Diterima",
         value: stats.disposisiDiterima || 0,
         icon: FileText,
-        color: 'bg-blue-500',
-        bgColor: 'bg-blue-50',
+        color: "bg-blue-500",
+        bgColor: "bg-blue-50",
       },
       {
-        title: 'Disposisi Selesai',
+        title: "Disposisi Selesai",
         value: stats.disposisiSelesai || 0,
         icon: CheckCircle,
-        color: 'bg-green-500',
-        bgColor: 'bg-green-50',
+        color: "bg-green-500",
+        bgColor: "bg-green-50",
       },
       {
-        title: 'Total Surat Terkait',
+        title: "Total Surat Terkait",
         value: stats.suratTerkait || 0,
         icon: Mail,
-        color: 'bg-purple-500',
-        bgColor: 'bg-purple-50',
+        color: "bg-purple-500",
+        bgColor: "bg-purple-50",
       },
     ];
 
     if (isKetua(user?.role)) {
       cards.push({
-        title: 'Menunggu Tanda Tangan',
+        title: "Menunggu Tanda Tangan",
         value: stats.menungguTTD || 0,
         icon: PenTool,
-        color: 'bg-orange-500',
-        bgColor: 'bg-orange-50',
+        color: "bg-orange-500",
+        bgColor: "bg-orange-50",
       });
     }
 
     if (canValidate(user?.role)) {
       cards.push({
-        title: 'Menunggu Validasi',
+        title: "Menunggu Validasi",
         value: stats.menungguValidasi || 0,
         icon: AlertCircle,
-        color: 'bg-yellow-500',
-        bgColor: 'bg-yellow-50',
+        color: "bg-yellow-500",
+        bgColor: "bg-yellow-50",
       });
     }
 
@@ -151,7 +156,7 @@ const Dashboard = () => {
             Selamat Datang, {user?.nama}!
           </h2>
           <p className="text-blue-100">
-            {ROLE_NAMES[user?.role]} - Sistem Manajemen Persuratan AMANAT
+            {ROLE_NAMES[user?.role]} - Aplikasi Manajemen Surat
           </p>
         </div>
 
@@ -162,10 +167,15 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500 mb-1">{stat.title}</p>
-                  <p className="text-3xl font-bold text-gray-800">{stat.value}</p>
+                  <p className="text-3xl font-bold text-gray-800">
+                    {stat.value}
+                  </p>
                 </div>
                 <div className={`p-3 rounded-xl ${stat.bgColor}`}>
-                  <stat.icon className={`text-${stat.color.replace('bg-', '')}`} size={24} />
+                  <stat.icon
+                    className={`text-${stat.color.replace("bg-", "")}`}
+                    size={24}
+                  />
                 </div>
               </div>
             </Card>
@@ -201,7 +211,7 @@ const Dashboard = () => {
                           <p className="text-xs text-gray-500 truncate">
                             {activity.suratMasuk?.perihal ||
                               activity.suratKeluar?.perihal ||
-                              '-'}
+                              "-"}
                           </p>
                           <p className="text-xs text-gray-400 mt-1">
                             {formatRelativeTime(activity.timestamp)}
@@ -248,7 +258,10 @@ const Dashboard = () => {
                     href="/disposisi"
                     className="p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors text-center"
                   >
-                    <FileText className="mx-auto mb-2 text-purple-600" size={24} />
+                    <FileText
+                      className="mx-auto mb-2 text-purple-600"
+                      size={24}
+                    />
                     <span className="text-sm font-medium text-gray-700">
                       Disposisi Saya
                     </span>
