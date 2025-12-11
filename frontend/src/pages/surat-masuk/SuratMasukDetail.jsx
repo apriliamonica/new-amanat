@@ -194,10 +194,7 @@ const SuratMasukDetail = () => {
                       {formatDate(surat.tanggalDiterima)}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Jenis Surat</p>
-                    <p className="font-medium">{surat.jenisSurat}</p>
-                  </div>
+
                   <div>
                     <p className="text-sm text-gray-500">Kategori</p>
                     <p className="font-medium">

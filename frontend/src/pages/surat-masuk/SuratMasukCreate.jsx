@@ -5,7 +5,6 @@ import { suratMasukAPI } from "../../api/axios";
 import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
-import { JENIS_SURAT } from "../../utils/constants";
 
 const SuratMasukCreate = () => {
   const navigate = useNavigate();
@@ -17,7 +16,6 @@ const SuratMasukCreate = () => {
     tanggalDiterima: new Date().toISOString().split("T")[0], // Default hari ini
     pengirim: "",
     perihal: "",
-    jenisSurat: "EKSTERNAL",
     keterangan: "",
     isLengkap: true,
   });
@@ -114,19 +112,6 @@ const SuratMasukCreate = () => {
                     onChange={handleChange}
                     required
                   />
-                </div>
-                <div>
-                  <label className="form-label">Jenis Surat *</label>
-                  <select
-                    name="jenisSurat"
-                    className="form-input"
-                    value={formData.jenisSurat}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value={JENIS_SURAT.INTERNAL}>Internal</option>
-                    <option value={JENIS_SURAT.EKSTERNAL}>Eksternal</option>
-                  </select>
                 </div>
               </div>
 

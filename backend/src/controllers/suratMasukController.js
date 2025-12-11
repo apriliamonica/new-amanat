@@ -98,7 +98,7 @@ const createSuratMasuk = async (req, res) => {
       tanggalDiterima,
       pengirim,
       perihal,
-      jenisSurat,
+      kategori,
       keterangan,
       isLengkap,
     } = req.body;
@@ -120,8 +120,8 @@ const createSuratMasuk = async (req, res) => {
           : new Date(),
         pengirim,
         perihal,
-        jenisSurat: jenisSurat || "EKSTERNAL",
-        kategori: "UMUM", // Default value
+        jenisSurat: "EKSTERNAL",
+        kategori: kategori || "UMUM",
         keterangan,
         isLengkap: isLengkap === "true" || isLengkap === true,
         fileUrl,
@@ -166,7 +166,6 @@ const updateSuratMasuk = async (req, res) => {
       tanggalDiterima,
       pengirim,
       perihal,
-      jenisSurat,
       keterangan,
       isLengkap,
     } = req.body;
