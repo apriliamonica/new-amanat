@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Upload, FileText } from "lucide-react";
-import { suratMasukAPI } from "../../api/axios";
+import { ArrowLeft, Upload, FileText, User } from "lucide-react";
+import { suratMasukAPI, userAPI } from "../../api/axios";
 import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
@@ -10,6 +10,7 @@ const SuratMasukCreate = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState(null);
+  const [userOptions, setUserOptions] = useState([]);
   const [formData, setFormData] = useState({
     nomorSurat: "",
     tanggalSurat: "",
@@ -18,7 +19,38 @@ const SuratMasukCreate = () => {
     perihal: "",
     keterangan: "",
     isLengkap: true,
+    tujuanDisposisiId: "",
   });
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await userAPI.getAll();
+      if (response.data.users) {
+        // Filter out current admin and normal staff, keep Petinggi & Kabag
+        // Assuming response.data.users contains all users
+        // Use a cleaner filter if roles are strictly defined.
+        // Showing all non-admin users for now or specific roles as requested: "Ketua, Sekpeng, Bendahara, Kabag"
+        const allowedRoles = [
+          "KETUA_PENGURUS",
+          "SEKRETARIS_PENGURUS",
+          "BENDAHARA",
+          "KEPALA_BAGIAN_PSDM",
+          "KEPALA_BAGIAN_KEUANGAN",
+          "KEPALA_BAGIAN_UMUM",
+        ];
+        const targets = response.data.users.filter((u) =>
+          allowedRoles.includes(u.role)
+        );
+        setUserOptions(targets);
+      }
+    } catch (error) {
+      console.error("Fetch users error:", error);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -99,9 +131,18 @@ const SuratMasukCreate = () => {
                     required
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="form-label">Pengirim *</label>
+                  <input
+                    type="text"
+                    name="pengirim"
+                    className="form-input"
+                    placeholder="Nama / Instansi Pengirim"
+                    value={formData.pengirim}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
                 <div>
                   <label className="form-label">Tanggal Diterima *</label>
                   <input
@@ -116,31 +157,7 @@ const SuratMasukCreate = () => {
               </div>
 
               <div>
-                <label className="form-label">
-                  Pengirim *{" "}
-                  <span className="text-xs text-gray-400">
-                    (min. 3 karakter)
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  name="pengirim"
-                  className="form-input"
-                  placeholder="Nama pengirim surat"
-                  value={formData.pengirim}
-                  onChange={handleChange}
-                  minLength={3}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="form-label">
-                  Perihal *{" "}
-                  <span className="text-xs text-gray-400">
-                    (min. 5 karakter)
-                  </span>
-                </label>
+                <label className="form-label">Perihal *</label>
                 <input
                   type="text"
                   name="perihal"
@@ -148,31 +165,35 @@ const SuratMasukCreate = () => {
                   placeholder="Perihal surat"
                   value={formData.perihal}
                   onChange={handleChange}
-                  minLength={5}
                   required
                 />
               </div>
 
               <div>
                 <label className="form-label">
-                  Keterangan{" "}
-                  <span className="text-xs text-gray-400">
-                    (min. 10 karakter)
-                  </span>
+                  Tujuan Surat (Disposisi Ke) *
                 </label>
-                <textarea
-                  name="keterangan"
+                <select
+                  name="tujuanDisposisiId"
                   className="form-input"
-                  rows={3}
-                  placeholder="Keterangan tambahan (opsional)"
-                  value={formData.keterangan}
+                  value={formData.tujuanDisposisiId}
                   onChange={handleChange}
-                  minLength={10}
-                />
+                  required
+                >
+                  <option value="">-- Pilih Penerima Surat --</option>
+                  {userOptions.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.nama} ({u.role.replace(/_/g, " ")})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Surat akan langsung didisposisikan ke penerima ini.
+                </p>
               </div>
 
               <div>
-                <label className="form-label">Upload File Surat</label>
+                <label className="form-label">Upload File Surat *</label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors">
                   <input
                     type="file"

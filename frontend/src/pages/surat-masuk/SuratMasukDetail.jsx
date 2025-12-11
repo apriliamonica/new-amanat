@@ -236,7 +236,7 @@ const SuratMasukDetail = () => {
                 )}
               </Card.Body>
               <Card.Footer className="flex gap-3">
-                {canCreateDisposisi() && (
+                {canCreateDisposisi() && !isAdmin(user?.role) && (
                   <Button
                     variant="primary"
                     onClick={() => setShowDisposisiModal(true)}

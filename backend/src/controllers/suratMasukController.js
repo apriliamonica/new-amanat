@@ -101,6 +101,7 @@ const createSuratMasuk = async (req, res) => {
       kategori,
       keterangan,
       isLengkap,
+      tujuanDisposisiId,
     } = req.body;
 
     let fileUrl = null;
@@ -109,6 +110,12 @@ const createSuratMasuk = async (req, res) => {
     if (req.file) {
       fileUrl = req.file.path;
       filePublicId = req.file.filename;
+    }
+
+    // Determine initial status
+    let status = "DITERIMA";
+    if (tujuanDisposisiId) {
+      status = "DISPOSISI";
     }
 
     const suratMasuk = await prisma.suratMasuk.create({
@@ -127,7 +134,7 @@ const createSuratMasuk = async (req, res) => {
         fileUrl,
         filePublicId,
         createdById: req.user.id,
-        status: "DITERIMA",
+        status,
       },
       include: {
         createdBy: {
@@ -136,7 +143,7 @@ const createSuratMasuk = async (req, res) => {
       },
     });
 
-    // Create tracking entry
+    // Create tracking entry for creation
     await prisma.trackingSurat.create({
       data: {
         aksi: "Surat masuk diterima",
@@ -145,6 +152,36 @@ const createSuratMasuk = async (req, res) => {
         suratMasukId: suratMasuk.id,
       },
     });
+
+    // Handle Initial Disposisi
+    if (tujuanDisposisiId) {
+      const toUser = await prisma.user.findUnique({
+        where: { id: tujuanDisposisiId },
+      });
+
+      if (toUser) {
+        // Create Disposisi
+        await prisma.disposisi.create({
+          data: {
+            suratMasukId: suratMasuk.id,
+            fromUserId: req.user.id,
+            toUserId: tujuanDisposisiId,
+            status: "PENDING",
+            catatan: keterangan || "Disposisi awal",
+          },
+        });
+
+        // Tracking Disposisi
+        await prisma.trackingSurat.create({
+          data: {
+            aksi: "Didisposisikan",
+            keterangan: `Surat didisposisikan kepada ${toUser.nama}`,
+            userId: req.user.id,
+            suratMasukId: suratMasuk.id,
+          },
+        });
+      }
+    }
 
     res.status(201).json({
       message: "Surat masuk berhasil dibuat",
