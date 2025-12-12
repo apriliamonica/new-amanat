@@ -33,10 +33,8 @@ const SuratKeluarCreate = () => {
   const isRequestMode = user.role !== "SEKRETARIS_KANTOR";
 
   useEffect(() => {
-    if (!isRequestMode) {
-      fetchJenisSurat();
-    }
-  }, [isRequestMode]);
+    fetchJenisSurat();
+  }, []);
 
   const fetchJenisSurat = async () => {
     try {
@@ -204,28 +202,24 @@ const SuratKeluarCreate = () => {
                 />
               </div>
 
-              {!isRequestMode && (
-                <div>
-                  <label className="form-label">
-                    Jenis Surat (Format Nomor)
-                  </label>
-                  <select
-                    name="jenisSuratId"
-                    className="form-input"
-                    value={formData.jenisSuratId}
-                    onChange={handleChange}
-                  >
-                    <option value="">
-                      -- Pilih Jenis Surat (Default: SK) --
+              {/* Jenis Surat - Enabled for Everyone */}
+              <div>
+                <label className="form-label">Jenis Surat</label>
+                <select
+                  name="jenisSuratId"
+                  className="form-input"
+                  value={formData.jenisSuratId}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">-- Pilih Jenis Surat --</option>
+                  {jenisSuratOptions.map((jenis) => (
+                    <option key={jenis.id} value={jenis.id}>
+                      {jenis.kode} - {jenis.nama}
                     </option>
-                    {jenisSuratOptions.map((jenis) => (
-                      <option key={jenis.id} value={jenis.id}>
-                        {jenis.nama} ({jenis.kode})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+                  ))}
+                </select>
+              </div>
 
               <div>
                 <label className="form-label">Kode Area Surat *</label>

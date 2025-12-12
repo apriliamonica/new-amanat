@@ -128,7 +128,6 @@ const createSuratMasuk = async (req, res) => {
         pengirim,
         perihal,
         jenisSurat: "EKSTERNAL",
-        kategori: kategori || "UMUM",
         keterangan,
         isLengkap: isLengkap === "true" || isLengkap === true,
         fileUrl,

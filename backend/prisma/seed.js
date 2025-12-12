@@ -94,6 +94,49 @@ async function main() {
     console.log(`Created jenis surat: ${jenis.kode}`);
   }
 
+  // Seed Kode Bagian (Master Data)
+  const kodeBagianData = [
+    {
+      role: "KETUA_PENGURUS",
+      kodeInternal: "KY",
+      kodeEksternal: "HoF",
+      namaBagian: "Ketua Yayasan",
+    },
+    {
+      role: "KEPALA_BAGIAN_PSDM",
+      kodeInternal: "PERS",
+      kodeEksternal: "HRD",
+      namaBagian: "Bagian Personalia",
+    },
+    {
+      role: "KEPALA_BAGIAN_KEUANGAN",
+      kodeInternal: "KEU",
+      kodeEksternal: "FINC",
+      namaBagian: "Bagian Keuangan",
+    },
+    {
+      role: "KEPALA_BAGIAN_UMUM",
+      kodeInternal: "UMUM",
+      kodeEksternal: "GA",
+      namaBagian: "Bagian Umum",
+    },
+    {
+      role: "SEKRETARIS_KANTOR",
+      kodeInternal: "SEK",
+      kodeEksternal: "SEK",
+      namaBagian: "Sekretaris Kantor",
+    },
+  ];
+
+  for (const bagian of kodeBagianData) {
+    await prisma.kodeBagian.upsert({
+      where: { role: bagian.role },
+      update: {},
+      create: bagian,
+    });
+    console.log(`Created kode bagian for role: ${bagian.role}`);
+  }
+
   console.log("Seeding completed!");
 }
 

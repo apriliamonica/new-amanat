@@ -195,12 +195,7 @@ const SuratMasukDetail = () => {
                     </p>
                   </div>
 
-                  <div>
-                    <p className="text-sm text-gray-500">Kategori</p>
-                    <p className="font-medium">
-                      {KATEGORI_NAMES[surat.kategori]}
-                    </p>
-                  </div>
+                  {/* Kategori removed */}
                   <div>
                     <p className="text-sm text-gray-500">Diterima Oleh</p>
                     <p className="font-medium">{surat.createdBy?.nama}</p>

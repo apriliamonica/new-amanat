@@ -198,12 +198,15 @@ const SuratKeluarDetail = () => {
     setShowProsesModal(true);
   };
 
+  const [selectedVariant, setSelectedVariant] = useState("INTERNAL"); // INTERNAL or EKSTERNAL
+
   const confirmProses = async () => {
     setSubmitting(true);
     try {
       await suratKeluarAPI.update(id, {
         status: STATUS_SURAT.DIPROSES,
         jenisSuratId: selectedJenisSuratId || undefined,
+        variant: selectedVariant, // Pass variant to backend
       });
       fetchSurat();
       setShowProsesModal(false);
@@ -319,12 +322,7 @@ const SuratKeluarDetail = () => {
                     </p>
                   </div>
 
-                  <div>
-                    <p className="text-sm text-gray-500">Kategori</p>
-                    <p className="font-medium">
-                      {KATEGORI_NAMES[surat.kategori]}
-                    </p>
-                  </div>
+                  {/* Kategori removed */}
                   <div>
                     <p className="text-sm text-gray-500">
                       {surat.status === STATUS_SURAT.PENGAJUAN
@@ -821,6 +819,34 @@ const SuratKeluarDetail = () => {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="form-label">Format Lingkup Bagian</label>
+            <div className="flex gap-4 mt-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="variant"
+                  value="INTERNAL"
+                  checked={selectedVariant === "INTERNAL"}
+                  onChange={(e) => setSelectedVariant(e.target.value)}
+                  className="rounded text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm">Internal (PERS, KEU, dll)</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="variant"
+                  value="EKSTERNAL"
+                  checked={selectedVariant === "EKSTERNAL"}
+                  onChange={(e) => setSelectedVariant(e.target.value)}
+                  className="rounded text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm">Eksternal (HRD, FINC, dll)</span>
+              </label>
+            </div>
           </div>
           <div className="bg-blue-50 p-3 rounded text-sm text-blue-700">
             Preview Nomor: .../

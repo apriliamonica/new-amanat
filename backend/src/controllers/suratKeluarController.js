@@ -140,18 +140,13 @@ const createSuratKeluar = async (req, res) => {
         if (jenis) kodeJenis = jenis.kode;
       }
 
-      // Determine kode bagian based on role
-      const roleToKodeBagian = {
-        KETUA_PENGURUS: "KY",
-        SEKRETARIS_PENGURUS: "SEK",
-        BENDAHARA: "BEN",
-        KEPALA_BAGIAN_PSDM: "PERS",
-        KEPALA_BAGIAN_KEUANGAN: "KEU",
-        KEPALA_BAGIAN_UMUM: "UMUM",
-        SEKRETARIS_KANTOR: "SEK", // Admin default
-      };
+      // Determine kode bagian based on role from DB
+      const kodeBagianData = await prisma.kodeBagian.findUnique({
+        where: { role: req.user.role },
+      });
 
-      const kodeBagian = roleToKodeBagian[req.user.role] || "SEK";
+      // Default to SEK/Internal if not found or no mapping
+      const kodeBagian = kodeBagianData ? kodeBagianData.kodeInternal : "SEK";
       const kodeArea = req.body.kodeArea || "A"; // Default to A if missing
 
       nomorSurat = await generateNomorSurat(kodeJenis, kodeArea, kodeBagian);
@@ -166,7 +161,6 @@ const createSuratKeluar = async (req, res) => {
         tujuan,
         perihal,
         jenisSuratId, // Link to JenisSurat model
-        kategori: "UMUM", // Default value
         isiSurat,
         keterangan,
         fileUrl,
@@ -208,8 +202,16 @@ const createSuratKeluar = async (req, res) => {
 const updateSuratKeluar = async (req, res) => {
   try {
     const { id } = req.params;
-    const { tujuan, perihal, isiSurat, keterangan, status, jenisSuratId } =
-      req.body;
+    const {
+      tujuan,
+      perihal,
+      isiSurat,
+      keterangan,
+      status,
+      jenisSuratId,
+      variant, // "INTERNAL" or "EKSTERNAL"
+      kodeArea, // "A", "B", etc.
+    } = req.body;
 
     const existingSurat = await prisma.suratKeluar.findUnique({
       where: { id },
@@ -250,7 +252,37 @@ const updateSuratKeluar = async (req, res) => {
         if (jenis) kodeJenis = jenis.kode;
       }
 
-      nomorSurat = await generateNomorSurat(kodeJenis);
+      // Fetch creator of the surat to get their role
+      const creator = await prisma.user.findUnique({
+        where: { id: existingSurat.createdById },
+      });
+
+      // Determine kode bagian based on creator's role
+      const kodeBagianData = await prisma.kodeBagian.findUnique({
+        where: { role: creator.role },
+      });
+
+      // Check variant from request body (INTERNAL or EKSTERNAL)
+      // Default to "INTERNAL" if not specified
+      const targetVariant = variant || "INTERNAL";
+      let kodeBagian = "SEK";
+
+      if (kodeBagianData) {
+        kodeBagian =
+          targetVariant === "EKSTERNAL"
+            ? kodeBagianData.kodeEksternal
+            : kodeBagianData.kodeInternal;
+      }
+
+      // Use provided kodeArea or default 'A'
+      const targetKodeArea = kodeArea || "A";
+
+      // Generate number
+      nomorSurat = await generateNomorSurat(
+        kodeJenis,
+        targetKodeArea,
+        kodeBagian
+      );
       tanggalSurat = new Date();
     }
 

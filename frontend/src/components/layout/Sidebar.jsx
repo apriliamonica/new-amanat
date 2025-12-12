@@ -75,6 +75,12 @@ const Sidebar = () => {
         label: "Jenis Surat",
         roles: [ROLES.SEKRETARIS_KANTOR],
       });
+      baseItems.push({
+        path: "/admin/kode-bagian",
+        icon: Settings,
+        label: "Kode Bagian",
+        roles: [ROLES.SEKRETARIS_KANTOR],
+      });
     }
 
     return baseItems;

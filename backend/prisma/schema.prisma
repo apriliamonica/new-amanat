@@ -202,3 +202,13 @@ model JenisSurat {
 
   suratKeluar SuratKeluar[]
 }
+
+model KodeBagian {
+  id            String   @id @default(uuid())
+  role          String   @unique // Maps to User Role
+  kodeInternal  String   // e.g. "PERS"
+  kodeEksternal String   // e.g. "HRD"
+  namaBagian    String   // e.g. "Bagian Personalia"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
