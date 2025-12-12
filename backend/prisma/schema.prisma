@@ -47,13 +47,6 @@ enum SifatSurat {
   EKSTERNAL
 }
 
-enum KategoriSurat {
-  ADMINISTRATIF
-  KEUANGAN
-  FASILITAS
-  UMUM
-}
-
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -80,7 +73,6 @@ model SuratMasuk {
   pengirim        String
   perihal         String
   jenisSurat      SifatSurat
-  kategori        KategoriSurat
   status          StatusSurat   @default(DITERIMA)
   fileUrl         String?
   filePublicId    String?
@@ -106,7 +98,6 @@ model SuratKeluar {
   perihal      String
   jenisSuratId String?
   jenisSurat   JenisSurat?   @relation(fields: [jenisSuratId], references: [id])
-  kategori     KategoriSurat
   status       StatusSurat   @default(DIPROSES)
   isiSurat     String?       @db.Text
   fileUrl      String?
