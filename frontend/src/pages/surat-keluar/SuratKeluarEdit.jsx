@@ -17,7 +17,6 @@ const SuratKeluarEdit = () => {
     tujuan: "",
     perihal: "",
     tujuan: "",
-    perihal: "",
     isiSurat: "",
     keterangan: "",
     status: "",

@@ -145,6 +145,33 @@ export const isKabag = (role) =>
     ROLES.KEPALA_BAGIAN_UMUM,
   ].includes(role);
 
+// Kode Area Surat
+export const KODE_AREA = {
+  A: "A",
+  B: "B",
+  C: "C",
+  D1: "D1",
+  D2: "D2",
+  D3: "D3",
+  D4: "D4",
+  D5: "D5",
+  D6: "D6",
+  E: "E",
+};
+
+export const KODE_AREA_NAMES = {
+  [KODE_AREA.A]: "Intern Kantor Yayasan",
+  [KODE_AREA.B]: "Univ De La Salle Luar Negeri",
+  [KODE_AREA.C]: "Univ Katolik De La Salle Manado",
+  [KODE_AREA.D1]: "Instansi Pemerintah",
+  [KODE_AREA.D2]: "Instansi Swasta",
+  [KODE_AREA.D3]: "Lingkup Keuskupan/Gereja/Paroki",
+  [KODE_AREA.D4]: "Lembaga Pendidikan Formal/Informal",
+  [KODE_AREA.D5]: "Perorangan/Karyawan Langsung",
+  [KODE_AREA.D6]: "Pemerintah Filipina",
+  [KODE_AREA.E]: "Lainnya",
+};
+
 // Get all Kabag roles for disposisi target
 export const getKabagRoles = () => [
   ROLES.KEPALA_BAGIAN_PSDM,

@@ -5,6 +5,7 @@ import { suratKeluarAPI, jenisSuratAPI } from "../../api/axios";
 import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
+import { KODE_AREA, KODE_AREA_NAMES } from "../../utils/constants";
 
 const SuratKeluarCreate = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const SuratKeluarCreate = () => {
     keterangan: "",
     jenisSuratId: "",
     tanggalSurat: new Date().toISOString().split("T")[0],
+    kodeArea: "",
   });
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -222,15 +224,41 @@ const SuratKeluarCreate = () => {
                       </option>
                     ))}
                   </select>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Nomor surat akan digenerate sesuai kode jenis yang dipilih
-                    (misal: .../
-                    {jenisSuratOptions.find(
-                      (j) => j.id === formData.jenisSuratId
-                    )?.kode || "SK"}
-                    /...).
-                  </p>
                 </div>
+              )}
+
+              <div>
+                <label className="form-label">Kode Area Surat *</label>
+                <select
+                  name="kodeArea"
+                  className="form-input"
+                  value={formData.kodeArea}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">-- Pilih Area Surat --</option>
+                  {Object.keys(KODE_AREA)
+                    .filter((k) => k !== KODE_AREA.E)
+                    .map((key) => (
+                      <option key={key} value={key}>
+                        {key} - {KODE_AREA_NAMES[key]}
+                      </option>
+                    ))}
+                  <option value={KODE_AREA.E}>E - {KODE_AREA_NAMES.E}</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Pilih area tujuan surat (misal: Instansi Pemerintah, Internal,
+                  dll).
+                </p>
+              </div>
+
+              {!isRequestMode && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Format Nomor: .../
+                  {jenisSuratOptions.find((j) => j.id === formData.jenisSuratId)
+                    ?.kode || "SK"}
+                  /{formData.kodeArea || "AREA"}/...
+                </p>
               )}
 
               {/* Content based on mode */}

@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import Button from "../../components/common/Button";
-import logo from "../../assets/LogoYPTU.png";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -35,10 +34,10 @@ const Login = () => {
       <div className="w-full max-w-md">
         {/* Logo & Title */}
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-0">
-            <div className="w-40 h-40 flex items-center justify-center rounded-full p-2 ">
+          <div className="flex justify-center mb-4">
+            <div className="w-24 h-24 flex items-center justify-center rounded-full p-2 ">
               <img
-                src={logo}
+                src="/LogoYPTU.png"
                 alt="Logo AMANAT"
                 className="max-h-full max-w-full object-contain"
               />

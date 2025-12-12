@@ -1,7 +1,11 @@
 const prisma = require("../config/database");
 
-// Generate nomor surat format: XXX/KODE/YPD/BULAN/TAHUN
-const generateNomorSurat = async (kodeJenis = "SK") => {
+// Generate nomor surat format: URL/KODE_JENIS/KODE_AREA/KODE_BAGIAN/BULAN/TAHUN
+const generateNomorSurat = async (
+  kodeJenis = "SK",
+  kodeArea = "A",
+  kodeBagian = "SEK"
+) => {
   const now = new Date();
   const year = now.getFullYear();
   const month = getRomanMonth(now.getMonth() + 1);
@@ -23,7 +27,8 @@ const generateNomorSurat = async (kodeJenis = "SK") => {
   }
 
   const nomorUrut = String(counter.counter).padStart(3, "0");
-  return `${nomorUrut}/${kodeJenis}/YPD/${month}/${year}`;
+  // Format: 001/SK/A/PERS/IV/2023
+  return `${nomorUrut}/${kodeJenis}/${kodeArea}/${kodeBagian}/${month}/${year}`;
 };
 
 // Convert month number to Roman numeral

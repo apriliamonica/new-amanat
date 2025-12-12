@@ -140,7 +140,21 @@ const createSuratKeluar = async (req, res) => {
         if (jenis) kodeJenis = jenis.kode;
       }
 
-      nomorSurat = await generateNomorSurat(kodeJenis);
+      // Determine kode bagian based on role
+      const roleToKodeBagian = {
+        KETUA_PENGURUS: "KY",
+        SEKRETARIS_PENGURUS: "SEK",
+        BENDAHARA: "BEN",
+        KEPALA_BAGIAN_PSDM: "PERS",
+        KEPALA_BAGIAN_KEUANGAN: "KEU",
+        KEPALA_BAGIAN_UMUM: "UMUM",
+        SEKRETARIS_KANTOR: "SEK", // Admin default
+      };
+
+      const kodeBagian = roleToKodeBagian[req.user.role] || "SEK";
+      const kodeArea = req.body.kodeArea || "A"; // Default to A if missing
+
+      nomorSurat = await generateNomorSurat(kodeJenis, kodeArea, kodeBagian);
       tanggalSurat = new Date();
       status = "DIPROSES";
     }
