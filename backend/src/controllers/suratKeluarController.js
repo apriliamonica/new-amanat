@@ -194,7 +194,7 @@ const createSuratKeluar = async (req, res) => {
     });
   } catch (error) {
     console.error("Create surat keluar error:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: error.message || "Server error" });
   }
 };
 
