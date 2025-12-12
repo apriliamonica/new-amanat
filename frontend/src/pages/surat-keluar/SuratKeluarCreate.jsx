@@ -18,6 +18,7 @@ const SuratKeluarCreate = () => {
     isiSurat: "",
     keterangan: "",
     jenisSuratId: "",
+    tanggalSurat: new Date().toISOString().split("T")[0],
   });
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -166,6 +167,21 @@ const SuratKeluarCreate = () => {
                   required
                 />
               </div>
+
+              {isRequestMode && (
+                <div>
+                  <label className="form-label">
+                    Tanggal Surat Yang Diinginkan
+                  </label>
+                  <input
+                    type="date"
+                    name="tanggalSurat"
+                    className="form-input"
+                    value={formData.tanggalSurat}
+                    onChange={handleChange}
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="form-label">

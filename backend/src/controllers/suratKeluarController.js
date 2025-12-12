@@ -123,7 +123,9 @@ const createSuratKeluar = async (req, res) => {
     const isRequester = req.user.role !== "SEKRETARIS_KANTOR";
 
     let nomorSurat = null;
-    let tanggalSurat = null;
+    let tanggalSurat = req.body.tanggalSurat
+      ? new Date(req.body.tanggalSurat)
+      : null;
     let status = "PENGAJUAN";
 
     if (!isRequester) {
