@@ -119,4 +119,12 @@ export const jenisSuratAPI = {
   delete: (id) => api.delete(`/jenis-surat/${id}`),
 };
 
+// Kode Area API
+export const kodeAreaAPI = {
+  getAll: () => api.get("/kode-area"),
+  create: (data) => api.post("/kode-area", data),
+  update: (id, data) => api.put(`/kode-area/${id}`, data),
+  delete: (id) => api.delete(`/kode-area/${id}`),
+};
+
 export default api;

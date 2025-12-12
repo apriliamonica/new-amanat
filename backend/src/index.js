@@ -11,6 +11,7 @@ const lampiranRoutes = require("./routes/lampiranRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const jenisSuratRoutes = require("./routes/jenisSuratRoutes");
 const kodeBagianRoutes = require("./routes/kodeBagianRoutes");
+const kodeAreaRoutes = require("./routes/kodeAreaRoutes");
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use("/api/disposisi", disposisiRoutes);
 app.use("/api/lampiran", lampiranRoutes);
 app.use("/api/jenis-surat", jenisSuratRoutes);
 app.use("/api/kode-bagian", kodeBagianRoutes);
+app.use("/api/kode-area", kodeAreaRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 // Health check

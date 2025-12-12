@@ -94,13 +94,13 @@ async function main() {
     console.log(`Created jenis surat: ${jenis.kode}`);
   }
 
-  // Seed Kode Bagian (Master Data)
-  const kodeBagianData = [
+  // Seed Kode Bagian for existing roles
+  const kodeBagianList = [
     {
       role: "KETUA_PENGURUS",
       kodeInternal: "KY",
       kodeEksternal: "HoF",
-      namaBagian: "Ketua Yayasan",
+      namaBagian: "Ketua Pengurus Yayasan",
     },
     {
       role: "KEPALA_BAGIAN_PSDM",
@@ -123,21 +123,44 @@ async function main() {
     {
       role: "SEKRETARIS_KANTOR",
       kodeInternal: "SEK",
-      kodeEksternal: "SEK",
+      kodeEksternal: "SEC",
       namaBagian: "Sekretaris Kantor",
     },
   ];
 
-  for (const bagian of kodeBagianData) {
+  for (const kb of kodeBagianList) {
     await prisma.kodeBagian.upsert({
-      where: { role: bagian.role },
+      where: { role: kb.role },
       update: {},
-      create: bagian,
+      create: kb,
     });
-    console.log(`Created kode bagian for role: ${bagian.role}`);
+    console.log(`Created kode bagian for role: ${kb.role}`);
   }
 
-  console.log("Seeding completed!");
+  // Seed Kode Area
+  const kodeAreaList = [
+    { kode: "A", nama: "Intern Kantor Yayasan" },
+    { kode: "B", nama: "Univ De La Salle Luar Negeri" },
+    { kode: "C", nama: "Univ Katolik De La Salle Manado" },
+    { kode: "D1", nama: "Instansi Pemerintah" },
+    { kode: "D2", nama: "Instansi Swasta" },
+    { kode: "D3", nama: "Lingkup Keuskupan/Gereja/Paroki" },
+    { kode: "D4", nama: "Lembaga Pendidikan Formal/Informal" },
+    { kode: "D5", nama: "Perorangan/Karyawan Langsung" },
+    { kode: "D6", nama: "Pemerintah Filipina" },
+    { kode: "E", nama: "Lainnya" },
+  ];
+
+  for (const ka of kodeAreaList) {
+    await prisma.kodeArea.upsert({
+      where: { kode: ka.kode },
+      update: {},
+      create: ka,
+    });
+    console.log(`Created kode area: ${ka.kode}`);
+  }
+
+  console.log("Seeding completed.");
 }
 
 main()

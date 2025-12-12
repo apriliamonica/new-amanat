@@ -212,3 +212,11 @@ model KodeBagian {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+model KodeArea {
+  id        String   @id @default(uuid())
+  kode      String   @unique // e.g., "A", "B", "D1"
+  nama      String   // e.g., "Intern Kantor Yayasan"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

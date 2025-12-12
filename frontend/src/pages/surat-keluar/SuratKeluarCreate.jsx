@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Upload, FileText, Edit } from "lucide-react";
-import { suratKeluarAPI, jenisSuratAPI } from "../../api/axios";
+import { suratKeluarAPI, jenisSuratAPI, kodeAreaAPI } from "../../api/axios";
 import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
@@ -31,9 +31,11 @@ const SuratKeluarCreate = () => {
   }
 
   const isRequestMode = user.role !== "SEKRETARIS_KANTOR";
+  const [kodeAreaOptions, setKodeAreaOptions] = useState([]);
 
   useEffect(() => {
     fetchJenisSurat();
+    fetchKodeArea();
   }, []);
 
   const fetchJenisSurat = async () => {
@@ -44,6 +46,17 @@ const SuratKeluarCreate = () => {
       }
     } catch (error) {
       console.error("Fetch jenis surat error:", error);
+    }
+  };
+
+  const fetchKodeArea = async () => {
+    try {
+      const response = await kodeAreaAPI.getAll();
+      if (response.data.success) {
+        setKodeAreaOptions(response.data.data);
+      }
+    } catch (error) {
+      console.error("Fetch kode area error:", error);
     }
   };
 
@@ -231,14 +244,11 @@ const SuratKeluarCreate = () => {
                   required
                 >
                   <option value="">-- Pilih Area Surat --</option>
-                  {Object.keys(KODE_AREA)
-                    .filter((k) => k !== KODE_AREA.E)
-                    .map((key) => (
-                      <option key={key} value={key}>
-                        {key} - {KODE_AREA_NAMES[key]}
-                      </option>
-                    ))}
-                  <option value={KODE_AREA.E}>E - {KODE_AREA_NAMES.E}</option>
+                  {kodeAreaOptions.map((area) => (
+                    <option key={area.id} value={area.kode}>
+                      {area.kode} - {area.nama}
+                    </option>
+                  ))}
                 </select>
                 <p className="text-xs text-gray-500 mt-1">
                   Pilih area tujuan surat (misal: Instansi Pemerintah, Internal,

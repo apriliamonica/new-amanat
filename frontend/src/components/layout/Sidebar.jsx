@@ -70,15 +70,9 @@ const Sidebar = () => {
         roles: [ROLES.SEKRETARIS_KANTOR],
       });
       baseItems.push({
-        path: "/admin/jenis-surat",
+        path: "/admin/master-data",
         icon: Settings,
-        label: "Jenis Surat",
-        roles: [ROLES.SEKRETARIS_KANTOR],
-      });
-      baseItems.push({
-        path: "/admin/kode-bagian",
-        icon: Settings,
-        label: "Kode Bagian",
+        label: "Master Data",
         roles: [ROLES.SEKRETARIS_KANTOR],
       });
     }
