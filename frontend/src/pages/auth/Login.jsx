@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import Button from "../../components/common/Button";
+import logo from "../../assets/LogoYPTU.png";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -34,12 +35,16 @@ const Login = () => {
       <div className="w-full max-w-md">
         {/* Logo & Title */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/90 rounded-2xl shadow-xl mb-4">
-            <span className="text-4xl font-bold bg-gradient-to-r from-green-600 to-orange-500 bg-clip-text text-transparent">
-              A
-            </span>
+          <div className="flex justify-center mb-0">
+            <div className="w-40 h-40 flex items-center justify-center rounded-full p-2 ">
+              <img
+                src={logo}
+                alt="Logo AMANAT"
+                className="max-h-full max-w-full object-contain"
+              />
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-green-800 mb-2">AMANAT</h1>
+          <h1 className="text-3xl font-bold text-green-800 mb-1">AMANAT</h1>
           <p className="text-green-700">Sistem Manajemen Surat</p>
           <p className="text-green-600 text-sm">
             Yayasan Perguruan Tinggi Universitas De La Salle Manado
@@ -78,7 +83,7 @@ const Login = () => {
             </div>
 
             <div>
-              <label className="form-label">Password</label>
+              <label className="form-label">Kata Sandi</label>
               <div className="relative">
                 <Lock
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -114,14 +119,15 @@ const Login = () => {
 
           <div className="mt-6 pt-6 border-t text-center">
             <p className="text-sm text-gray-500">
-              Hubungi Sekretaris Kantor jika lupa password
+              <span className="font-bold text-red-500">*</span>Hubungi
+              Sekretaris Kantor jika lupa password
             </p>
           </div>
         </div>
 
         {/* Footer */}
         <p className="text-center text-green-700 text-sm mt-6">
-          © 2024 AMANAT - Yayasan PTU DLSM
+          © 2025 AMANAT - YPTU DLSU
         </p>
       </div>
     </div>

@@ -1,4 +1,4 @@
-const prisma = require('../config/database');
+const prisma = require("../config/database");
 
 // Get dashboard stats based on role
 const getStats = async (req, res) => {
@@ -6,7 +6,7 @@ const getStats = async (req, res) => {
     const { role, id: userId } = req.user;
     let stats = {};
 
-    if (role === 'SEKRETARIS_KANTOR') {
+    if (role === "SEKRETARIS_KANTOR") {
       // Admin sees all stats
       const [
         totalSuratMasuk,
@@ -18,9 +18,9 @@ const getStats = async (req, res) => {
       ] = await Promise.all([
         prisma.suratMasuk.count(),
         prisma.suratKeluar.count(),
-        prisma.suratMasuk.count({ where: { status: 'DITERIMA' } }),
-        prisma.suratKeluar.count({ where: { status: 'DIPROSES' } }),
-        prisma.disposisi.count({ where: { status: 'PENDING' } }),
+        prisma.suratMasuk.count({ where: { status: "DITERIMA" } }),
+        prisma.suratKeluar.count({ where: { status: "DIPROSES" } }),
+        prisma.disposisi.count({ where: { status: "PENDING" } }),
         prisma.user.count({ where: { isActive: true } }),
       ]);
 
@@ -34,19 +34,16 @@ const getStats = async (req, res) => {
       };
     } else {
       // Other roles see their own stats
-      const [
-        disposisiDiterima,
-        disposisiSelesai,
-        suratTerkait,
-      ] = await Promise.all([
-        prisma.disposisi.count({
-          where: { toUserId: userId, status: 'PENDING' },
-        }),
-        prisma.disposisi.count({
-          where: { toUserId: userId, status: 'SELESAI' },
-        }),
-        prisma.disposisi.count({ where: { toUserId: userId } }),
-      ]);
+      const [disposisiDiterima, disposisiSelesai, suratTerkait] =
+        await Promise.all([
+          prisma.disposisi.count({
+            where: { toUserId: userId, status: "PENDING" },
+          }),
+          prisma.disposisi.count({
+            where: { toUserId: userId, status: "SELESAI" },
+          }),
+          prisma.disposisi.count({ where: { toUserId: userId } }),
+        ]);
 
       stats = {
         disposisiDiterima,
@@ -55,16 +52,16 @@ const getStats = async (req, res) => {
       };
 
       // Add validation/signature stats for specific roles
-      if (role === 'KETUA_PENGURUS') {
+      if (role === "KETUA_PENGURUS") {
         const menungguTTD = await prisma.suratKeluar.count({
-          where: { status: 'MENUNGGU_TTD' },
+          where: { status: "MENUNGGU_TTD" },
         });
         stats.menungguTTD = menungguTTD;
       }
 
-      if (role === 'SEKRETARIS_PENGURUS' || role === 'BENDAHARA') {
+      if (role === "SEKRETARIS_PENGURUS" || role === "BENDAHARA") {
         const menungguValidasi = await prisma.suratKeluar.count({
-          where: { status: 'MENUNGGU_VALIDASI' },
+          where: { status: "MENUNGGU_VALIDASI" },
         });
         stats.menungguValidasi = menungguValidasi;
       }
@@ -72,8 +69,8 @@ const getStats = async (req, res) => {
 
     res.json({ stats });
   } catch (error) {
-    console.error('Get stats error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Get stats error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -84,7 +81,7 @@ const getRecentActivities = async (req, res) => {
     let whereCondition = {};
 
     // Non-admin only sees their own activities
-    if (role !== 'SEKRETARIS_KANTOR') {
+    if (role !== "SEKRETARIS_KANTOR") {
       whereCondition = { userId };
     }
 
@@ -95,14 +92,14 @@ const getRecentActivities = async (req, res) => {
         suratMasuk: { select: { id: true, nomorSurat: true, perihal: true } },
         suratKeluar: { select: { id: true, nomorSurat: true, perihal: true } },
       },
-      orderBy: { timestamp: 'desc' },
+      orderBy: { timestamp: "desc" },
       take: 10,
     });
 
     res.json({ activities });
   } catch (error) {
-    console.error('Get activities error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Get activities error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -114,7 +111,7 @@ const getMonthlyStats = async (req, res) => {
     const endDate = new Date(currentYear, 11, 31);
 
     const suratMasuk = await prisma.suratMasuk.groupBy({
-      by: ['tanggalDiterima'],
+      by: ["tanggalDiterima"],
       where: {
         tanggalDiterima: {
           gte: startDate,
@@ -125,7 +122,7 @@ const getMonthlyStats = async (req, res) => {
     });
 
     const suratKeluar = await prisma.suratKeluar.groupBy({
-      by: ['createdAt'],
+      by: ["createdAt"],
       where: {
         createdAt: {
           gte: startDate,
@@ -136,11 +133,13 @@ const getMonthlyStats = async (req, res) => {
     });
 
     // Aggregate by month
-    const monthlyData = Array(12).fill(null).map((_, i) => ({
-      month: i + 1,
-      suratMasuk: 0,
-      suratKeluar: 0,
-    }));
+    const monthlyData = Array(12)
+      .fill(null)
+      .map((_, i) => ({
+        month: i + 1,
+        suratMasuk: 0,
+        suratKeluar: 0,
+      }));
 
     suratMasuk.forEach((item) => {
       const month = new Date(item.tanggalDiterima).getMonth();
@@ -154,8 +153,8 @@ const getMonthlyStats = async (req, res) => {
 
     res.json({ monthlyData });
   } catch (error) {
-    console.error('Get monthly stats error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Get monthly stats error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
