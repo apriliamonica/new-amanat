@@ -160,7 +160,7 @@ const createSuratKeluar = async (req, res) => {
         tanggalSurat,
         tujuan,
         perihal,
-        jenisSuratId, // Link to JenisSurat model
+        jenisSuratId: jenisSuratId || null, // Ensure empty string becomes null
         isiSurat,
         keterangan,
         fileUrl,
