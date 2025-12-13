@@ -55,26 +55,36 @@ const KodeBagianManager = () => {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left border-collapse">
-        <thead>
-          <tr className="bg-gray-50 border-b">
-            <th className="p-4 font-semibold text-gray-600">Role</th>
-            <th className="p-4 font-semibold text-gray-600">Nama Bagian</th>
-            <th className="p-4 font-semibold text-gray-600">Internal</th>
-            <th className="p-4 font-semibold text-gray-600">Eksternal</th>
-            <th className="p-4 font-semibold text-gray-600">Aksi</th>
+      <table className="w-full">
+        <thead className="bg-gray-50 border-b">
+          <tr>
+            <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+              Role
+            </th>
+            <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+              Nama Bagian
+            </th>
+            <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+              Internal
+            </th>
+            <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+              Eksternal
+            </th>
+            <th className="text-center px-4 py-3 text-sm font-semibold text-gray-600">
+              Aksi
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y">
           {data.map((item) => (
-            <tr key={item.id} className="hover:bg-gray-50">
-              <td className="p-4 text-sm font-medium text-gray-700">
+            <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+              <td className="px-4 py-3 text-sm font-medium text-gray-700">
                 {ROLE_NAMES[item.role] || item.role}
               </td>
-              <td className="p-4 text-sm">
+              <td className="px-4 py-3 text-sm text-gray-600">
                 {editingId === item.id ? (
                   <input
-                    className="form-input text-xs"
+                    className="form-input text-sm py-1"
                     value={editForm.namaBagian}
                     onChange={(e) =>
                       setEditForm({ ...editForm, namaBagian: e.target.value })
@@ -84,25 +94,25 @@ const KodeBagianManager = () => {
                   item.namaBagian
                 )}
               </td>
-              <td className="p-4">
+              <td className="px-4 py-3">
                 {editingId === item.id ? (
                   <input
-                    className="form-input text-xs w-20"
+                    className="form-input text-sm py-1 w-20"
                     value={editForm.kodeInternal}
                     onChange={(e) =>
                       setEditForm({ ...editForm, kodeInternal: e.target.value })
                     }
                   />
                 ) : (
-                  <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-mono">
+                  <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-mono font-semibold">
                     {item.kodeInternal}
                   </span>
                 )}
               </td>
-              <td className="p-4">
+              <td className="px-4 py-3">
                 {editingId === item.id ? (
                   <input
-                    className="form-input text-xs w-20"
+                    className="form-input text-sm py-1 w-20"
                     value={editForm.kodeEksternal}
                     onChange={(e) =>
                       setEditForm({
@@ -112,14 +122,14 @@ const KodeBagianManager = () => {
                     }
                   />
                 ) : (
-                  <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-mono">
+                  <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-mono font-semibold">
                     {item.kodeEksternal}
                   </span>
                 )}
               </td>
-              <td className="p-4">
+              <td className="px-4 py-3 text-center">
                 {editingId === item.id ? (
-                  <div className="flex gap-2">
+                  <div className="flex justify-center gap-2">
                     <button
                       onClick={() => handleSave(item.id)}
                       className="text-green-600 hover:text-green-800"
@@ -163,6 +173,7 @@ const GenericCodeManager = ({
   const [newForm, setNewForm] = useState({ kode: "", nama: "" });
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ kode: "", nama: "" });
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchData();
@@ -210,10 +221,35 @@ const GenericCodeManager = ({
     }
   };
 
+  // Filter data by search term
+  const filteredData = data.filter(
+    (item) =>
+      item.kode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.nama.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button onClick={() => setIsAdding(true)} size="sm">
+      {/* Search & Add Button Row */}
+      <div className="flex flex-col md:flex-row gap-3 items-center">
+        <div className="relative flex-1 w-full">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={20}
+          />
+          <input
+            type="text"
+            placeholder="Cari..."
+            className="form-input pl-10 w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <Button
+          onClick={() => setIsAdding(true)}
+          size="sm"
+          className="whitespace-nowrap"
+        >
           <Plus size={16} /> Tambah Data
         </Button>
       </div>
@@ -257,37 +293,43 @@ const GenericCodeManager = ({
         </div>
       )}
 
-      <div className="overflow-x-auto border rounded-lg">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-50 border-b">
-              <th className="p-4 font-semibold text-gray-600">{titleCode}</th>
-              <th className="p-4 font-semibold text-gray-600">{titleName}</th>
-              <th className="p-4 font-semibold text-gray-600 w-32">Aksi</th>
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-gray-50 border-b">
+            <tr>
+              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+                {titleCode}
+              </th>
+              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+                {titleName}
+              </th>
+              <th className="text-center px-4 py-3 text-sm font-semibold text-gray-600">
+                Aksi
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-y bg-white">
-            {data.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
-                <td className="p-4">
+          <tbody className="divide-y">
+            {filteredData.map((item) => (
+              <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-4 py-3">
                   {editingId === item.id ? (
                     <input
-                      className="form-input text-xs w-20"
+                      className="form-input text-sm py-1 w-24"
                       value={editForm.kode}
                       onChange={(e) =>
                         setEditForm({ ...editForm, kode: e.target.value })
                       }
                     />
                   ) : (
-                    <span className="font-mono bg-gray-100 px-2 py-1 rounded">
+                    <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm font-mono font-semibold">
                       {item.kode}
                     </span>
                   )}
                 </td>
-                <td className="p-4">
+                <td className="px-4 py-3 text-sm text-gray-600">
                   {editingId === item.id ? (
                     <input
-                      className="form-input text-xs"
+                      className="form-input text-sm py-1 w-full"
                       value={editForm.nama}
                       onChange={(e) =>
                         setEditForm({ ...editForm, nama: e.target.value })
@@ -297,9 +339,9 @@ const GenericCodeManager = ({
                     item.nama
                   )}
                 </td>
-                <td className="p-4">
+                <td className="px-4 py-3 text-center">
                   {editingId === item.id ? (
-                    <div className="flex gap-2">
+                    <div className="flex justify-center gap-2">
                       <button
                         onClick={() => handleUpdate(item.id)}
                         className="text-green-600 hover:text-green-800"
@@ -314,7 +356,7 @@ const GenericCodeManager = ({
                       </button>
                     </div>
                   ) : (
-                    <div className="flex gap-2">
+                    <div className="flex justify-center gap-3">
                       <button
                         onClick={() => {
                           setEditingId(item.id);
@@ -347,7 +389,7 @@ const MasterData = () => {
 
   return (
     <div className="min-h-screen">
-      <Header title="Master Data System" />
+      <Header title="Pengaturan Kodefikasi Surat" />
       <div className="p-6 space-y-6">
         <div className="flex gap-4 border-b">
           <button
