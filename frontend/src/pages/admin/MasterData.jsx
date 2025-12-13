@@ -206,7 +206,7 @@ const GenericCodeManager = ({
       await api.delete(id);
       fetchData();
     } catch (error) {
-      alert("Gagal hapus data");
+      alert(error.response?.data?.message || "Gagal hapus data");
     }
   };
 
