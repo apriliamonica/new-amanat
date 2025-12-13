@@ -10,7 +10,7 @@ import {
   Clock,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { suratKeluarAPI } from "../../api/axios";
+import { suratKeluarAPI, userAPI } from "../../api/axios";
 import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
@@ -50,6 +50,18 @@ const SuratKeluarList = () => {
 
   // Filters
   const [filterStatus, setFilterStatus] = useState("");
+  const [filterUser, setFilterUser] = useState("");
+  const [userList, setUserList] = useState([]);
+
+  useEffect(() => {
+    // Fetch Users for filter options (Admin only)
+    if (isAdmin(user?.role)) {
+      userAPI
+        .getAll()
+        .then((res) => setUserList(res.data.users || []))
+        .catch(console.error);
+    }
+  }, [user?.role]);
 
   const filteredSurat = suratList.filter((surat) => {
     // 1. Tab Filtering (Admin Only)
@@ -72,6 +84,11 @@ const SuratKeluarList = () => {
 
     // 3. Status Filtering
     if (filterStatus && surat.status !== filterStatus) {
+      return false;
+    }
+
+    // 4. User Filtering (for request tab)
+    if (filterUser && surat.createdBy?.id !== filterUser) {
       return false;
     }
 
@@ -159,19 +176,39 @@ const SuratKeluarList = () => {
             />
           </div>
 
-          {/* Status Filter Dropdown */}
-          <select
-            className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            <option value="">Status</option>
-            {Object.values(STATUS_SURAT).map((status) => (
-              <option key={status} value={status}>
-                {status.replace(/_/g, " ")}
-              </option>
-            ))}
-          </select>
+          {/* Status Filter Dropdown (hide in request tab for Admin) */}
+          {!(isAdmin(user?.role) && activeTab === "request") && (
+            <select
+              className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+            >
+              <option value="">Status</option>
+              {Object.values(STATUS_SURAT).map((status) => (
+                <option key={status} value={status}>
+                  {status.replace(/_/g, " ")}
+                </option>
+              ))}
+            </select>
+          )}
+
+          {/* User Filter Dropdown (only in request tab for Admin) */}
+          {isAdmin(user?.role) && activeTab === "request" && (
+            <select
+              className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={filterUser}
+              onChange={(e) => setFilterUser(e.target.value)}
+            >
+              <option value="">Semua Permintaan</option>
+              {userList
+                .filter((u) => u.role !== "SEKRETARIS_KANTOR")
+                .map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.nama}
+                  </option>
+                ))}
+            </select>
+          )}
 
           {/* Create Button */}
           {canCreateSurat(user?.role) && (

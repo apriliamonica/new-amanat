@@ -127,4 +127,9 @@ export const kodeAreaAPI = {
   delete: (id) => api.delete(`/kode-area/${id}`),
 };
 
+// Kode Bagian API
+export const kodeBagianAPI = {
+  getAll: () => api.get("/kode-bagian"),
+};
+
 export default api;
