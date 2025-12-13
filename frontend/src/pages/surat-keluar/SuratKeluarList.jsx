@@ -324,12 +324,12 @@ const SuratKeluarList = () => {
                         <td className="px-4 py-3 text-sm text-gray-600">
                           {truncateText(surat.perihal, 35)}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
                           {surat.tanggalSurat
                             ? formatDate(surat.tanggalSurat)
                             : "-"}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 whitespace-nowrap">
                           <StatusBadge status={surat.status} size="small" />
                           {surat.isSigned && (
                             <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded inline-flex items-center gap-1">
@@ -338,7 +338,7 @@ const SuratKeluarList = () => {
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
                           <Button
                             variant="ghost"
                             size="small"

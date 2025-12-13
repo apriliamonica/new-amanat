@@ -1,14 +1,16 @@
-import { Bell, Search } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { ROLE_SHORT_NAMES } from '../../utils/constants';
+import { Bell, Search } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { ROLE_SHORT_NAMES } from "../../utils/constants";
 
 const Header = ({ title }) => {
   const { user } = useAuth();
 
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
-      <div>
-        <h1 className="text-xl font-semibold text-gray-800">{title}</h1>
+    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 sticky top-0 z-30 shadow-sm transition-all pl-16 lg:pl-6">
+      <div className="flex-1 min-w-0 mr-4">
+        <h1 className="text-lg md:text-xl font-semibold text-gray-800 truncate">
+          {title}
+        </h1>
       </div>
 
       <div className="flex items-center gap-4">

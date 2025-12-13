@@ -91,59 +91,66 @@ const SuratMasukList = () => {
 
       <div className="p-6 space-y-6">
         {/* Search, Filters, Create - All in one row */}
-        <div className="flex flex-col md:flex-row gap-3 items-center">
+        <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between mb-6">
           {/* Search */}
           <div className="relative flex-1 w-full">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={20}
-            />
             <input
               type="text"
               placeholder="Cari nomor surat, perihal, pengirim..."
-              className="form-input pl-10 w-full"
+              className="form-input !pl-12 w-full"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+              size={20}
+            />
           </div>
 
-          {/* Status Filter Dropdown */}
-          <select
-            className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            <option value="">Status</option>
-            {STATUS_OPTIONS.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <div className="flex gap-3 w-full sm:w-auto">
+              {/* Status Filter Dropdown */}
+              <select
+                className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[120px]"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+              >
+                <option value="">Status</option>
+                {STATUS_OPTIONS.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
 
-          {/* Month Filter Dropdown */}
-          <select
-            className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={filterMonth}
-            onChange={(e) => setFilterMonth(e.target.value)}
-          >
-            <option value="">Bulan</option>
-            {MONTHS.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
+              {/* Month Filter Dropdown */}
+              <select
+                className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[120px]"
+                value={filterMonth}
+                onChange={(e) => setFilterMonth(e.target.value)}
+              >
+                <option value="">Bulan</option>
+                {MONTHS.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          {/* Add Button (Admin only) */}
-          {isAdmin(user?.role) && (
-            <Link to="/surat-masuk/create">
-              <Button variant="primary" className="whitespace-nowrap">
-                <Plus size={20} />
-                Tambah Surat
-              </Button>
-            </Link>
-          )}
+            {/* Add Button (Admin only) */}
+            {isAdmin(user?.role) && (
+              <Link to="/surat-masuk/create" className="w-full sm:w-auto">
+                <Button
+                  variant="primary"
+                  className="whitespace-nowrap w-full justify-center sm:w-auto"
+                >
+                  <Plus size={20} />
+                  Tambah Surat
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Surat Table */}
@@ -204,16 +211,16 @@ const SuratMasukList = () => {
                         {truncateText(surat.perihal, 35)}
                       </td>
 
-                      <td className="px-4 py-3 text-sm text-gray-600">
+                      <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
                         {formatDate(surat.tanggalSurat)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
+                      <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
                         {formatDate(surat.tanggalDiterima)}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <StatusBadge status={surat.status} size="small" />
                       </td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-4 py-3 text-center whitespace-nowrap">
                         <Button
                           variant="ghost"
                           size="small"
