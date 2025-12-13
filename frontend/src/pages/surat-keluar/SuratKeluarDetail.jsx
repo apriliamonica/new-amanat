@@ -21,6 +21,7 @@ import {
   userAPI,
   lampiranAPI,
   jenisSuratAPI,
+  kodeAreaAPI,
 } from "../../api/axios";
 import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
@@ -65,6 +66,8 @@ const SuratKeluarDetail = () => {
   const [showProsesModal, setShowProsesModal] = useState(false);
   const [jenisSuratOptions, setJenisSuratOptions] = useState([]);
   const [selectedJenisSuratId, setSelectedJenisSuratId] = useState("");
+  const [kodeAreaOptions, setKodeAreaOptions] = useState([]);
+  const [selectedKodeArea, setSelectedKodeArea] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [openedFiles, setOpenedFiles] = useState([]);
 
@@ -73,6 +76,7 @@ const SuratKeluarDetail = () => {
     fetchUsers();
     if (isAdmin(user?.role)) {
       fetchJenisSurat();
+      fetchKodeArea();
     }
     // Load opened files from localStorage
     const stored = localStorage.getItem("openedFiles");
@@ -89,6 +93,17 @@ const SuratKeluarDetail = () => {
       }
     } catch (error) {
       console.error("Fetch jenis surat error:", error);
+    }
+  };
+
+  const fetchKodeArea = async () => {
+    try {
+      const response = await kodeAreaAPI.getAll();
+      if (response.data.success) {
+        setKodeAreaOptions(response.data.data);
+      }
+    } catch (error) {
+      console.error("Fetch kode area error:", error);
     }
   };
 
@@ -208,6 +223,7 @@ const SuratKeluarDetail = () => {
         status: STATUS_SURAT.DIPROSES,
         jenisSuratId: selectedJenisSuratId || undefined,
         variant: selectedVariant, // Pass variant to backend
+        kodeArea: selectedKodeArea || surat?.kodeArea || "A", // Pass kode area
       });
       fetchSurat();
       setShowProsesModal(false);
@@ -829,6 +845,26 @@ const SuratKeluarDetail = () => {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="form-label">Kode Area / Tujuan</label>
+            <select
+              className="form-input"
+              value={selectedKodeArea || surat?.kodeArea || "A"}
+              onChange={(e) => setSelectedKodeArea(e.target.value)}
+            >
+              {kodeAreaOptions.map((area) => (
+                <option key={area.id} value={area.kode}>
+                  {area.kode} - {area.nama}
+                </option>
+              ))}
+            </select>
+            {surat?.kodeArea && (
+              <p className="text-xs text-gray-500 mt-1">
+                Kode area dari pengaju: {surat.kodeArea}
+              </p>
+            )}
           </div>
 
           <div>
