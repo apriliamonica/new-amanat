@@ -37,6 +37,7 @@ import {
   ROLE_NAMES,
   KATEGORI_NAMES,
   STATUS_SURAT,
+  ROLES,
 } from "../../utils/constants";
 import { formatDate, formatDateTime } from "../../utils/helpers";
 
@@ -326,8 +327,8 @@ const SuratKeluarDetail = () => {
                   <div>
                     <p className="text-sm text-gray-500">
                       {surat.status === STATUS_SURAT.PENGAJUAN
-                        ? "Diajukan Oleh"
-                        : "Dibuat Oleh"}
+                        ? "Diajukan oleh"
+                        : "Diajukan oleh"}
                     </p>
                     <p className="font-medium">{surat.createdBy?.nama}</p>
                   </div>
@@ -382,7 +383,12 @@ const SuratKeluarDetail = () => {
                   </Button>
                 )}
                 {(isAdmin(user?.role) ||
-                  (surat.createdById === user?.id &&
+                  (![
+                    ROLES.KETUA_PENGURUS,
+                    ROLES.SEKRETARIS_PENGURUS,
+                    ROLES.BENDAHARA,
+                  ].includes(user?.role) &&
+                    surat.createdById === user?.id &&
                     [
                       STATUS_SURAT.PENGAJUAN,
                       STATUS_SURAT.DITOLAK,
