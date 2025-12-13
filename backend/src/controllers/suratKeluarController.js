@@ -161,6 +161,7 @@ const createSuratKeluar = async (req, res) => {
         tujuan,
         perihal,
         jenisSuratId: jenisSuratId || null, // Ensure empty string becomes null
+        kodeArea: req.body.kodeArea || null, // Store requested area code
         isiSurat,
         keterangan,
         fileUrl,
@@ -274,8 +275,8 @@ const updateSuratKeluar = async (req, res) => {
             : kodeBagianData.kodeInternal;
       }
 
-      // Use provided kodeArea or default 'A'
-      const targetKodeArea = kodeArea || "A";
+      // Use provided kodeArea or fallback to stored/default
+      const targetKodeArea = kodeArea || existingSurat.kodeArea || "A";
 
       // Generate number
       nomorSurat = await generateNomorSurat(

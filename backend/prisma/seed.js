@@ -65,12 +65,19 @@ async function main() {
   }
 
   // Initialize nomor surat counter for current year
+  // Initialize nomor surat counter for current year (Admin/SEK)
   const currentYear = new Date().getFullYear();
   await prisma.nomorSuratCounter.upsert({
-    where: { tahun: currentYear },
+    where: {
+      tahun_kodeBagian: {
+        tahun: currentYear,
+        kodeBagian: "SEK",
+      },
+    },
     update: {},
     create: {
       tahun: currentYear,
+      kodeBagian: "SEK",
       counter: 0,
     },
   });
@@ -125,6 +132,24 @@ async function main() {
       kodeInternal: "SEK",
       kodeEksternal: "SEC",
       namaBagian: "Sekretaris Kantor",
+    },
+    {
+      role: "KETUA_PENGURUS",
+      kodeInternal: "KY",
+      kodeEksternal: "KY",
+      namaBagian: "Ketua Pengurus",
+    },
+    {
+      role: "SEKRETARIS_PENGURUS",
+      kodeInternal: "SP",
+      kodeEksternal: "SP",
+      namaBagian: "Sekretaris Pengurus",
+    },
+    {
+      role: "BENDAHARA",
+      kodeInternal: "BEN",
+      kodeEksternal: "BEN",
+      namaBagian: "Bendahara Pengurus",
     },
   ];
 

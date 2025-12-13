@@ -98,6 +98,7 @@ model SuratKeluar {
   perihal      String
   jenisSuratId String?
   jenisSurat   JenisSurat?   @relation(fields: [jenisSuratId], references: [id])
+  kodeArea     String?       // Store requested area code (A, B, C...)
   status       StatusSurat   @default(DIPROSES)
   isiSurat     String?       @db.Text
   fileUrl      String?
@@ -146,26 +147,26 @@ model Disposisi {
 
 model Lampiran {
   id           String   @id @default(uuid())
-  namaFile     String
   fileUrl      String
   filePublicId String
-  keterangan   String?
-  createdAt    DateTime @default(now())
+  fileName     String
+  fileType     String
+  uploadedAt   DateTime @default(now())
 
   uploadedById String
   uploadedBy   User   @relation("LampiranUploader", fields: [uploadedById], references: [id])
 
-  suratMasukId  String?
+  suratMasukId String?
   suratMasuk    SuratMasuk?  @relation(fields: [suratMasukId], references: [id])
   suratKeluarId String?
   suratKeluar   SuratKeluar? @relation(fields: [suratKeluarId], references: [id])
 }
 
 model TrackingSurat {
-  id         String   @id @default(uuid())
+  id        String   @id @default(uuid())
+  timestamp DateTime @default(now())
   aksi       String
   keterangan String?
-  timestamp  DateTime @default(now())
 
   userId String
   user   User   @relation("TrackingUser", fields: [userId], references: [id])
@@ -177,10 +178,13 @@ model TrackingSurat {
 }
 
 model NomorSuratCounter {
-  id        String   @id @default(uuid())
-  tahun     Int      @unique
-  counter   Int      @default(0)
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(uuid())
+  tahun       Int
+  kodeBagian  String   @default("SEK") // e.g. "PERS", "KEU", "SEK"
+  counter     Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tahun, kodeBagian]) // Separate counter per year AND per unit
 }
 
 model JenisSurat {

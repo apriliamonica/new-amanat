@@ -10,18 +10,32 @@ const generateNomorSurat = async (
   const year = now.getFullYear();
   const month = getRomanMonth(now.getMonth() + 1);
 
-  // Get or create counter for current year
+  // Get or create counter for current year AND kodeBagian
   let counter = await prisma.nomorSuratCounter.findUnique({
-    where: { tahun: year },
+    where: {
+      tahun_kodeBagian: {
+        tahun: year,
+        kodeBagian: kodeBagian,
+      },
+    },
   });
 
   if (!counter) {
     counter = await prisma.nomorSuratCounter.create({
-      data: { tahun: year, counter: 1 },
+      data: {
+        tahun: year,
+        kodeBagian: kodeBagian,
+        counter: 1,
+      },
     });
   } else {
     counter = await prisma.nomorSuratCounter.update({
-      where: { tahun: year },
+      where: {
+        tahun_kodeBagian: {
+          tahun: year,
+          kodeBagian: kodeBagian,
+        },
+      },
       data: { counter: counter.counter + 1 },
     });
   }
