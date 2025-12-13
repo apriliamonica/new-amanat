@@ -315,6 +315,10 @@ const SuratKeluarDetail = () => {
                     <p className="font-medium">{surat.tujuan}</p>
                   </div>
                   <div>
+                    <p className="text-sm text-gray-500">Perihal</p>
+                    <p className="font-medium">{surat.perihal}</p>
+                  </div>
+                  <div>
                     <p className="text-sm text-gray-500">Tanggal Surat</p>
                     <p className="font-medium">
                       {surat.tanggalSurat
