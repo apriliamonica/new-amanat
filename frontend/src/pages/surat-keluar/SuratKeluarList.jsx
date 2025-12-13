@@ -48,9 +48,11 @@ const SuratKeluarList = () => {
     }
   };
 
-  // Filter
+  // Filters
+  const [filterStatus, setFilterStatus] = useState("");
+
   const filteredSurat = suratList.filter((surat) => {
-    // Tab filter (only for Admin)
+    // 1. Tab Filtering (Admin Only)
     if (isAdmin(user?.role)) {
       if (activeTab === "surat" && surat.status === STATUS_SURAT.PENGAJUAN)
         return false;
@@ -58,13 +60,22 @@ const SuratKeluarList = () => {
         return false;
     }
 
+    // 2. Search Filtering
     const matchSearch =
       (surat.nomorSurat || "")
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
       surat.perihal.toLowerCase().includes(searchTerm.toLowerCase()) ||
       surat.tujuan.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchSearch;
+
+    if (!matchSearch) return false;
+
+    // 3. Status Filtering
+    if (filterStatus && surat.status !== filterStatus) {
+      return false;
+    }
+
+    return true;
   });
 
   // Get action label based on status and role
@@ -131,30 +142,48 @@ const SuratKeluarList = () => {
           </div>
         )}
 
-        {/* Actions Bar */}
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="relative flex-1 w-full md:w-auto">
-            <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              size={20}
-            />
-            <input
-              type="text"
-              placeholder="Cari surat..."
-              className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-80"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        {/* Header Action Row: Search, Utils, Create */}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            {/* Search */}
+            <div className="relative flex-1 w-full">
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={20}
+              />
+              <input
+                type="text"
+                placeholder="Cari nomor, perihal, atau tujuan..."
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            {/* Create Button */}
+            {canCreateSurat(user?.role) && (
+              <Link to="/surat-keluar/create">
+                <Button variant="primary" className="whitespace-nowrap">
+                  <Plus size={20} />
+                  {isAdmin(user?.role) ? "Buat Surat" : "Ajukan Surat"}
+                </Button>
+              </Link>
+            )}
           </div>
 
-          {canCreateSurat(user?.role) && (
-            <Link to="/surat-keluar/create">
-              <Button variant="primary">
-                <Plus size={20} />
-                {isAdmin(user?.role) ? "Buat Surat" : "Ajukan Surat"}
-              </Button>
-            </Link>
-          )}
+          {/* Status Filter Dropdown */}
+          <select
+            className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[160px]"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <option value="">Semua Status</option>
+            {Object.values(STATUS_SURAT).map((status) => (
+              <option key={status} value={status}>
+                {status.replace(/_/g, " ")}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Surat Table */}
