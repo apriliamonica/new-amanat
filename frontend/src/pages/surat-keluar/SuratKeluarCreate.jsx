@@ -296,23 +296,30 @@ const SuratKeluarCreate = () => {
                       onChange={handleFileChange}
                       className="hidden"
                       id="file-upload"
-                      accept=".pdf,.doc,.docx"
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                       required={isUploadRequired}
                     />
-                    <label htmlFor="file-upload" className="cursor-pointer">
+                    <label
+                      htmlFor="file-upload"
+                      className="cursor-pointer flex flex-col items-center gap-2"
+                    >
                       {file ? (
                         <div className="flex items-center justify-center gap-2 text-green-600">
                           <FileText size={24} />
                           <span>{file.name}</span>
                         </div>
                       ) : (
-                        <div className="text-gray-500">
-                          <Upload className="mx-auto mb-2" size={32} />
-                          <p>Klik untuk upload file</p>
-                          <p className="text-sm text-gray-400">
-                            PDF, DOC, DOCX
+                        <>
+                          <div className="bg-blue-100 p-3 rounded-full text-blue-600 mb-2">
+                            <Upload size={24} />
+                          </div>
+                          <p className="text-gray-600 font-medium">
+                            Klik untuk upload file
                           </p>
-                        </div>
+                          <p className="text-sm text-gray-500">
+                            Format: PDF, Word, Gambar (Max 10MB)
+                          </p>
+                        </>
                       )}
                     </label>
                   </div>
