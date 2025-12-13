@@ -16,7 +16,6 @@ const SuratKeluarEdit = () => {
   const [formData, setFormData] = useState({
     tujuan: "",
     perihal: "",
-    tujuan: "",
     isiSurat: "",
     keterangan: "",
     status: "",
@@ -189,7 +188,7 @@ const SuratKeluarEdit = () => {
                     id="file-upload"
                     className="hidden"
                     onChange={handleFileChange}
-                    accept=".pdf,.doc,.docx"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                   />
                   <label
                     htmlFor="file-upload"
@@ -201,13 +200,17 @@ const SuratKeluarEdit = () => {
                         <span>{file.name}</span>
                       </div>
                     ) : (
-                      <div className="text-gray-500">
-                        <Upload className="mx-auto mb-2" size={32} />
-                        <p>Klik untuk ganti file</p>
-                        <p className="text-sm text-gray-400">
-                          (Biarkan kosong jika tidak ingin mengubah file)
+                      <>
+                        <div className="bg-blue-100 p-3 rounded-full text-blue-600 mb-2">
+                          <Upload size={24} />
+                        </div>
+                        <p className="text-gray-600 font-medium">
+                          Klik untuk ganti file
                         </p>
-                      </div>
+                        <p className="text-sm text-gray-500">
+                          Format: PDF, Word, Gambar (Max 10MB)
+                        </p>
+                      </>
                     )}
                   </label>
                 </div>
