@@ -51,7 +51,23 @@ const SuratKeluarList = () => {
   // Filters
   const [filterStatus, setFilterStatus] = useState("");
   const [filterUser, setFilterUser] = useState("");
+  const [filterMonth, setFilterMonth] = useState("");
   const [userList, setUserList] = useState([]);
+
+  const MONTHS = [
+    { value: "1", label: "Januari" },
+    { value: "2", label: "Februari" },
+    { value: "3", label: "Maret" },
+    { value: "4", label: "April" },
+    { value: "5", label: "Mei" },
+    { value: "6", label: "Juni" },
+    { value: "7", label: "Juli" },
+    { value: "8", label: "Agustus" },
+    { value: "9", label: "September" },
+    { value: "10", label: "Oktober" },
+    { value: "11", label: "November" },
+    { value: "12", label: "Desember" },
+  ];
 
   useEffect(() => {
     // Fetch Users for filter options (Admin only)
@@ -90,6 +106,14 @@ const SuratKeluarList = () => {
     // 4. User Filtering (for request tab)
     if (filterUser && surat.createdBy?.id !== filterUser) {
       return false;
+    }
+
+    // 5. Month Filtering
+    if (filterMonth) {
+      const suratDate = new Date(surat.tanggalSurat || surat.createdAt);
+      if (suratDate.getMonth() + 1 !== parseInt(filterMonth)) {
+        return false;
+      }
     }
 
     return true;
@@ -191,6 +215,20 @@ const SuratKeluarList = () => {
               ))}
             </select>
           )}
+
+          {/* Month Filter Dropdown */}
+          <select
+            className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={filterMonth}
+            onChange={(e) => setFilterMonth(e.target.value)}
+          >
+            <option value="">Bulan</option>
+            {MONTHS.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
 
           {/* User Filter Dropdown (only in request tab for Admin) */}
           {isAdmin(user?.role) && activeTab === "request" && (
