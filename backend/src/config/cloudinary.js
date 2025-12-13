@@ -12,7 +12,6 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "amanat-surat",
-    allowed_formats: ["pdf", "doc", "docx", "jpg", "jpeg", "png"],
     resource_type: "auto",
   },
 });
