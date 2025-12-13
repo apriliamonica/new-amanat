@@ -92,7 +92,8 @@ model SuratMasuk {
 
 model SuratKeluar {
   id           String        @id @default(uuid())
-  nomorSurat   String?
+  nomorSurat   String?       // Nomor asli dari pembuat (Kabag/Ketua/Admin)
+  nomorSuratAdmin String?    // Nomor urut Admin (jika surat dari Kabag disetujui Admin)
   tanggalSurat DateTime?
   tujuan       String
   perihal      String

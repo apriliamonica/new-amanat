@@ -4,18 +4,23 @@ const prisma = require("../config/database");
 const generateNomorSurat = async (
   kodeJenis = "SK",
   kodeArea = "A",
-  kodeBagian = "SEK"
+  kodeBagian = "SEK",
+  counterScope = null // New param: Who owns the counter? (e.g. "SEK" or "PSDM")
 ) => {
   const now = new Date();
   const year = now.getFullYear();
   const month = getRomanMonth(now.getMonth() + 1);
 
-  // Get or create counter for current year AND kodeBagian
+  // Use counterScope if provided, otherwise default to kodeBagian
+  // This allows Admin to use their counter ("SEK") but display user's code ("PSDM") in the string
+  const scope = counterScope || kodeBagian;
+
+  // Get or create counter for current year AND scope
   let counter = await prisma.nomorSuratCounter.findUnique({
     where: {
       tahun_kodeBagian: {
         tahun: year,
-        kodeBagian: kodeBagian,
+        kodeBagian: scope,
       },
     },
   });
@@ -24,7 +29,7 @@ const generateNomorSurat = async (
     counter = await prisma.nomorSuratCounter.create({
       data: {
         tahun: year,
-        kodeBagian: kodeBagian,
+        kodeBagian: scope,
         counter: 1,
       },
     });
@@ -33,7 +38,7 @@ const generateNomorSurat = async (
       where: {
         tahun_kodeBagian: {
           tahun: year,
-          kodeBagian: kodeBagian,
+          kodeBagian: scope,
         },
       },
       data: { counter: counter.counter + 1 },
@@ -41,7 +46,7 @@ const generateNomorSurat = async (
   }
 
   const nomorUrut = String(counter.counter).padStart(3, "0");
-  // Format: 001/SK/A/PERS/IV/2023
+  // Format: 001/SK/A/PERS/IV/2023 (Uses kodeBagian for display)
   return `${nomorUrut}/${kodeJenis}/${kodeArea}/${kodeBagian}/${month}/${year}`;
 };
 

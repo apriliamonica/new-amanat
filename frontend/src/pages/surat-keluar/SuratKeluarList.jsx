@@ -299,7 +299,8 @@ const SuratKeluarList = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+
+                <tbody className="divide-y divide-gray-100">
                   {filteredSurat.map((surat) => {
                     const action = getActionLabel(surat);
                     return (
@@ -307,18 +308,22 @@ const SuratKeluarList = () => {
                         key={surat.id}
                         className="hover:bg-gray-50 transition-colors"
                       >
-                        <td className="px-4 py-3 text-sm font-mono text-gray-700">
-                          {surat.nomorSurat || (
-                            <span className="text-gray-400 italic">Draft</span>
-                          )}
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900 border-l-4 border-transparent hover:border-blue-500">
+                          {/* 
+                            Display Logic:
+                            - Admin sees nomorSuratAdmin if exists (approved letter), otherwise nomorSurat
+                            - Others (Kabag/Ketua) always see their original nomorSurat 
+                          */}
+                          {isAdmin(user?.role) && surat.nomorSuratAdmin
+                            ? surat.nomorSuratAdmin
+                            : surat.nomorSurat || "-"}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-700">
-                          {truncateText(surat.tujuan, 25)}
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {surat.tujuan}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-700">
+                        <td className="px-4 py-3 text-sm text-gray-600">
                           {truncateText(surat.perihal, 35)}
                         </td>
-
                         <td className="px-4 py-3 text-sm text-gray-600">
                           {surat.tanggalSurat
                             ? formatDate(surat.tanggalSurat)

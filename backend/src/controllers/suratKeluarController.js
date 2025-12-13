@@ -119,40 +119,35 @@ const createSuratKeluar = async (req, res) => {
       file: req.file ? "Present" : "None",
     });
 
-    // Check role, if not Admin then request (PENGAJUAN)
-    const isRequester = req.user.role !== "SEKRETARIS_KANTOR";
+    // ALL roles get immediate numbering with their own counter
+    // Non-Admin (Kabag/Ketua/etc) → status PENGAJUAN (needs admin approval)
+    // Admin → status DIPROSES (direct)
 
-    let nomorSurat = null;
-    let tanggalSurat = req.body.tanggalSurat
-      ? new Date(req.body.tanggalSurat)
-      : null;
-    let status = "PENGAJUAN";
+    const isAdmin = req.user.role === "SEKRETARIS_KANTOR";
 
-    if (!isRequester) {
-      // Admin instantly process and generate number
-
-      // Determine kode jenis
-      let kodeJenis = "SK";
-      if (jenisSuratId) {
-        const jenis = await prisma.jenisSurat.findUnique({
-          where: { id: jenisSuratId },
-        });
-        if (jenis) kodeJenis = jenis.kode;
-      }
-
-      // Determine kode bagian based on role from DB
-      const kodeBagianData = await prisma.kodeBagian.findUnique({
-        where: { role: req.user.role },
+    // Determine kode jenis
+    let kodeJenis = "SK";
+    if (jenisSuratId) {
+      const jenis = await prisma.jenisSurat.findUnique({
+        where: { id: jenisSuratId },
       });
-
-      // Default to SEK/Internal if not found or no mapping
-      const kodeBagian = kodeBagianData ? kodeBagianData.kodeInternal : "SEK";
-      const kodeArea = req.body.kodeArea || "A"; // Default to A if missing
-
-      nomorSurat = await generateNomorSurat(kodeJenis, kodeArea, kodeBagian);
-      tanggalSurat = new Date();
-      status = "DIPROSES";
+      if (jenis) kodeJenis = jenis.kode;
     }
+
+    // Determine kode bagian based on creator's role from DB
+    const kodeBagianData = await prisma.kodeBagian.findUnique({
+      where: { role: req.user.role },
+    });
+
+    // Default to SEK/Internal if not found or no mapping
+    const kodeBagian = kodeBagianData ? kodeBagianData.kodeInternal : "SEK";
+    const kodeArea = req.body.kodeArea || "A"; // Default to A if missing
+
+    // Generate number immediately for ALL roles (each uses their own counter)
+    let nomorSurat = await generateNomorSurat(kodeJenis, kodeArea, kodeBagian);
+    let tanggalSurat = new Date();
+    // Non-Admin still goes to PENGAJUAN (needs approval), Admin goes to DIPROSES
+    let status = isAdmin ? "DIPROSES" : "PENGAJUAN";
 
     const suratKeluar = await prisma.suratKeluar.create({
       data: {
@@ -180,10 +175,8 @@ const createSuratKeluar = async (req, res) => {
     // Create tracking entry
     await prisma.trackingSurat.create({
       data: {
-        aksi: isRequester ? "Permintaan surat diajukan" : "Surat keluar dibuat",
-        keterangan: isRequester
-          ? `Permintaan surat untuk ${tujuan} diajukan oleh ${req.user.nama}`
-          : `Surat nomor ${nomorSurat} untuk ${tujuan} dibuat oleh ${req.user.nama}`,
+        aksi: "Surat keluar dibuat",
+        keterangan: `Surat nomor ${nomorSurat} untuk ${tujuan} dibuat oleh ${req.user.nama}`,
         userId: req.user.id,
         suratKeluarId: suratKeluar.id,
       },
@@ -236,12 +229,10 @@ const updateSuratKeluar = async (req, res) => {
       filePublicId = req.file.filename;
     }
 
-    // Handle converting PENGAJUAN to DIPROSES
-    if (
-      existingSurat.status === "PENGAJUAN" &&
-      status === "DIPROSES" &&
-      !existingSurat.nomorSurat
-    ) {
+    // Handle converting PENGAJUAN to DIPROSES (Admin approves)
+    let nomorSuratAdmin = existingSurat.nomorSuratAdmin;
+
+    if (existingSurat.status === "PENGAJUAN" && status === "DIPROSES") {
       // Use provided jenisSuratId or existing one
       const targetJenisId = jenisSuratId || existingSurat.jenisSuratId;
       let kodeJenis = "SK";
@@ -253,38 +244,50 @@ const updateSuratKeluar = async (req, res) => {
         if (jenis) kodeJenis = jenis.kode;
       }
 
-      // Fetch creator of the surat to get their role
+      // IMPORTANT: Counter should be based on WHO PROCESSES the surat (Admin)
+      // BUT Display (KodeBagian) should remain as the Creator's Unit
+      // Example: Admin approves Kabag's letter -> Number increases on Admin's counter, but label is still "PSDM"
+
+      // 1. Determine Display Code (Creator's Unit)
       const creator = await prisma.user.findUnique({
         where: { id: existingSurat.createdById },
       });
-
-      // Determine kode bagian based on creator's role
-      const kodeBagianData = await prisma.kodeBagian.findUnique({
+      const creatorKodeData = await prisma.kodeBagian.findUnique({
         where: { role: creator.role },
       });
+      // Default to "SEK" if creator has no code (e.g. admin created it)
+      let displayKodeBagian = creatorKodeData
+        ? creatorKodeData.kodeInternal
+        : "SEK";
 
-      // Check variant from request body (INTERNAL or EKSTERNAL)
-      // Default to "INTERNAL" if not specified
+      // If variant is EKSTERNAL, use eksternal code
       const targetVariant = variant || "INTERNAL";
-      let kodeBagian = "SEK";
-
-      if (kodeBagianData) {
-        kodeBagian =
-          targetVariant === "EKSTERNAL"
-            ? kodeBagianData.kodeEksternal
-            : kodeBagianData.kodeInternal;
+      if (creatorKodeData && targetVariant === "EKSTERNAL") {
+        displayKodeBagian = creatorKodeData.kodeEksternal;
       }
+
+      // 2. Determine Counter Scope (Who is processing? Admin)
+      const processorRole = req.user.role; // Admin role
+      const processorKodeData = await prisma.kodeBagian.findUnique({
+        where: { role: processorRole },
+      });
+      const counterScope = processorKodeData
+        ? processorKodeData.kodeInternal
+        : "SEK";
 
       // Use provided kodeArea or fallback to stored/default
       const targetKodeArea = kodeArea || existingSurat.kodeArea || "A";
 
-      // Generate number
-      nomorSurat = await generateNomorSurat(
+      // Generate number for ADMIN using HYBRID logic
+      // Display: displayKodeBagian (e.g. PSDM)
+      // Counter: counterScope (e.g. SEK)
+      nomorSuratAdmin = await generateNomorSurat(
         kodeJenis,
         targetKodeArea,
-        kodeBagian
+        displayKodeBagian,
+        counterScope
       );
-      tanggalSurat = new Date();
+      // tanggalSurat = new Date(); // Optional: update date or keep original
     }
 
     const suratKeluar = await prisma.suratKeluar.update({
@@ -298,7 +301,8 @@ const updateSuratKeluar = async (req, res) => {
         filePublicId,
         status: status || existingSurat.status,
         jenisSuratId: jenisSuratId || undefined,
-        nomorSurat,
+        // nomorSurat: nomorSurat, // DO NOT UPDATE ORIGINAL NUMBER
+        nomorSuratAdmin, // Save the new Admin number
         tanggalSurat,
       },
       include: {
