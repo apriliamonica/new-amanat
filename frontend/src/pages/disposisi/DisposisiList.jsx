@@ -1,20 +1,20 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FileText, CheckCircle, Clock, Send, Filter } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { disposisiAPI } from '../../api/axios';
-import Header from '../../components/layout/Header';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import { STATUS_DISPOSISI, ROLE_SHORT_NAMES } from '../../utils/constants';
-import { formatDateTime, truncateText } from '../../utils/helpers';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { FileText, CheckCircle, Clock, Send, Filter } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { disposisiAPI } from "../../api/axios";
+import Header from "../../components/layout/Header";
+import Card from "../../components/common/Card";
+import Button from "../../components/common/Button";
+import { STATUS_DISPOSISI, ROLE_SHORT_NAMES } from "../../utils/constants";
+import { formatDateTime, truncateText } from "../../utils/helpers";
 
 const DisposisiList = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [disposisiList, setDisposisiList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterStatus, setFilterStatus] = useState("");
 
   useEffect(() => {
     fetchDisposisi();
@@ -25,7 +25,7 @@ const DisposisiList = () => {
       const response = await disposisiAPI.getMy();
       setDisposisiList(response.data.disposisi);
     } catch (error) {
-      console.error('Fetch disposisi error:', error);
+      console.error("Fetch disposisi error:", error);
     } finally {
       setLoading(false);
     }
@@ -33,10 +33,10 @@ const DisposisiList = () => {
 
   const handleComplete = async (id) => {
     try {
-      await disposisiAPI.complete(id, { catatan: 'Disposisi selesai' });
+      await disposisiAPI.complete(id, { catatan: "Disposisi selesai" });
       fetchDisposisi();
     } catch (error) {
-      console.error('Complete disposisi error:', error);
+      console.error("Complete disposisi error:", error);
     }
   };
 
@@ -46,16 +46,16 @@ const DisposisiList = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-700';
-      case 'DITERUSKAN':
-        return 'bg-blue-100 text-blue-700';
-      case 'DITINDAKLANJUTI':
-        return 'bg-purple-100 text-purple-700';
-      case 'SELESAI':
-        return 'bg-green-100 text-green-700';
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-700";
+      case "DITERUSKAN":
+        return "bg-blue-100 text-blue-700";
+      case "DITINDAKLANJUTI":
+        return "bg-purple-100 text-purple-700";
+      case "SELESAI":
+        return "bg-green-100 text-green-700";
       default:
-        return 'bg-gray-100 text-gray-700';
+        return "bg-gray-100 text-gray-700";
     }
   };
 
@@ -104,7 +104,11 @@ const DisposisiList = () => {
                 <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(disposisi.status)}`}>
+                      <span
+                        className={`px-2 py-1 text-xs rounded-full ${getStatusColor(
+                          disposisi.status
+                        )}`}
+                      >
                         {disposisi.status}
                       </span>
                       {disposisi.isRequestLampiran && (
@@ -120,7 +124,8 @@ const DisposisiList = () => {
 
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
                       <span>
-                        Dari: {disposisi.fromUser?.nama} ({ROLE_SHORT_NAMES[disposisi.fromUser?.role]})
+                        Dari: {disposisi.fromUser?.nama} (
+                        {ROLE_SHORT_NAMES[disposisi.fromUser?.role]})
                       </span>
                       <span>{formatDateTime(disposisi.tanggalDisposisi)}</span>
                     </div>
@@ -134,7 +139,9 @@ const DisposisiList = () => {
                             : `Surat Keluar: ${disposisi.suratKeluar.perihal}`}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {disposisi.suratMasuk?.nomorSurat || disposisi.suratKeluar?.nomorSurat || 'Draft'}
+                          {disposisi.suratMasuk?.nomorSurat ||
+                            disposisi.suratKeluar?.nomorSurat ||
+                            "Draft"}
                         </p>
                       </div>
                     )}
@@ -145,7 +152,9 @@ const DisposisiList = () => {
                       <Button
                         variant="ghost"
                         size="small"
-                        onClick={() => navigate(`/surat-masuk/${disposisi.suratMasuk.id}`)}
+                        onClick={() =>
+                          navigate(`/surat-masuk/${disposisi.suratMasuk.id}`)
+                        }
                       >
                         <FileText size={16} />
                         Lihat Surat
@@ -155,13 +164,15 @@ const DisposisiList = () => {
                       <Button
                         variant="ghost"
                         size="small"
-                        onClick={() => navigate(`/surat-keluar/${disposisi.suratKeluar.id}`)}
+                        onClick={() =>
+                          navigate(`/surat-keluar/${disposisi.suratKeluar.id}`)
+                        }
                       >
                         <FileText size={16} />
                         Lihat Surat
                       </Button>
                     )}
-                    {disposisi.status !== 'SELESAI' && (
+                    {disposisi.status !== "SELESAI" && (
                       <Button
                         variant="success"
                         size="small"

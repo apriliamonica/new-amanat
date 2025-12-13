@@ -167,6 +167,7 @@ const createSuratMasuk = async (req, res) => {
             toUserId: tujuanDisposisiId,
             status: "PENDING",
             catatan: keterangan || "Disposisi awal",
+            instruksi: "Mohon ditindaklanjuti",
           },
         });
 

@@ -1,4 +1,4 @@
-const prisma = require('../config/database');
+const prisma = require("../config/database");
 
 // Get disposisi for current user
 const getMyDisposisi = async (req, res) => {
@@ -29,13 +29,13 @@ const getMyDisposisi = async (req, res) => {
           },
         },
       },
-      orderBy: { tanggalDisposisi: 'desc' },
+      orderBy: { tanggalDisposisi: "desc" },
     });
 
     res.json({ disposisi });
   } catch (error) {
-    console.error('Get my disposisi error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Get my disposisi error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -44,9 +44,8 @@ const getDisposisiBySurat = async (req, res) => {
   try {
     const { suratId, type } = req.params;
 
-    const whereCondition = type === 'masuk'
-      ? { suratMasukId: suratId }
-      : { suratKeluarId: suratId };
+    const whereCondition =
+      type === "masuk" ? { suratMasukId: suratId } : { suratKeluarId: suratId };
 
     const disposisi = await prisma.disposisi.findMany({
       where: whereCondition,
@@ -54,13 +53,13 @@ const getDisposisiBySurat = async (req, res) => {
         fromUser: { select: { id: true, nama: true, role: true } },
         toUser: { select: { id: true, nama: true, role: true } },
       },
-      orderBy: { tanggalDisposisi: 'asc' },
+      orderBy: { tanggalDisposisi: "asc" },
     });
 
     res.json({ disposisi });
   } catch (error) {
-    console.error('Get disposisi by surat error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Get disposisi by surat error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -77,24 +76,24 @@ const createDisposisi = async (req, res) => {
     } = req.body;
 
     if (!toUserId) {
-      return res.status(400).json({ message: 'Tujuan disposisi wajib diisi' });
+      return res.status(400).json({ message: "Tujuan disposisi wajib diisi" });
     }
 
     if (!suratMasukId && !suratKeluarId) {
-      return res.status(400).json({ message: 'Surat tidak valid' });
+      return res.status(400).json({ message: "Surat tidak valid" });
     }
 
     // Update surat status
     if (suratMasukId) {
       await prisma.suratMasuk.update({
         where: { id: suratMasukId },
-        data: { status: 'DISPOSISI' },
+        data: { status: "DISPOSISI" },
       });
     }
     if (suratKeluarId) {
       await prisma.suratKeluar.update({
         where: { id: suratKeluarId },
-        data: { status: 'DISPOSISI' },
+        data: { status: "DISPOSISI" },
       });
     }
 
@@ -134,12 +133,12 @@ const createDisposisi = async (req, res) => {
     });
 
     res.status(201).json({
-      message: 'Disposisi berhasil dibuat',
+      message: "Disposisi berhasil dibuat",
       disposisi,
     });
   } catch (error) {
-    console.error('Create disposisi error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Create disposisi error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -154,7 +153,7 @@ const updateDisposisi = async (req, res) => {
     });
 
     if (!existingDisposisi) {
-      return res.status(404).json({ message: 'Disposisi tidak ditemukan' });
+      return res.status(404).json({ message: "Disposisi tidak ditemukan" });
     }
 
     const disposisi = await prisma.disposisi.update({
@@ -178,12 +177,12 @@ const updateDisposisi = async (req, res) => {
     });
 
     res.json({
-      message: 'Status disposisi berhasil diupdate',
+      message: "Status disposisi berhasil diupdate",
       disposisi,
     });
   } catch (error) {
-    console.error('Update disposisi error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Update disposisi error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -198,13 +197,13 @@ const completeDisposisi = async (req, res) => {
     });
 
     if (!existingDisposisi) {
-      return res.status(404).json({ message: 'Disposisi tidak ditemukan' });
+      return res.status(404).json({ message: "Disposisi tidak ditemukan" });
     }
 
     const disposisi = await prisma.disposisi.update({
       where: { id },
       data: {
-        status: 'SELESAI',
+        status: "SELESAI",
         tanggalSelesai: new Date(),
       },
       include: {
@@ -214,26 +213,27 @@ const completeDisposisi = async (req, res) => {
     });
 
     // Update surat status if all disposisi are complete
-    const suratId = existingDisposisi.suratMasukId || existingDisposisi.suratKeluarId;
-    const suratType = existingDisposisi.suratMasukId ? 'masuk' : 'keluar';
+    const suratId =
+      existingDisposisi.suratMasukId || existingDisposisi.suratKeluarId;
+    const suratType = existingDisposisi.suratMasukId ? "masuk" : "keluar";
 
     const pendingDisposisi = await prisma.disposisi.count({
       where: {
-        [suratType === 'masuk' ? 'suratMasukId' : 'suratKeluarId']: suratId,
-        status: { not: 'SELESAI' },
+        [suratType === "masuk" ? "suratMasukId" : "suratKeluarId"]: suratId,
+        status: { not: "SELESAI" },
       },
     });
 
     if (pendingDisposisi === 0) {
-      if (suratType === 'masuk') {
+      if (suratType === "masuk") {
         await prisma.suratMasuk.update({
           where: { id: suratId },
-          data: { status: 'SELESAI' },
+          data: { status: "SELESAI" },
         });
       } else {
         await prisma.suratKeluar.update({
           where: { id: suratId },
-          data: { status: 'DITINDAKLANJUTI' },
+          data: { status: "DITINDAKLANJUTI" },
         });
       }
     }
@@ -241,7 +241,7 @@ const completeDisposisi = async (req, res) => {
     // Create tracking entry
     await prisma.trackingSurat.create({
       data: {
-        aksi: 'Disposisi selesai',
+        aksi: "Disposisi selesai",
         keterangan: catatan,
         userId: req.user.id,
         suratMasukId: existingDisposisi.suratMasukId,
@@ -250,12 +250,12 @@ const completeDisposisi = async (req, res) => {
     });
 
     res.json({
-      message: 'Disposisi selesai',
+      message: "Disposisi selesai",
       disposisi,
     });
   } catch (error) {
-    console.error('Complete disposisi error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Complete disposisi error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
