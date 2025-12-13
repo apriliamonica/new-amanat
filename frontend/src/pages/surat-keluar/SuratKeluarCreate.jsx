@@ -314,7 +314,7 @@ const SuratKeluarCreate = () => {
                             <Upload size={24} />
                           </div>
                           <p className="text-gray-600 font-medium">
-                            Klik untuk upload file
+                            Klik untuk mengunggah dokumen surat
                           </p>
                           <p className="text-sm text-gray-500">
                             Format: PDF, Word, Gambar (Max 10MB)

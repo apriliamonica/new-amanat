@@ -211,7 +211,7 @@ const SuratMasukCreate = () => {
                     ) : (
                       <div className="text-gray-500">
                         <Upload className="mx-auto mb-2" size={32} />
-                        <p>Klik untuk upload file</p>
+                        <p>Klik untuk mengunggah dokumen surat</p>
                         <p className="text-sm text-gray-400">
                           PDF, DOC, DOCX, JPG, PNG
                         </p>
