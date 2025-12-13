@@ -32,7 +32,40 @@ const getMyDisposisi = async (req, res) => {
       orderBy: { tanggalDisposisi: "desc" },
     });
 
-    res.json({ disposisi });
+    // Check which ones have been forwarded by this user
+    const suratMasukIds = disposisi
+      .filter((d) => d.suratMasukId)
+      .map((d) => d.suratMasukId);
+    const suratKeluarIds = disposisi
+      .filter((d) => d.suratKeluarId)
+      .map((d) => d.suratKeluarId);
+
+    const forwarded = await prisma.disposisi.findMany({
+      where: {
+        fromUserId: userId,
+        OR: [
+          { suratMasukId: { in: suratMasukIds } },
+          { suratKeluarId: { in: suratKeluarIds } },
+        ],
+      },
+      select: { suratMasukId: true, suratKeluarId: true },
+    });
+
+    const forwardedSuratMasuk = new Set(
+      forwarded.map((f) => f.suratMasukId).filter(Boolean)
+    );
+    const forwardedSuratKeluar = new Set(
+      forwarded.map((f) => f.suratKeluarId).filter(Boolean)
+    );
+
+    const results = disposisi.map((d) => ({
+      ...d,
+      isForwarded: d.suratMasukId
+        ? forwardedSuratMasuk.has(d.suratMasukId)
+        : forwardedSuratKeluar.has(d.suratKeluarId),
+    }));
+
+    res.json({ disposisi: results });
   } catch (error) {
     console.error("Get my disposisi error:", error);
     res.status(500).json({ message: "Server error" });
@@ -96,6 +129,18 @@ const createDisposisi = async (req, res) => {
         data: { status: "DISPOSISI" },
       });
     }
+
+    // Update sender's previous pending disposisi to "DITERUSKAN"
+    // This marks the task as handled by the sender since they are forwarding it
+    await prisma.disposisi.updateMany({
+      where: {
+        toUserId: req.user.id,
+        [suratMasukId ? "suratMasukId" : "suratKeluarId"]:
+          suratMasukId || suratKeluarId,
+        status: "PENDING",
+      },
+      data: { status: "DITERUSKAN" },
+    });
 
     const disposisi = await prisma.disposisi.create({
       data: {
@@ -217,25 +262,18 @@ const completeDisposisi = async (req, res) => {
       existingDisposisi.suratMasukId || existingDisposisi.suratKeluarId;
     const suratType = existingDisposisi.suratMasukId ? "masuk" : "keluar";
 
-    const pendingDisposisi = await prisma.disposisi.count({
-      where: {
-        [suratType === "masuk" ? "suratMasukId" : "suratKeluarId"]: suratId,
-        status: { not: "SELESAI" },
-      },
-    });
-
-    if (pendingDisposisi === 0) {
-      if (suratType === "masuk") {
-        await prisma.suratMasuk.update({
-          where: { id: suratId },
-          data: { status: "SELESAI" },
-        });
-      } else {
-        await prisma.suratKeluar.update({
-          where: { id: suratId },
-          data: { status: "DITINDAKLANJUTI" },
-        });
-      }
+    // Update surat status IMMEDIATELY as per requirement
+    // "jika salah satu suda atau penerima disposisi sudah menekan selesai berarti prosesnya sudah selesai"
+    if (suratType === "masuk") {
+      await prisma.suratMasuk.update({
+        where: { id: suratId },
+        data: { status: "SELESAI" },
+      });
+    } else {
+      await prisma.suratKeluar.update({
+        where: { id: suratId },
+        data: { status: "SELESAI" }, // Changed from DITINDAKLANJUTI to SELESAI based on user request implies process finished
+      });
     }
 
     // Create tracking entry

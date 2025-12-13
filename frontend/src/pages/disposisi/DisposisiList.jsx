@@ -172,16 +172,17 @@ const DisposisiList = () => {
                         Lihat Surat
                       </Button>
                     )}
-                    {disposisi.status !== "SELESAI" && (
-                      <Button
-                        variant="success"
-                        size="small"
-                        onClick={() => handleComplete(disposisi.id)}
-                      >
-                        <CheckCircle size={16} />
-                        Selesai
-                      </Button>
-                    )}
+                    {disposisi.status !== "SELESAI" &&
+                      !disposisi.isForwarded && (
+                        <Button
+                          variant="success"
+                          size="small"
+                          onClick={() => handleComplete(disposisi.id)}
+                        >
+                          <CheckCircle size={16} />
+                          Selesai
+                        </Button>
+                      )}
                   </div>
                 </div>
               </Card>
