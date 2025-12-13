@@ -16,6 +16,25 @@ const SuratMasukList = () => {
   const [suratList, setSuratList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterMonth, setFilterMonth] = useState("");
+
+  const MONTHS = [
+    { value: "1", label: "Januari" },
+    { value: "2", label: "Februari" },
+    { value: "3", label: "Maret" },
+    { value: "4", label: "April" },
+    { value: "5", label: "Mei" },
+    { value: "6", label: "Juni" },
+    { value: "7", label: "Juli" },
+    { value: "8", label: "Agustus" },
+    { value: "9", label: "September" },
+    { value: "10", label: "Oktober" },
+    { value: "11", label: "November" },
+    { value: "12", label: "Desember" },
+  ];
+
+  const STATUS_OPTIONS = ["DITERIMA", "DIDISPOSISI", "SELESAI"];
 
   useEffect(() => {
     fetchSurat();
@@ -34,11 +53,28 @@ const SuratMasukList = () => {
 
   // Filter surat
   const filteredSurat = suratList.filter((surat) => {
+    // Search Filter
     const matchSearch =
       surat.nomorSurat.toLowerCase().includes(searchTerm.toLowerCase()) ||
       surat.perihal.toLowerCase().includes(searchTerm.toLowerCase()) ||
       surat.pengirim.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchSearch;
+
+    if (!matchSearch) return false;
+
+    // Status Filter
+    if (filterStatus && surat.status !== filterStatus) {
+      return false;
+    }
+
+    // Month Filter
+    if (filterMonth) {
+      const suratDate = new Date(surat.tanggalSurat || surat.createdAt);
+      if (suratDate.getMonth() + 1 !== parseInt(filterMonth)) {
+        return false;
+      }
+    }
+
+    return true;
   });
 
   if (loading) {
@@ -54,9 +90,10 @@ const SuratMasukList = () => {
       <Header title="Surat Masuk" />
 
       <div className="p-6 space-y-6">
-        {/* Actions Bar */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-between">
-          <div className="relative flex-1 max-w-md">
+        {/* Search, Filters, Create - All in one row */}
+        <div className="flex flex-col md:flex-row gap-3 items-center">
+          {/* Search */}
+          <div className="relative flex-1 w-full">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
               size={20}
@@ -64,16 +101,44 @@ const SuratMasukList = () => {
             <input
               type="text"
               placeholder="Cari nomor surat, perihal, pengirim..."
-              className="form-input pl-10"
+              className="form-input pl-10 w-full"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
+          {/* Status Filter Dropdown */}
+          <select
+            className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <option value="">Status</option>
+            {STATUS_OPTIONS.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+
+          {/* Month Filter Dropdown */}
+          <select
+            className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={filterMonth}
+            onChange={(e) => setFilterMonth(e.target.value)}
+          >
+            <option value="">Bulan</option>
+            {MONTHS.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+
           {/* Add Button (Admin only) */}
           {isAdmin(user?.role) && (
             <Link to="/surat-masuk/create">
-              <Button variant="primary">
+              <Button variant="primary" className="whitespace-nowrap">
                 <Plus size={20} />
                 Tambah Surat
               </Button>

@@ -34,7 +34,7 @@ const Sidebar = () => {
       {
         path: "/dashboard",
         icon: LayoutDashboard,
-        label: "Dashboard",
+        label: "Beranda",
         roles: "all",
       },
       {
@@ -66,13 +66,13 @@ const Sidebar = () => {
       baseItems.push({
         path: "/users",
         icon: Users,
-        label: "Kelola User",
+        label: "Kelola Pengguna",
         roles: [ROLES.SEKRETARIS_KANTOR],
       });
       baseItems.push({
         path: "/admin/master-data",
         icon: Settings,
-        label: "Master Data",
+        label: "Pengaturan",
         roles: [ROLES.SEKRETARIS_KANTOR],
       });
     }
