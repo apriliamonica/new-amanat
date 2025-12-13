@@ -122,8 +122,12 @@ const Sidebar = () => {
         <div className="h-16 flex items-center justify-between px-4 border-b border-white/20">
           {!isCollapsed && (
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-white/90 rounded-lg flex items-center justify-center shadow-sm">
-                <span className="text-green-600 font-bold text-lg">A</span>
+              <div className="w-10 h-10 flex items-center justify-center">
+                <img
+                  src="/LogoYPTU.png"
+                  alt="Logo AMANAT"
+                  className="max-h-full max-w-full object-contain"
+                />
               </div>
               <span className="font-bold text-xl text-green-800">AMANAT</span>
             </div>
