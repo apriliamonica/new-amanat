@@ -40,9 +40,21 @@ const DisposisiList = () => {
     }
   };
 
-  const filteredDisposisi = disposisiList.filter(
-    (d) => !filterStatus || d.status === filterStatus
-  );
+  // Determine effective status (visual only)
+  // If the parent surat is SELESAI, then this disposisi is effectively SELESAI
+  const getEffectiveStatus = (disposisi) => {
+    const suratStatus =
+      disposisi.suratMasuk?.status || disposisi.suratKeluar?.status;
+    if (suratStatus === "SELESAI") {
+      return "SELESAI";
+    }
+    return disposisi.status;
+  };
+
+  const filteredDisposisi = disposisiList.filter((d) => {
+    const status = getEffectiveStatus(d);
+    return !filterStatus || status === filterStatus;
+  });
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -99,94 +111,101 @@ const DisposisiList = () => {
           </Card>
         ) : (
           <div className="grid gap-4">
-            {filteredDisposisi.map((disposisi) => (
-              <Card key={disposisi.id} className="p-5">
-                <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span
-                        className={`px-2 py-1 text-xs rounded-full ${getStatusColor(
-                          disposisi.status
-                        )}`}
-                      >
-                        {disposisi.status}
-                      </span>
-                      {disposisi.isRequestLampiran && (
-                        <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-700">
-                          Request Lampiran
+            {filteredDisposisi.map((disposisi) => {
+              const effectiveStatus = getEffectiveStatus(disposisi);
+              return (
+                <Card key={disposisi.id} className="p-5">
+                  <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span
+                          className={`px-2 py-1 text-xs rounded-full ${getStatusColor(
+                            effectiveStatus
+                          )}`}
+                        >
+                          {effectiveStatus}
                         </span>
+                        {disposisi.isRequestLampiran && (
+                          <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-700">
+                            Request Lampiran
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="font-semibold text-gray-800 mb-1">
+                        {truncateText(disposisi.instruksi, 100)}
+                      </h3>
+
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
+                        <span>
+                          Dari: {disposisi.fromUser?.nama} (
+                          {ROLE_SHORT_NAMES[disposisi.fromUser?.role]})
+                        </span>
+                        <span>
+                          {formatDateTime(disposisi.tanggalDisposisi)}
+                        </span>
+                      </div>
+
+                      {/* Surat info */}
+                      {(disposisi.suratMasuk || disposisi.suratKeluar) && (
+                        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                          <p className="text-sm font-medium text-gray-700">
+                            {disposisi.suratMasuk
+                              ? `Surat Masuk: ${disposisi.suratMasuk.perihal}`
+                              : `Surat Keluar: ${disposisi.suratKeluar.perihal}`}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {disposisi.suratMasuk?.nomorSurat ||
+                              disposisi.suratKeluar?.nomorSurat ||
+                              "Draft"}
+                          </p>
+                        </div>
                       )}
                     </div>
 
-                    <h3 className="font-semibold text-gray-800 mb-1">
-                      {truncateText(disposisi.instruksi, 100)}
-                    </h3>
-
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
-                      <span>
-                        Dari: {disposisi.fromUser?.nama} (
-                        {ROLE_SHORT_NAMES[disposisi.fromUser?.role]})
-                      </span>
-                      <span>{formatDateTime(disposisi.tanggalDisposisi)}</span>
-                    </div>
-
-                    {/* Surat info */}
-                    {(disposisi.suratMasuk || disposisi.suratKeluar) && (
-                      <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm font-medium text-gray-700">
-                          {disposisi.suratMasuk
-                            ? `Surat Masuk: ${disposisi.suratMasuk.perihal}`
-                            : `Surat Keluar: ${disposisi.suratKeluar.perihal}`}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {disposisi.suratMasuk?.nomorSurat ||
-                            disposisi.suratKeluar?.nomorSurat ||
-                            "Draft"}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-2 lg:flex-shrink-0">
-                    {disposisi.suratMasuk && (
-                      <Button
-                        variant="ghost"
-                        size="small"
-                        onClick={() =>
-                          navigate(`/surat-masuk/${disposisi.suratMasuk.id}`)
-                        }
-                      >
-                        <FileText size={16} />
-                        Lihat Surat
-                      </Button>
-                    )}
-                    {disposisi.suratKeluar && (
-                      <Button
-                        variant="ghost"
-                        size="small"
-                        onClick={() =>
-                          navigate(`/surat-keluar/${disposisi.suratKeluar.id}`)
-                        }
-                      >
-                        <FileText size={16} />
-                        Lihat Surat
-                      </Button>
-                    )}
-                    {disposisi.status !== "SELESAI" &&
-                      !disposisi.isForwarded && (
+                    <div className="flex flex-col sm:flex-row gap-2 lg:flex-shrink-0">
+                      {disposisi.suratMasuk && (
                         <Button
-                          variant="success"
+                          variant="ghost"
                           size="small"
-                          onClick={() => handleComplete(disposisi.id)}
+                          onClick={() =>
+                            navigate(`/surat-masuk/${disposisi.suratMasuk.id}`)
+                          }
                         >
-                          <CheckCircle size={16} />
-                          Selesai
+                          <FileText size={16} />
+                          Lihat Surat
                         </Button>
                       )}
+                      {disposisi.suratKeluar && (
+                        <Button
+                          variant="ghost"
+                          size="small"
+                          onClick={() =>
+                            navigate(
+                              `/surat-keluar/${disposisi.suratKeluar.id}`
+                            )
+                          }
+                        >
+                          <FileText size={16} />
+                          Lihat Surat
+                        </Button>
+                      )}
+                      {effectiveStatus !== "SELESAI" &&
+                        !disposisi.isForwarded && (
+                          <Button
+                            variant="success"
+                            size="small"
+                            onClick={() => handleComplete(disposisi.id)}
+                          >
+                            <CheckCircle size={16} />
+                            Selesai
+                          </Button>
+                        )}
+                    </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>
