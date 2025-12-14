@@ -74,6 +74,7 @@ model SuratMasuk {
   perihal         String
   jenisSurat      SifatSurat
   status          StatusSurat   @default(DITERIMA)
+  tujuan          String?       // Intended recipient name (e.g. "Sekretaris Yayasan")
   fileUrl         String?
   filePublicId    String?
   keterangan      String?

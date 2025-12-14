@@ -53,7 +53,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Terjadi kesalahan pada server" });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = 5001; // Force 5001 to avoid AirPlay conflict
 
 app.listen(PORT, () => {
   console.log(`🚀 AMANAT API running on port ${PORT}`);

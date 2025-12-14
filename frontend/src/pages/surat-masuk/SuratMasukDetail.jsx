@@ -203,6 +203,14 @@ const SuratMasukDetail = () => {
                       {formatDate(surat.tanggalDiterima)}
                     </p>
                   </div>
+                  <div>
+                    <p className="text-sm text-gray-500">
+                      Tujuan (Disposisi Awal)
+                    </p>
+                    <p className="font-medium text-blue-600">
+                      {surat.tujuan || "-"}
+                    </p>
+                  </div>
 
                   {/* Kategori removed */}
                   <div>

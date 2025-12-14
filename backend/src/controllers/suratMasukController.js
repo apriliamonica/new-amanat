@@ -102,6 +102,7 @@ const createSuratMasuk = async (req, res) => {
       keterangan,
       isLengkap,
       tujuanDisposisiId,
+      isInternal,
     } = req.body;
 
     let fileUrl = null;
@@ -112,28 +113,46 @@ const createSuratMasuk = async (req, res) => {
       filePublicId = req.file.filename;
     }
 
-    // Determine initial status
-    let status = "DITERIMA";
-    if (tujuanDisposisiId) {
-      status = "DISPOSISI";
+    let uploadResult = null;
+
+    if (req.file) {
+      uploadResult = {
+        secure_url: req.file.path,
+        public_id: req.file.filename,
+      };
     }
+
+    // Get intended recipient (tujuan)
+    const intendedUser = await prisma.user.findUnique({
+      where: { id: tujuanDisposisiId },
+      select: { nama: true },
+    });
+
+    // Determine actual disposisi target (Ketua Pengurus)
+    // If Admin selects someone else, it still goes to Ketua first
+    const ketua = await prisma.user.findFirst({
+      where: { role: "KETUA_PENGURUS" },
+    });
+
+    // Safe fallback if no Ketua exists (should not happen in prod)
+    const actualDisposisiTargetId = ketua ? ketua.id : tujuanDisposisiId;
+    const actualDisposisiTargetName = ketua ? ketua.nama : intendedUser?.nama;
 
     const suratMasuk = await prisma.suratMasuk.create({
       data: {
         nomorSurat,
         tanggalSurat: new Date(tanggalSurat),
-        tanggalDiterima: tanggalDiterima
-          ? new Date(tanggalDiterima)
-          : new Date(),
+        tanggalDiterima: new Date(tanggalDiterima),
         pengirim,
         perihal,
-        jenisSurat: "EKSTERNAL",
+        jenisSurat: isInternal ? "INTERNAL" : "EKSTERNAL",
         keterangan,
-        isLengkap: isLengkap === "true" || isLengkap === true,
-        fileUrl,
-        filePublicId,
+        tujuan: intendedUser?.nama, // Store intended recipient name
+        fileUrl: uploadResult?.secure_url,
+        filePublicId: uploadResult?.public_id,
         createdById: req.user.id,
-        status,
+        isLengkap: isLengkap === "true" || isLengkap === true, // Keep original logic for isLengkap
+        status: tujuanDisposisiId ? "DISPOSISI" : "DITERIMA", // Set status based on disposisi
       },
       include: {
         createdBy: {
@@ -152,35 +171,28 @@ const createSuratMasuk = async (req, res) => {
       },
     });
 
-    // Handle Initial Disposisi
     if (tujuanDisposisiId) {
-      const toUser = await prisma.user.findUnique({
-        where: { id: tujuanDisposisiId },
+      // Create Disposisi
+      await prisma.disposisi.create({
+        data: {
+          suratMasukId: suratMasuk.id,
+          fromUserId: req.user.id,
+          toUserId: actualDisposisiTargetId,
+          status: "PENDING",
+          catatan: keterangan || "Disposisi awal",
+          instruksi: "Mohon ditindaklanjuti",
+        },
       });
 
-      if (toUser) {
-        // Create Disposisi
-        await prisma.disposisi.create({
-          data: {
-            suratMasukId: suratMasuk.id,
-            fromUserId: req.user.id,
-            toUserId: tujuanDisposisiId,
-            status: "PENDING",
-            catatan: keterangan || "Disposisi awal",
-            instruksi: "Mohon ditindaklanjuti",
-          },
-        });
-
-        // Tracking Disposisi
-        await prisma.trackingSurat.create({
-          data: {
-            aksi: "Didisposisikan",
-            keterangan: `Surat didisposisikan kepada ${toUser.nama}`,
-            userId: req.user.id,
-            suratMasukId: suratMasuk.id,
-          },
-        });
-      }
+      // Tracking Disposisi
+      await prisma.trackingSurat.create({
+        data: {
+          aksi: "Didisposisikan",
+          keterangan: `Surat didisposisikan kepada ${actualDisposisiTargetName}`,
+          userId: req.user.id,
+          suratMasukId: suratMasuk.id,
+        },
+      });
     }
 
     res.status(201).json({

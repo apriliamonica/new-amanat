@@ -182,6 +182,9 @@ const SuratMasukList = () => {
                       Perihal
                     </th>
                     <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
+                      Tujuan
+                    </th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
                       Tgl Surat
                     </th>
                     <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
@@ -207,8 +210,11 @@ const SuratMasukList = () => {
                       <td className="px-4 py-3 text-sm text-gray-700">
                         {truncateText(surat.pengirim, 25)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
+                      <td className="px-4 py-3 text-sm text-gray-600">
                         {truncateText(surat.perihal, 35)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {surat.tujuan || "-"}
                       </td>
 
                       <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
