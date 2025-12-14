@@ -182,9 +182,7 @@ const SuratMasukDetail = () => {
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">
-                      Tujuan (Disposisi Awal)
-                    </p>
+                    <p className="text-sm text-gray-500">Tujuan Surat</p>
                     <p className="font-medium text-blue-600">
                       {surat.tujuan || "-"}
                     </p>
