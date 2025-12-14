@@ -70,6 +70,7 @@ export const suratMasukAPI = {
 
 // Surat Keluar API
 export const suratKeluarAPI = {
+  exportExcel: () => api.get("/surat-keluar/export", { responseType: "blob" }),
   getAll: () => api.get("/surat-keluar"),
   getById: (id) => api.get(`/surat-keluar/${id}`),
   create: (formData) =>

@@ -8,6 +8,7 @@ import {
   CheckCircle,
   PenTool,
   Clock,
+  Download,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { suratKeluarAPI, userAPI } from "../../api/axios";
@@ -32,6 +33,7 @@ const SuratKeluarList = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("surat"); // 'surat' | 'request'
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     fetchSurat();
@@ -45,6 +47,27 @@ const SuratKeluarList = () => {
       console.error("Fetch surat error:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const response = await suratKeluarAPI.exportExcel();
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `Data_Surat_Keluar_${new Date().getTime()}.xlsx`
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Export error:", error);
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -247,6 +270,17 @@ const SuratKeluarList = () => {
                 ))}
             </select>
           )}
+
+          {/* Export Button */}
+          <Button
+            variant="success"
+            onClick={handleExport}
+            loading={exporting}
+            className="w-full sm:w-auto"
+          >
+            <Download size={20} />
+            Export Excel
+          </Button>
 
           {/* Create Button */}
           {canCreateSurat(user?.role) && (
