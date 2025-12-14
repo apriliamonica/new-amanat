@@ -1,6 +1,7 @@
 const prisma = require("../config/database");
 const { cloudinary } = require("../config/cloudinary");
 const { isKabagRole } = require("../utils/helpers");
+const ExcelJS = require("exceljs");
 
 // Get all surat masuk (filtered by role)
 const getAllSuratMasuk = async (req, res) => {
@@ -335,6 +336,79 @@ const deleteSuratMasuk = async (req, res) => {
   }
 };
 
+// Export surat masuk to Excel
+const exportSuratMasuk = async (req, res) => {
+  try {
+    const { role, id: userId } = req.user;
+    let whereCondition = {};
+
+    // Apply same filters as getAllSuratMasuk
+    if (role !== "SEKRETARIS_KANTOR") {
+      whereCondition = {
+        OR: [
+          { disposisi: { some: { toUserId: userId } } },
+          { disposisi: { some: { fromUserId: userId } } },
+        ],
+      };
+    }
+
+    const suratMasuk = await prisma.suratMasuk.findMany({
+      where: whereCondition,
+      include: {
+        createdBy: {
+          select: { nama: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Surat Masuk");
+
+    worksheet.columns = [
+      { header: "No", key: "no", width: 5 },
+      { header: "Nomor Surat", key: "nomorSurat", width: 20 },
+      { header: "Tanggal Surat", key: "tanggalSurat", width: 15 },
+      { header: "Tanggal Diterima", key: "tanggalDiterima", width: 15 },
+      { header: "Pengirim", key: "pengirim", width: 25 },
+      { header: "Perihal", key: "perihal", width: 30 },
+      { header: "Keterangan", key: "keterangan", width: 30 },
+      { header: "Status", key: "status", width: 15 },
+    ];
+
+    suratMasuk.forEach((surat, index) => {
+      worksheet.addRow({
+        no: index + 1,
+        nomorSurat: surat.nomorSurat,
+        tanggalSurat: surat.tanggalSurat,
+        tanggalDiterima: surat.tanggalDiterima,
+        pengirim: surat.pengirim,
+        perihal: surat.perihal,
+        keterangan: surat.keterangan || "-",
+        status: surat.status,
+      });
+    });
+
+    // Style the header
+    worksheet.getRow(1).font = { bold: true };
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=Data_Surat_Masuk_${Date.now()}.xlsx`
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error("Export surat masuk error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 // Mark surat as read
 const markAsRead = async (req, res) => {
   try {
@@ -379,4 +453,5 @@ module.exports = {
   updateStatusSuratMasuk,
   deleteSuratMasuk,
   markAsRead,
+  exportSuratMasuk,
 };

@@ -11,6 +11,9 @@ router.use(auth);
 // Get all surat masuk (filtered by role)
 router.get("/", suratMasukController.getAllSuratMasuk);
 
+// Export surat masuk
+router.get("/export", suratMasukController.exportSuratMasuk);
+
 // Get surat masuk by ID
 router.get("/:id", suratMasukController.getSuratMasukById);
 
