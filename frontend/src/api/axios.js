@@ -53,6 +53,7 @@ export const userAPI = {
 
 // Surat Masuk API
 export const suratMasukAPI = {
+  exportExcel: () => api.get("/surat-masuk/export", { responseType: "blob" }),
   getAll: (params) => api.get("/surat-masuk", { params }),
   getById: (id) => api.get(`/surat-masuk/${id}`),
   create: (data) =>

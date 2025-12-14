@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Search, Eye, FileText } from "lucide-react";
+import { Plus, Search, Eye, FileText, Download } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { suratMasukAPI } from "../../api/axios";
 import Header from "../../components/layout/Header";
@@ -18,6 +18,7 @@ const SuratMasukList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterMonth, setFilterMonth] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   const MONTHS = [
     { value: "1", label: "Januari" },
@@ -48,6 +49,27 @@ const SuratMasukList = () => {
       console.error("Fetch surat error:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const response = await suratMasukAPI.exportExcel();
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `Data_Surat_Masuk_${new Date().getTime()}.xlsx`
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Export error:", error);
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -137,6 +159,17 @@ const SuratMasukList = () => {
                 ))}
               </select>
             </div>
+
+            {/* Export Button */}
+            <Button
+              variant="success"
+              onClick={handleExport}
+              loading={exporting}
+              className="w-full sm:w-auto"
+            >
+              <Download size={20} />
+              Export Excel
+            </Button>
 
             {/* Add Button (Admin only) */}
             {isAdmin(user?.role) && (
