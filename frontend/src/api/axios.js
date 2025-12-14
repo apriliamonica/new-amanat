@@ -53,18 +53,18 @@ export const userAPI = {
 
 // Surat Masuk API
 export const suratMasukAPI = {
-  getAll: () => api.get("/surat-masuk"),
+  getAll: (params) => api.get("/surat-masuk", { params }),
   getById: (id) => api.get(`/surat-masuk/${id}`),
-  create: (formData) =>
-    api.post("/surat-masuk", formData, {
+  create: (data) =>
+    api.post("/surat-masuk", data, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
-  update: (id, formData) =>
-    api.put(`/surat-masuk/${id}`, formData, {
+  update: (id, data) =>
+    api.put(`/surat-masuk/${id}`, data, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
-  updateStatus: (id, data) => api.put(`/surat-masuk/${id}/status`, data),
   delete: (id) => api.delete(`/surat-masuk/${id}`),
+  markAsRead: (id) => api.put(`/surat-masuk/${id}/read`),
 };
 
 // Surat Keluar API

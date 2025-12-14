@@ -124,11 +124,20 @@ const SuratMasukDetail = () => {
   };
 
   // Track file opened
-  const handleFileOpen = (fileUrl) => {
+  const handleFileOpen = async (fileUrl) => {
+    // Local storage tracking (visual only)
     if (!openedFiles.includes(fileUrl)) {
       const newOpenedFiles = [...openedFiles, fileUrl];
       setOpenedFiles(newOpenedFiles);
       localStorage.setItem("openedFiles", JSON.stringify(newOpenedFiles));
+    }
+
+    // Backend tracking
+    try {
+      await suratMasukAPI.markAsRead(id);
+      fetchSurat(); // Refresh timeline to show "Read" status
+    } catch (error) {
+      console.error("Mark as read error:", error);
     }
   };
 
