@@ -323,6 +323,42 @@ const deleteSuratMasuk = async (req, res) => {
   }
 };
 
+// Mark surat as read
+const markAsRead = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { id: userId, nama } = req.user;
+
+    // Check if already marked as read by this user
+    const existingLog = await prisma.trackingSurat.findFirst({
+      where: {
+        suratMasukId: id,
+        userId: userId,
+        aksi: "DIBACA",
+      },
+    });
+
+    if (existingLog) {
+      return res.json({ message: "Already marked as read" });
+    }
+
+    // Create tracking entry
+    await prisma.trackingSurat.create({
+      data: {
+        aksi: "DIBACA",
+        keterangan: `Surat dibaca/diunduh oleh ${nama}`,
+        userId: userId,
+        suratMasukId: id,
+      },
+    });
+
+    res.json({ message: "Marked as read" });
+  } catch (error) {
+    console.error("Mark as read error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   getAllSuratMasuk,
   getSuratMasukById,
@@ -330,4 +366,5 @@ module.exports = {
   updateSuratMasuk,
   updateStatusSuratMasuk,
   deleteSuratMasuk,
+  markAsRead,
 };
