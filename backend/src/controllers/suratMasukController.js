@@ -187,8 +187,8 @@ const createSuratMasuk = async (req, res) => {
       // Tracking Disposisi
       await prisma.trackingSurat.create({
         data: {
-          aksi: "Surat diteruskan kepada Ketua Yayasan",
-          keterangan: `Surat didisposisikan kepada ${actualDisposisiTargetName}`,
+          aksi: "Diteruskan",
+          keterangan: `Surat diteruskan kepada ${actualDisposisiTargetName}`,
           userId: req.user.id,
           suratMasukId: suratMasuk.id,
         },

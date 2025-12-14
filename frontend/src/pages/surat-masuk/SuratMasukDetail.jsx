@@ -12,12 +12,7 @@ import {
   User,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import {
-  suratMasukAPI,
-  disposisiAPI,
-  userAPI,
-  lampiranAPI,
-} from "../../api/axios";
+import { suratMasukAPI, disposisiAPI, userAPI } from "../../api/axios";
 import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
@@ -40,7 +35,7 @@ const SuratMasukDetail = () => {
   const [surat, setSurat] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showDisposisiModal, setShowDisposisiModal] = useState(false);
-  const [showLampiranModal, setShowLampiranModal] = useState(false);
+
   const [users, setUsers] = useState([]);
   const [disposisiForm, setDisposisiForm] = useState({
     toUserId: "",
@@ -96,23 +91,6 @@ const SuratMasukDetail = () => {
       console.error("Create disposisi error:", error);
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleUploadLampiran = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("suratMasukId", id);
-
-    try {
-      await lampiranAPI.upload(formData);
-      fetchSurat();
-      setShowLampiranModal(false);
-    } catch (error) {
-      console.error("Upload lampiran error:", error);
     }
   };
 
@@ -255,15 +233,6 @@ const SuratMasukDetail = () => {
                   >
                     <Send size={18} />
                     Buat Disposisi
-                  </Button>
-                )}
-                {(isAdmin(user?.role) || isKabag(user?.role)) && (
-                  <Button
-                    variant="secondary"
-                    onClick={() => setShowLampiranModal(true)}
-                  >
-                    <Paperclip size={18} />
-                    Upload Lampiran
                   </Button>
                 )}
               </Card.Footer>
@@ -475,33 +444,6 @@ const SuratMasukDetail = () => {
             </Button>
           </div>
         </form>
-      </Modal>
-
-      {/* Lampiran Modal */}
-      <Modal
-        isOpen={showLampiranModal}
-        onClose={() => setShowLampiranModal(false)}
-        title="Upload Lampiran"
-      >
-        <div className="space-y-4">
-          <p className="text-gray-600">
-            Pilih file untuk diupload sebagai lampiran.
-          </p>
-          <input
-            type="file"
-            onChange={handleUploadLampiran}
-            className="form-input"
-            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-          />
-          <div className="flex justify-end">
-            <Button
-              variant="secondary"
-              onClick={() => setShowLampiranModal(false)}
-            >
-              Batal
-            </Button>
-          </div>
-        </div>
       </Modal>
     </div>
   );
