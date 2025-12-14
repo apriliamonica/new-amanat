@@ -1,6 +1,7 @@
 const prisma = require("../config/database");
 const { cloudinary } = require("../config/cloudinary");
 const { generateNomorSurat } = require("../utils/helpers");
+const ExcelJS = require("exceljs");
 
 // Get all surat keluar (filtered by role)
 const getAllSuratKeluar = async (req, res) => {
@@ -488,6 +489,84 @@ const sendSuratKeluar = async (req, res) => {
   }
 };
 
+// Export surat keluar to Excel
+const exportSuratKeluar = async (req, res) => {
+  try {
+    const { role, id: userId } = req.user;
+    let whereCondition = {};
+
+    // Apply same filters as getAllSuratKeluar
+    if (role !== "SEKRETARIS_KANTOR") {
+      whereCondition = {
+        OR: [
+          { disposisi: { some: { toUserId: userId } } },
+          { disposisi: { some: { fromUserId: userId } } },
+          { createdById: userId },
+        ],
+      };
+    }
+
+    const suratKeluar = await prisma.suratKeluar.findMany({
+      where: whereCondition,
+      include: {
+        createdBy: {
+          select: { nama: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Surat Keluar");
+
+    worksheet.columns = [
+      { header: "No", key: "no", width: 5 },
+      { header: "Nomor Surat", key: "nomorSurat", width: 20 },
+      { header: "Tujuan", key: "tujuan", width: 25 },
+      { header: "Perihal", key: "perihal", width: 30 },
+      { header: "Tanggal Surat", key: "tanggalSurat", width: 15 },
+      { header: "Status", key: "status", width: 15 },
+    ];
+
+    const isAdmin = role === "SEKRETARIS_KANTOR";
+
+    suratKeluar.forEach((surat, index) => {
+      // Determine which number to show based on role
+      const displayNomor =
+        isAdmin && surat.nomorSuratAdmin
+          ? surat.nomorSuratAdmin
+          : surat.nomorSurat || "-";
+
+      worksheet.addRow({
+        no: index + 1,
+        nomorSurat: displayNomor,
+        tujuan: surat.tujuan,
+        perihal: surat.perihal,
+        tanggalSurat: surat.tanggalSurat,
+        status: surat.status,
+      });
+    });
+
+    // Style the header
+    worksheet.getRow(1).font = { bold: true };
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=Data_Surat_Keluar_${Date.now()}.xlsx`
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error("Export surat keluar error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 // Delete surat keluar
 const deleteSuratKeluar = async (req, res) => {
   try {
@@ -529,4 +608,5 @@ module.exports = {
   signSuratKeluar,
   sendSuratKeluar,
   deleteSuratKeluar,
+  exportSuratKeluar,
 };
