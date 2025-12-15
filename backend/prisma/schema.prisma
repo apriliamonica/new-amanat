@@ -105,6 +105,8 @@ model SuratKeluar {
   isiSurat     String?       @db.Text
   fileUrl      String?
   filePublicId String?
+  finalFileUrl String?     // Official letter uploaded by Admin
+  finalFilePublicId String?
   isSigned     Boolean       @default(false)
   signedAt     DateTime?
   keterangan   String?
@@ -112,6 +114,7 @@ model SuratKeluar {
   tanggalKirim DateTime?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  isRead       Boolean       @default(false)
 
   createdById String
   createdBy   User   @relation("SuratKeluarCreator", fields: [createdById], references: [id])

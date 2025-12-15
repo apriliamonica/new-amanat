@@ -70,6 +70,30 @@ const SuratKeluarDetail = () => {
   const [selectedKodeArea, setSelectedKodeArea] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [openedFiles, setOpenedFiles] = useState([]);
+  const [showUploadFinalModal, setShowUploadFinalModal] = useState(false);
+  const [finalFile, setFinalFile] = useState(null);
+  const [lampiranFile, setLampiranFile] = useState(null);
+
+  const handleUploadFinal = async (e) => {
+    e.preventDefault();
+    if (!finalFile) return;
+
+    setSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", finalFile);
+      formData.append("isFinalFile", "true");
+
+      await suratKeluarAPI.update(id, formData);
+      setShowUploadFinalModal(false);
+      setFinalFile(null);
+      fetchSurat();
+    } catch (error) {
+      console.error("Upload final file error:", error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     fetchSurat();
@@ -193,20 +217,24 @@ const SuratKeluarDetail = () => {
     }
   };
 
-  const handleUploadLampiran = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleUploadLampiran = async () => {
+    if (!lampiranFile) return;
 
+    setSubmitting(true);
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", lampiranFile);
     formData.append("suratKeluarId", id);
 
     try {
       await lampiranAPI.upload(formData);
       fetchSurat();
       setShowLampiranModal(false);
+      setLampiranFile(null);
     } catch (error) {
       console.error("Upload lampiran error:", error);
+      alert("Gagal mengupload lampiran");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -217,19 +245,28 @@ const SuratKeluarDetail = () => {
   const [selectedVariant, setSelectedVariant] = useState("INTERNAL"); // INTERNAL or EKSTERNAL
 
   const confirmProses = async () => {
+    if (!finalFile) {
+      alert("Mohon upload surat resmi terlebih dahulu");
+      return;
+    }
+
     setSubmitting(true);
     try {
-      await suratKeluarAPI.update(id, {
-        status: STATUS_SURAT.DIPROSES,
-        jenisSuratId: selectedJenisSuratId || undefined,
-        variant: selectedVariant, // Pass variant to backend
-        kodeArea: selectedKodeArea || surat?.kodeArea || "A", // Pass kode area
-      });
-      fetchSurat();
+      const formData = new FormData();
+      formData.append("status", STATUS_SURAT.DIPROSES);
+      if (selectedJenisSuratId)
+        formData.append("jenisSuratId", selectedJenisSuratId);
+      formData.append("variant", selectedVariant);
+      formData.append("kodeArea", selectedKodeArea || surat?.kodeArea || "A");
+      formData.append("isFinalFile", "true");
+      formData.append("file", finalFile);
+
+      await suratKeluarAPI.update(id, formData);
       setShowProsesModal(false);
+      setFinalFile(null);
+      fetchSurat();
     } catch (error) {
-      console.error("Proses surat error:", error);
-      alert("Gagal memproses surat");
+      console.error("Proses error:", error);
     } finally {
       setSubmitting(false);
     }
@@ -363,26 +400,119 @@ const SuratKeluarDetail = () => {
                   )}
                 </div>
 
-                {surat.fileUrl && (
-                  <div className="pt-4 border-t">
-                    <a
-                      href={surat.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="file-link inline-flex items-center gap-2"
-                      onClick={() => handleFileOpen(surat.fileUrl)}
-                    >
-                      <Download size={18} />
-                      Lihat/Download File Surat
-                    </a>
-                    {openedFiles.includes(surat.fileUrl) && (
-                      <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                        ✓ Sudah dibuka
-                      </span>
-                    )}
-                  </div>
-                )}
+                {/* File Section */}
+                <div className="pt-4 border-t space-y-4">
+                  {/* Draft File */}
+                  {surat.fileUrl && (
+                    <div>
+                      <p className="text-sm text-gray-500 mb-2">
+                        File Pengajuan (Draft)
+                      </p>
+                      <a
+                        href={surat.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="file-link inline-flex items-center gap-2"
+                        onClick={() => handleFileOpen(surat.fileUrl)}
+                      >
+                        <Download size={18} />
+                        Lihat/Download Draft
+                      </a>
+                      {openedFiles.includes(surat.fileUrl) && (
+                        <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                          ✓ Sudah dibuka
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Final File */}
+                  {(surat.finalFileUrl || isAdmin(user?.role)) && (
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-sm text-gray-500">
+                          File Surat Resmi (Final)
+                        </p>
+                        {isAdmin(user?.role) && (
+                          <button
+                            onClick={() => setShowUploadFinalModal(true)}
+                            className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                          >
+                            <Paperclip size={12} />
+                            {surat.finalFileUrl ? "Ubah File" : "Upload File"}
+                          </button>
+                        )}
+                      </div>
+                      {surat.finalFileUrl ? (
+                        <div>
+                          <a
+                            href={surat.finalFileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="file-link inline-flex items-center gap-2 text-blue-700 bg-blue-50 border-blue-200"
+                            onClick={() => handleFileOpen(surat.finalFileUrl)}
+                          >
+                            <CheckCircle size={18} />
+                            Lihat/Download Surat Resmi
+                          </a>
+                          {openedFiles.includes(surat.finalFileUrl) && (
+                            <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                              ✓ Sudah dibuka
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-400 italic">
+                          Belum ada surat resmi diupload
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
               </Card.Body>
+
+              {/* Upload Final File Modal */}
+              <Modal
+                isOpen={showUploadFinalModal}
+                onClose={() => setShowUploadFinalModal(false)}
+                title="Upload Surat Resmi"
+              >
+                <form onSubmit={handleUploadFinal} className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Upload file surat resmi yang sudah diproses, diberi nomor,
+                      dan ditandatangani (jika manual). File ini akan menjadi
+                      file utama yang dilihat oleh pengaju.
+                    </p>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      File Surat (PDF/Doc)
+                    </label>
+                    <input
+                      type="file"
+                      onChange={(e) => setFinalFile(e.target.files[0])}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      accept=".pdf,.doc,.docx"
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-3 justify-end">
+                    <Button
+                      variant="secondary"
+                      onClick={() => setShowUploadFinalModal(false)}
+                      type="button"
+                    >
+                      Batal
+                    </Button>
+                    <Button
+                      variant="primary"
+                      type="submit"
+                      loading={submitting}
+                    >
+                      Upload
+                    </Button>
+                  </div>
+                </form>
+              </Modal>
               <Card.Footer className="flex flex-wrap gap-3">
                 {canShowProses && (
                   <Button
@@ -740,7 +870,7 @@ const SuratKeluarDetail = () => {
       <Modal
         isOpen={showDisposisiModal}
         onClose={() => setShowDisposisiModal(false)}
-        title="Buat Disposisi"
+        title="Pengajuan Lampiran"
       >
         <form onSubmit={handleDisposisi} className="space-y-4">
           <div>
@@ -762,16 +892,16 @@ const SuratKeluarDetail = () => {
             </select>
           </div>
           <div>
-            <label className="form-label">Instruksi</label>
+            <label className="form-label">Catatan</label>
             <textarea
               className="form-input"
               rows={3}
-              placeholder="Masukkan instruksi disposisi..."
-              value={disposisiForm.instruksi}
+              placeholder="Masukkan catatan..."
+              value={disposisiForm.catatan}
               onChange={(e) =>
                 setDisposisiForm({
                   ...disposisiForm,
-                  instruksi: e.target.value,
+                  catatan: e.target.value,
                 })
               }
               required
@@ -886,6 +1016,17 @@ const SuratKeluarDetail = () => {
               </label>
             </div>
           </div>
+
+          <div>
+            <label className="form-label">Upload Surat Resmi (Final) *</label>
+            <input
+              type="file"
+              onChange={(e) => setFinalFile(e.target.files[0])}
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mt-2"
+              accept=".pdf,.doc,.docx"
+              required
+            />
+          </div>
           <div className="bg-blue-50 p-3 rounded text-sm text-blue-700">
             Preview Nomor: .../
             {jenisSuratOptions.find((j) => j.id === selectedJenisSuratId)
@@ -903,6 +1044,7 @@ const SuratKeluarDetail = () => {
               variant="primary"
               onClick={confirmProses}
               loading={submitting}
+              disabled={!finalFile}
             >
               Proses & Generate Nomor
             </Button>
@@ -913,25 +1055,54 @@ const SuratKeluarDetail = () => {
       {/* Lampiran Modal */}
       <Modal
         isOpen={showLampiranModal}
-        onClose={() => setShowLampiranModal(false)}
+        onClose={() => {
+          setShowLampiranModal(false);
+          setLampiranFile(null);
+        }}
         title="Upload Lampiran"
       >
         <div className="space-y-4">
           <p className="text-gray-600">
-            Pilih file untuk diupload sebagai lampiran.
+            Pilih file untuk diupload sebagai lampiran surat ini.
           </p>
-          <input
-            type="file"
-            onChange={handleUploadLampiran}
-            className="form-input"
-            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-          />
-          <div className="flex justify-end">
+          <div>
+            <label className="form-label">File Lampiran *</label>
+            <input
+              type="file"
+              onChange={(e) => setLampiranFile(e.target.files[0])}
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mt-2"
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+            />
+          </div>
+          {lampiranFile && (
+            <div className="bg-gray-50 p-3 rounded border border-gray-200">
+              <p className="text-sm font-medium text-gray-700">File dipilih:</p>
+              <p className="text-sm text-gray-600 truncate">
+                {lampiranFile.name}
+              </p>
+              <p className="text-xs text-gray-400">
+                {(lampiranFile.size / 1024).toFixed(1)} KB
+              </p>
+            </div>
+          )}
+          <div className="flex gap-3 justify-end pt-2">
             <Button
               variant="secondary"
-              onClick={() => setShowLampiranModal(false)}
+              onClick={() => {
+                setShowLampiranModal(false);
+                setLampiranFile(null);
+              }}
             >
               Batal
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleUploadLampiran}
+              loading={submitting}
+              disabled={!lampiranFile}
+            >
+              <Paperclip size={18} />
+              Upload
             </Button>
           </div>
         </div>

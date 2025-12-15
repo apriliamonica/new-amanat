@@ -87,6 +87,15 @@ const getSuratKeluarById = async (req, res) => {
       return res.status(404).json({ message: "Surat tidak ditemukan" });
     }
 
+    // Mark as read if viewed by someone other than creator (e.g. Admin viewing a request)
+    if (req.user.id !== suratKeluar.createdById && !suratKeluar.isRead) {
+      await prisma.suratKeluar.update({
+        where: { id },
+        data: { isRead: true },
+      });
+      suratKeluar.isRead = true; // Update local object
+    }
+
     res.json({ suratKeluar });
   } catch (error) {
     console.error("Get surat keluar by id error:", error);
@@ -169,7 +178,7 @@ const createSuratKeluar = async (req, res) => {
     // Create tracking entry
     await prisma.trackingSurat.create({
       data: {
-        aksi: "Surat keluar dibuat",
+        aksi: "Pengajuan surat keluar",
         keterangan: `Surat nomor ${nomorSurat} untuk ${tujuan} dibuat oleh ${req.user.nama}`,
         userId: req.user.id,
         suratKeluarId: suratKeluar.id,
@@ -210,16 +219,27 @@ const updateSuratKeluar = async (req, res) => {
 
     let fileUrl = existingSurat.fileUrl;
     let filePublicId = existingSurat.filePublicId;
+    let finalFileUrl = existingSurat.finalFileUrl;
+    let finalFilePublicId = existingSurat.finalFilePublicId;
     let nomorSurat = existingSurat.nomorSurat;
     let tanggalSurat = existingSurat.tanggalSurat;
 
     if (req.file) {
-      // Delete old file from Cloudinary
-      if (existingSurat.filePublicId) {
-        await cloudinary.uploader.destroy(existingSurat.filePublicId);
+      if (req.body.isFinalFile === "true") {
+        // Upload "Surat Resmi" (Final)
+        if (existingSurat.finalFilePublicId) {
+          await cloudinary.uploader.destroy(existingSurat.finalFilePublicId);
+        }
+        finalFileUrl = req.file.path;
+        finalFilePublicId = req.file.filename;
+      } else {
+        // Update "Surat Pengajuan" (Draft) - standard behavior
+        if (existingSurat.filePublicId) {
+          await cloudinary.uploader.destroy(existingSurat.filePublicId);
+        }
+        fileUrl = req.file.path;
+        filePublicId = req.file.filename;
       }
-      fileUrl = req.file.path;
-      filePublicId = req.file.filename;
     }
 
     // Handle converting PENGAJUAN to DIPROSES (Admin approves)
@@ -291,6 +311,8 @@ const updateSuratKeluar = async (req, res) => {
         keterangan,
         fileUrl,
         filePublicId,
+        finalFileUrl,
+        finalFilePublicId,
         status: status || existingSurat.status,
         jenisSuratId: jenisSuratId || undefined,
         // nomorSurat: nomorSurat, // DO NOT UPDATE ORIGINAL NUMBER

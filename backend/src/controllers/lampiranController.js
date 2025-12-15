@@ -1,27 +1,26 @@
-const prisma = require('../config/database');
-const { cloudinary } = require('../config/cloudinary');
+const prisma = require("../config/database");
+const { cloudinary } = require("../config/cloudinary");
 
 // Get lampiran for a surat
 const getLampiranBySurat = async (req, res) => {
   try {
     const { suratId, type } = req.params;
 
-    const whereCondition = type === 'masuk'
-      ? { suratMasukId: suratId }
-      : { suratKeluarId: suratId };
+    const whereCondition =
+      type === "masuk" ? { suratMasukId: suratId } : { suratKeluarId: suratId };
 
     const lampiran = await prisma.lampiran.findMany({
       where: whereCondition,
       include: {
         uploadedBy: { select: { id: true, nama: true, role: true } },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     res.json({ lampiran });
   } catch (error) {
-    console.error('Get lampiran error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Get lampiran error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -31,19 +30,19 @@ const uploadLampiran = async (req, res) => {
     const { suratMasukId, suratKeluarId, keterangan } = req.body;
 
     if (!req.file) {
-      return res.status(400).json({ message: 'File wajib diupload' });
+      return res.status(400).json({ message: "File wajib diupload" });
     }
 
     if (!suratMasukId && !suratKeluarId) {
-      return res.status(400).json({ message: 'Surat tidak valid' });
+      return res.status(400).json({ message: "Surat tidak valid" });
     }
 
     const lampiran = await prisma.lampiran.create({
       data: {
-        namaFile: req.file.originalname,
+        fileName: req.file.originalname,
         fileUrl: req.file.path,
         filePublicId: req.file.filename,
-        keterangan,
+        fileType: req.file.mimetype,
         uploadedById: req.user.id,
         suratMasukId,
         suratKeluarId,
@@ -65,12 +64,12 @@ const uploadLampiran = async (req, res) => {
     });
 
     res.status(201).json({
-      message: 'Lampiran berhasil diupload',
+      message: "Lampiran berhasil diupload",
       lampiran,
     });
   } catch (error) {
-    console.error('Upload lampiran error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Upload lampiran error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -84,15 +83,15 @@ const deleteLampiran = async (req, res) => {
     });
 
     if (!lampiran) {
-      return res.status(404).json({ message: 'Lampiran tidak ditemukan' });
+      return res.status(404).json({ message: "Lampiran tidak ditemukan" });
     }
 
     // Only uploader or admin can delete
     if (
       lampiran.uploadedById !== req.user.id &&
-      req.user.role !== 'SEKRETARIS_KANTOR'
+      req.user.role !== "SEKRETARIS_KANTOR"
     ) {
-      return res.status(403).json({ message: 'Akses ditolak' });
+      return res.status(403).json({ message: "Akses ditolak" });
     }
 
     // Delete from Cloudinary
@@ -100,10 +99,10 @@ const deleteLampiran = async (req, res) => {
 
     await prisma.lampiran.delete({ where: { id } });
 
-    res.json({ message: 'Lampiran berhasil dihapus' });
+    res.json({ message: "Lampiran berhasil dihapus" });
   } catch (error) {
-    console.error('Delete lampiran error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Delete lampiran error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 

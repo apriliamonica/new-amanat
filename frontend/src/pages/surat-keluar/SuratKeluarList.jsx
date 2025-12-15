@@ -110,10 +110,18 @@ const SuratKeluarList = () => {
   const filteredSurat = suratList.filter((surat) => {
     // 1. Tab Filtering (Admin Only)
     if (isAdmin(user?.role)) {
-      if (activeTab === "surat" && surat.status === STATUS_SURAT.PENGAJUAN)
-        return false;
-      if (activeTab === "request" && surat.status !== STATUS_SURAT.PENGAJUAN)
-        return false;
+      // Tab "Surat Keluar" -> Show letters created by Admin OR (Requests that have Final File)
+      if (activeTab === "surat") {
+        const isAdminCreated = surat.createdBy?.role === "SEKRETARIS_KANTOR";
+        const hasFinalFile = !!surat.finalFileUrl;
+        if (!isAdminCreated && !hasFinalFile) return false;
+      }
+      // Tab "Permintaan Surat" -> Show Requests that do NOT have Final File yet
+      if (activeTab === "request") {
+        const isAdminCreated = surat.createdBy?.role === "SEKRETARIS_KANTOR";
+        const hasFinalFile = !!surat.finalFileUrl;
+        if (isAdminCreated || hasFinalFile) return false;
+      }
     }
 
     // 2. Search Filtering
@@ -328,6 +336,9 @@ const SuratKeluarList = () => {
                 <thead>
                   <tr>
                     <th className="text-left">No. Surat</th>
+                    {activeTab === "request" && (
+                      <th className="text-left">Permintaan Dari</th>
+                    )}
                     <th className="text-left">Tujuan</th>
                     <th className="text-left">Perihal</th>
                     <th className="text-left">Tanggal</th>
@@ -350,6 +361,17 @@ const SuratKeluarList = () => {
                             ? surat.nomorSuratAdmin
                             : surat.nomorSurat || "-"}
                         </td>
+                        {activeTab === "request" && (
+                          <td className="text-gray-700 font-medium">
+                            {surat.createdBy?.nama || "-"}
+                            <br />
+                            <span className="text-xs text-gray-500 font-normal">
+                              {surat.createdBy?.role
+                                ? surat.createdBy.role.replace(/_/g, " ")
+                                : ""}
+                            </span>
+                          </td>
+                        )}
                         <td>{surat.tujuan}</td>
                         <td className="text-gray-600">
                           {truncateText(surat.perihal, 35)}
@@ -361,12 +383,18 @@ const SuratKeluarList = () => {
                         </td>
                         <td className="whitespace-nowrap">
                           <StatusBadge status={surat.status} size="small" />
+                          {/* {surat.isRead && (
+                            <span className="ml-2 text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-200 inline-flex items-center gap-1">
+                              <Eye size={10} />
+                              Dibaca
+                            </span>
+                          )}
                           {surat.isSigned && (
                             <span className="ml-2 text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded border border-green-200 inline-flex items-center gap-1">
                               <PenTool size={8} />
                               Signed
                             </span>
-                          )}
+                          )} */}
                         </td>
                         <td className="text-center whitespace-nowrap">
                           <Button
