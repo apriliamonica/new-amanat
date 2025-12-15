@@ -13,6 +13,7 @@ import {
   User,
   Truck,
   Edit,
+  Trash2,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import {

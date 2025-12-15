@@ -157,27 +157,42 @@ const Dashboard = () => {
 
       <div className="p-6 lg:p-8 space-y-8">
         {/* Welcome Message */}
-        <div className="relative overflow-hidden rounded-2xl lg:rounded-3xl bg-gradient-to-r from-green-600 to-emerald-600 p-5 lg:p-8 text-white shadow-xl shadow-green-900/10">
+        <div className="relative overflow-hidden rounded-2xl lg:rounded-3xl bg-gradient-to-br from-green-600 via-emerald-600 to-teal-700 p-6 lg:p-10 text-white shadow-xl shadow-green-900/20 group">
           <div className="relative z-10">
-            <h2 className="text-xl lg:text-3xl font-bold mb-1 lg:mb-2 tracking-tight">
+            <h2 className="text-xl lg:text-3xl font-bold mb-2 tracking-tight">
               Selamat Datang, {user?.nama}!
             </h2>
-            <p className="text-green-50/90 text-sm lg:text-lg font-medium">
+            <p className="text-green-50/90 text-sm lg:text-lg font-medium max-w-2xl">
               {ROLE_NAMES[user?.role]}
             </p>
           </div>
-          {/* Decorative Circle */}
-          <div className="absolute -right-10 -top-10 w-40 lg:w-64 h-40 lg:h-64 bg-white/10 rounded-full blur-3xl"></div>
-          <div className="absolute -left-10 -bottom-10 w-32 lg:w-48 h-32 lg:h-48 bg-black/5 rounded-full blur-2xl"></div>
+          {/* Decorative Elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 transition-transform duration-700 group-hover:scale-110"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-2xl -ml-10 -mb-10 transition-transform duration-700 group-hover:scale-110"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {statsCards.map((stat, index) => (
-            <Card key={index} className="p-6 card-modern border-0">
-              <div className="flex items-center justify-between">
+            <Card
+              key={index}
+              className={`p-6 border-0 border-l-4 ${stat.color.replace(
+                "bg-",
+                "border-"
+              )} shadow-md overflow-hidden relative bg-gradient-to-r from-${stat.bgColor.replace(
+                "bg-",
+                ""
+              )} via-white to-white`}
+            >
+              <div className="relative z-10 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                  <p
+                    className={`text-sm font-bold mb-1 uppercase tracking-wider ${stat.color.replace(
+                      "bg-",
+                      "text-"
+                    )}`}
+                  >
                     {stat.title}
                   </p>
                   <p className="text-4xl font-bold text-gray-800 tracking-tight">
@@ -185,7 +200,7 @@ const Dashboard = () => {
                   </p>
                 </div>
                 <div
-                  className={`p-4 rounded-2xl ${stat.bgColor} shadow-inner bg-opacity-50`}
+                  className={`p-4 rounded-2xl ${stat.bgColor} shadow-sm bg-white/50 backdrop-blur-sm`}
                 >
                   <stat.icon
                     className={`text-${stat.color.replace("bg-", "")}`}
@@ -199,46 +214,61 @@ const Dashboard = () => {
 
         {/* Recent Activities & Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Recent Activities - Takes up 2 columns */}
+          {/* Recent Activities */}
           <div className="lg:col-span-2">
-            <Card className="h-full border-0 shadow-sm">
-              <Card.Header className="border-b-0 pb-2 pt-6">
-                <h3 className="font-bold text-gray-800 flex items-center gap-2 text-lg">
-                  <Clock size={20} className="text-green-600" />
+            <Card className="h-full border-0 shadow-md hover:shadow-lg transition-shadow duration-300">
+              <Card.Header className="border-b border-gray-100 pb-4 pt-6 px-6 bg-gradient-to-r from-white to-gray-50/50 rounded-t-xl">
+                <h3 className="font-bold text-gray-800 flex items-center gap-3 text-lg">
+                  <div className="p-2 bg-green-50 rounded-lg">
+                    <Clock size={20} className="text-green-600" />
+                  </div>
                   Aktivitas Terbaru
                 </h3>
               </Card.Header>
               <Card.Body className="p-0">
                 {activities.length === 0 ? (
-                  <div className="p-8 text-center text-gray-400 font-medium">
-                    Belum ada aktivitas
+                  <div className="p-12 text-center">
+                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Clock size={32} className="text-gray-300" />
+                    </div>
+                    <p className="text-gray-500 font-medium">
+                      Belum ada aktivitas
+                    </p>
                   </div>
                 ) : (
                   <>
-                    <div className="divide-y divide-gray-50/50">
+                    <div className="divide-y divide-gray-50">
                       {currentActivities.map((activity) => (
                         <div
                           key={activity.id}
-                          className="p-5 hover:bg-gray-50 transition-colors group"
+                          className="p-5 border-b border-gray-50 last:border-0"
                         >
+                          {/* Left border accent removed */}
+
                           <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm border border-blue-100/50">
                               <FileText size={18} className="text-blue-600" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex justify-between items-start">
-                                <p className="text-sm font-semibold text-gray-900">
+                                <p className="text-sm font-bold text-gray-900">
                                   {activity.aksi}
                                 </p>
-                                <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                                <span className="text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">
                                   {formatRelativeTime(activity.timestamp)}
                                 </span>
                               </div>
-                              <p className="text-sm text-gray-500 truncate mt-0.5">
+                              <p className="text-sm text-gray-500 truncate mt-1">
                                 {activity.suratMasuk?.perihal ||
                                   activity.suratKeluar?.perihal ||
                                   "-"}
                               </p>
+                              <div className="mt-2 flex items-center gap-2">
+                                <span className="inline-flex items-center gap-1 text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
+                                  <Users size={10} />
+                                  {activity.user?.nama || "Sistem"}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -246,7 +276,7 @@ const Dashboard = () => {
                     </div>
 
                     {/* Pagination */}
-                    <div className="p-4 border-t border-gray-100">
+                    <div className="p-4 border-t border-gray-100 bg-gray-50/30 rounded-b-xl">
                       <Pagination
                         currentPage={currentPage}
                         totalItems={activities.length}
@@ -262,64 +292,86 @@ const Dashboard = () => {
 
           {/* Quick Actions */}
           <div>
-            <Card className="h-full border-0 shadow-sm">
-              <Card.Header className="border-b-0 pb-2 pt-6">
-                <h3 className="font-bold text-gray-800 flex items-center gap-2 text-lg">
-                  <TrendingUp size={20} className="text-yellow-500" />
+            <Card className="h-full border-0 shadow-md hover:shadow-lg transition-shadow duration-300">
+              <Card.Header className="border-b border-gray-100 pb-4 pt-6 px-6 bg-gradient-to-r from-white to-gray-50/50 rounded-t-xl">
+                <h3 className="font-bold text-gray-800 flex items-center gap-3 text-lg">
+                  <div className="p-2 bg-yellow-50 rounded-lg">
+                    <TrendingUp size={20} className="text-yellow-600" />
+                  </div>
                   Aksi Cepat
                 </h3>
               </Card.Header>
-              <Card.Body>
-                <div className="space-y-3">
+              <Card.Body className="p-6">
+                <div className="grid gap-4">
                   <a
                     href="/surat-masuk"
-                    className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-50/50 rounded-2xl hover:shadow-md hover:translate-x-1 transition-all group"
+                    className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-50/30 rounded-2xl border border-blue-100/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
                   >
-                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm text-blue-600 group-hover:text-blue-700">
-                      <Mail size={20} />
+                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-blue-600 group-hover:text-blue-700 group-hover:scale-110 transition-transform">
+                      <Mail size={24} />
                     </div>
-                    <span className="font-medium text-gray-700 group-hover:text-gray-900">
-                      Surat Masuk
-                    </span>
+                    <div>
+                      <span className="font-bold text-gray-800 group-hover:text-blue-700 transition-colors block">
+                        Surat Masuk
+                      </span>
+                      <span className="text-xs text-blue-600/70 font-medium">
+                        Kelola surat masuk
+                      </span>
+                    </div>
                   </a>
 
                   <a
                     href="/surat-keluar"
-                    className="flex items-center gap-4 p-4 bg-gradient-to-r from-green-50 to-green-50/50 rounded-2xl hover:shadow-md hover:translate-x-1 transition-all group"
+                    className="flex items-center gap-4 p-4 bg-gradient-to-r from-green-50 to-green-50/30 rounded-2xl border border-green-100/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
                   >
-                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm text-green-600 group-hover:text-green-700">
-                      <Send size={20} />
+                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-green-600 group-hover:text-green-700 group-hover:scale-110 transition-transform">
+                      <Send size={24} />
                     </div>
-                    <span className="font-medium text-gray-700 group-hover:text-gray-900">
-                      Surat Keluar
-                    </span>
+                    <div>
+                      <span className="font-bold text-gray-800 group-hover:text-green-700 transition-colors block">
+                        Surat Keluar
+                      </span>
+                      <span className="text-xs text-green-600/70 font-medium">
+                        Kelola surat keluar
+                      </span>
+                    </div>
                   </a>
 
                   {!isAdmin(user?.role) && (
                     <a
                       href="/disposisi"
-                      className="flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-purple-50/50 rounded-2xl hover:shadow-md hover:translate-x-1 transition-all group"
+                      className="flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-purple-50/30 rounded-2xl border border-purple-100/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
                     >
-                      <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm text-purple-600 group-hover:text-purple-700">
-                        <FileText size={20} />
+                      <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-purple-600 group-hover:text-purple-700 group-hover:scale-110 transition-transform">
+                        <FileText size={24} />
                       </div>
-                      <span className="font-medium text-gray-700 group-hover:text-gray-900">
-                        Disposisi Saya
-                      </span>
+                      <div>
+                        <span className="font-bold text-gray-800 group-hover:text-purple-700 transition-colors block">
+                          Disposisi Saya
+                        </span>
+                        <span className="text-xs text-purple-600/70 font-medium">
+                          Cek disposisi masuk
+                        </span>
+                      </div>
                     </a>
                   )}
 
                   {isAdmin(user?.role) && (
                     <a
                       href="/users"
-                      className="flex items-center gap-4 p-4 bg-gradient-to-r from-orange-50 to-orange-50/50 rounded-2xl hover:shadow-md hover:translate-x-1 transition-all group"
+                      className="flex items-center gap-4 p-4 bg-gradient-to-r from-orange-50 to-orange-50/30 rounded-2xl border border-orange-100/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
                     >
-                      <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm text-orange-600 group-hover:text-orange-700">
-                        <Users size={20} />
+                      <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-orange-600 group-hover:text-orange-700 group-hover:scale-110 transition-transform">
+                        <Users size={24} />
                       </div>
-                      <span className="font-medium text-gray-700 group-hover:text-gray-900">
-                        Kelola User
-                      </span>
+                      <div>
+                        <span className="font-bold text-gray-800 group-hover:text-orange-700 transition-colors block">
+                          Kelola User
+                        </span>
+                        <span className="text-xs text-orange-600/70 font-medium">
+                          Manajemen pengguna
+                        </span>
+                      </div>
                     </a>
                   )}
                 </div>
