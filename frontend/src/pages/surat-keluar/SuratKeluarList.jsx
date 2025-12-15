@@ -196,26 +196,26 @@ const SuratKeluarList = () => {
 
         {/* Tabs for Admin */}
         {isAdmin(user?.role) && (
-          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+          <div className="flex gap-2 border-b pb-1">
             <button
               onClick={() => setActiveTab("surat")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+              className={`py-2 px-5 font-medium rounded-t-lg transition-all duration-200 ${
                 activeTab === "surat"
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/30"
+                  : "text-gray-600 hover:bg-green-50/80 hover:text-green-600 hover:backdrop-blur-sm"
               }`}
             >
               Surat Keluar
             </button>
             <button
               onClick={() => setActiveTab("request")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
+              className={`py-2 px-5 font-medium rounded-t-lg transition-all duration-200 flex items-center gap-2 ${
                 activeTab === "request"
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/30"
+                  : "text-gray-600 hover:bg-green-50/80 hover:text-green-600 hover:backdrop-blur-sm"
               }`}
             >
-              Permintaan Surat
+              Pengajuan Surat
               {suratList.filter((s) => s.status === STATUS_SURAT.PENGAJUAN)
                 .length > 0 && (
                 <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
@@ -320,13 +320,11 @@ const SuratKeluarList = () => {
         {filteredSurat.length === 0 ? (
           <Card className="p-12 text-center">
             <FileText className="mx-auto mb-4 text-gray-300" size={48} />
-            <h3 className="text-lg font-medium text-gray-600 mb-2">
-              Tidak ada surat keluar
-            </h3>
+            <h3 className="text-lg font-medium text-gray-600 mb-2">Kosong</h3>
             <p className="text-gray-400">
               {searchTerm
                 ? "Coba ubah filter pencarian Anda"
-                : "Belum ada surat keluar yang tersedia"}
+                : "Belum ada pengajuan surat"}
             </p>
           </Card>
         ) : (
