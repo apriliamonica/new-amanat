@@ -7,6 +7,7 @@ import Button from "../../components/common/Button";
 import Modal from "../../components/common/Modal";
 import { ROLES, ROLE_NAMES } from "../../utils/constants";
 import { formatDate } from "../../utils/helpers";
+import Pagination from "../../components/common/Pagination";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -21,6 +22,10 @@ const UserList = () => {
     nama: "",
     role: ROLES.SEKRETARIS_KANTOR,
   });
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchUsers();
@@ -101,6 +106,16 @@ const UserList = () => {
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Reset page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // Paginate filtered data
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -150,7 +165,7 @@ const UserList = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => (
+                {currentItems.map((user) => (
                   <tr key={user.id}>
                     <td className="font-medium text-gray-800">{user.nama}</td>
                     <td className="text-gray-600 font-mono text-sm">
@@ -213,6 +228,16 @@ const UserList = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="px-6">
+            <Pagination
+              currentPage={currentPage}
+              totalItems={filteredUsers.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </Card>
       </div>

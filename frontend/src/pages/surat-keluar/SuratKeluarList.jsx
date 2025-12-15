@@ -25,6 +25,7 @@ import {
   STATUS_SURAT,
 } from "../../utils/constants";
 import { formatDate, truncateText } from "../../utils/helpers";
+import Pagination from "../../components/common/Pagination";
 
 const SuratKeluarList = () => {
   const { user } = useAuth();
@@ -34,6 +35,10 @@ const SuratKeluarList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("surat"); // 'surat' | 'request'
   const [exporting, setExporting] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchSurat();
@@ -141,6 +146,16 @@ const SuratKeluarList = () => {
 
     return true;
   });
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus, filterUser, filterMonth, activeTab]);
+
+  // Paginate filtered data
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredSurat.slice(indexOfFirstItem, indexOfLastItem);
 
   // Get action label based on status and role
   const getActionLabel = (surat) => {
@@ -321,7 +336,7 @@ const SuratKeluarList = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredSurat.map((surat) => {
+                  {currentItems.map((surat) => {
                     const action = getActionLabel(surat);
                     return (
                       <tr key={surat.id}>
@@ -371,6 +386,16 @@ const SuratKeluarList = () => {
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="px-6">
+              <Pagination
+                currentPage={currentPage}
+                totalItems={filteredSurat.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+              />
             </div>
           </Card>
         )}

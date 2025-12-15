@@ -22,12 +22,17 @@ import {
   canValidate,
 } from "../../utils/constants";
 import { formatRelativeTime } from "../../utils/helpers";
+import Pagination from "../../components/common/Pagination";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Pagination for Activities
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Smaller for dashboard
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,13 +72,6 @@ const Dashboard = () => {
           icon: Send,
           color: "bg-green-500",
           bgColor: "bg-green-50",
-        },
-        {
-          title: "Surat Masuk Baru",
-          value: stats.suratMasukBaru || 0,
-          icon: AlertCircle,
-          color: "bg-yellow-500",
-          bgColor: "bg-yellow-50",
         },
         {
           title: "Disposisi Saat Ini",
@@ -133,6 +131,14 @@ const Dashboard = () => {
   };
 
   const statsCards = getStatsCards();
+
+  // Paginate activities
+  const indexOfLastActivity = currentPage * itemsPerPage;
+  const indexOfFirstActivity = indexOfLastActivity - itemsPerPage;
+  const currentActivities = activities.slice(
+    indexOfFirstActivity,
+    indexOfLastActivity
+  );
 
   if (loading) {
     return (
@@ -208,35 +214,47 @@ const Dashboard = () => {
                     Belum ada aktivitas
                   </div>
                 ) : (
-                  <div className="divide-y divide-gray-50/50">
-                    {activities.slice(0, 5).map((activity) => (
-                      <div
-                        key={activity.id}
-                        className="p-5 hover:bg-gray-50 transition-colors group"
-                      >
-                        <div className="flex items-start gap-4">
-                          <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                            <FileText size={18} className="text-blue-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-start">
-                              <p className="text-sm font-semibold text-gray-900">
-                                {activity.aksi}
-                              </p>
-                              <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-                                {formatRelativeTime(activity.timestamp)}
-                              </span>
+                  <>
+                    <div className="divide-y divide-gray-50/50">
+                      {currentActivities.map((activity) => (
+                        <div
+                          key={activity.id}
+                          className="p-5 hover:bg-gray-50 transition-colors group"
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                              <FileText size={18} className="text-blue-600" />
                             </div>
-                            <p className="text-sm text-gray-500 truncate mt-0.5">
-                              {activity.suratMasuk?.perihal ||
-                                activity.suratKeluar?.perihal ||
-                                "-"}
-                            </p>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex justify-between items-start">
+                                <p className="text-sm font-semibold text-gray-900">
+                                  {activity.aksi}
+                                </p>
+                                <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                                  {formatRelativeTime(activity.timestamp)}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-500 truncate mt-0.5">
+                                {activity.suratMasuk?.perihal ||
+                                  activity.suratKeluar?.perihal ||
+                                  "-"}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+
+                    {/* Pagination */}
+                    <div className="p-4 border-t border-gray-100">
+                      <Pagination
+                        currentPage={currentPage}
+                        totalItems={activities.length}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={setCurrentPage}
+                      />
+                    </div>
+                  </>
                 )}
               </Card.Body>
             </Card>

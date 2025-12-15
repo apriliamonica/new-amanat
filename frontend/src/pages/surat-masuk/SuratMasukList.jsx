@@ -7,6 +7,7 @@ import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import StatusBadge from "../../components/common/StatusBadge";
+import Pagination from "../../components/common/Pagination";
 import { isAdmin, JENIS_SURAT } from "../../utils/constants";
 import { formatDate, truncateText } from "../../utils/helpers";
 
@@ -19,6 +20,10 @@ const SuratMasukList = () => {
   const [filterStatus, setFilterStatus] = useState("");
   const [filterMonth, setFilterMonth] = useState("");
   const [exporting, setExporting] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const MONTHS = [
     { value: "1", label: "Januari" },
@@ -73,6 +78,11 @@ const SuratMasukList = () => {
     }
   };
 
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus, filterMonth]);
+
   // Filter surat
   const filteredSurat = suratList.filter((surat) => {
     // Search Filter
@@ -98,6 +108,11 @@ const SuratMasukList = () => {
 
     return true;
   });
+
+  // Paginate filtered data
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredSurat.slice(indexOfFirstItem, indexOfLastItem);
 
   if (loading) {
     return (
@@ -216,7 +231,7 @@ const SuratMasukList = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredSurat.map((surat) => (
+                  {currentItems.map((surat) => (
                     <tr key={surat.id}>
                       <td className="font-mono font-medium text-green-700">
                         {surat.nomorSurat}
@@ -249,6 +264,16 @@ const SuratMasukList = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="px-6">
+              <Pagination
+                currentPage={currentPage}
+                totalItems={filteredSurat.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+              />
             </div>
           </Card>
         )}

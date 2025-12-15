@@ -5,6 +5,7 @@ import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import Modal from "../../components/common/Modal";
+import Pagination from "../../components/common/Pagination";
 
 const JenisSuratManager = () => {
   const [jenisSuratList, setJenisSuratList] = useState([]);
@@ -13,6 +14,10 @@ const JenisSuratManager = () => {
   const [formData, setFormData] = useState({ id: "", kode: "", nama: "" });
   const [isEditing, setIsEditing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchData();
@@ -71,6 +76,11 @@ const JenisSuratManager = () => {
     }
   };
 
+  // Paginate data
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = jenisSuratList.slice(indexOfFirstItem, indexOfLastItem);
+
   return (
     <div className="min-h-screen">
       <Header title="Manajemen Jenis Surat" />
@@ -95,61 +105,75 @@ const JenisSuratManager = () => {
             {loading ? (
               <div className="text-center py-8">Loading...</div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="table-modern">
-                  <thead>
-                    <tr>
-                      <th className="text-left w-24">Kode</th>
-                      <th className="text-left">Nama Jenis Surat</th>
-                      <th className="text-left w-64">Preview Nomor</th>
-                      <th className="text-right w-32">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {jenisSuratList.map((item) => (
-                      <tr key={item.id}>
-                        <td className="font-medium font-mono text-blue-600">
-                          {item.kode}
-                        </td>
-                        <td>{item.nama}</td>
-                        <td className="text-gray-500 font-mono text-sm">
-                          XXX/{item.kode}/YPD/...
-                        </td>
-                        <td className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="small"
-                              onClick={() => handleEdit(item)}
-                              className="hover:bg-orange-50 hover:text-orange-600"
-                            >
-                              <Edit2 size={16} />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="small"
-                              onClick={() => handleDelete(item.id)}
-                              className="hover:bg-red-50 hover:text-red-600"
-                            >
-                              <Trash2 size={16} />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {jenisSuratList.length === 0 && (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="table-modern">
+                    <thead>
                       <tr>
-                        <td
-                          colSpan={4}
-                          className="p-8 text-center text-gray-400 italic"
-                        >
-                          Belum ada data jenis surat.
-                        </td>
+                        <th className="text-left w-24">Kode</th>
+                        <th className="text-left">Nama Jenis Surat</th>
+                        <th className="text-left w-64">Preview Nomor</th>
+                        <th className="text-right w-32">Aksi</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {currentItems.map((item) => (
+                        <tr key={item.id}>
+                          <td className="font-medium font-mono text-blue-600">
+                            {item.kode}
+                          </td>
+                          <td>{item.nama}</td>
+                          <td className="text-gray-500 font-mono text-sm">
+                            XXX/{item.kode}/YPD/...
+                          </td>
+                          <td className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="small"
+                                onClick={() => handleEdit(item)}
+                                className="hover:bg-orange-50 hover:text-orange-600"
+                              >
+                                <Edit2 size={16} />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="small"
+                                onClick={() => handleDelete(item.id)}
+                                className="hover:bg-red-50 hover:text-red-600"
+                              >
+                                <Trash2 size={16} />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {jenisSuratList.length === 0 && (
+                        <tr>
+                          <td
+                            colSpan={4}
+                            className="p-8 text-center text-gray-400 italic"
+                          >
+                            Belum ada data jenis surat.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                {jenisSuratList.length > 0 && (
+                  <div className="px-6">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalItems={jenisSuratList.length}
+                      itemsPerPage={itemsPerPage}
+                      onPageChange={setCurrentPage}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </Card.Body>
         </Card>

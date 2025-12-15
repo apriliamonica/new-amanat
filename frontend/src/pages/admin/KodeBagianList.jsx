@@ -5,6 +5,7 @@ import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import { ROLE_NAMES } from "../../utils/constants";
+import Pagination from "../../components/common/Pagination";
 
 const KodeBagianList = () => {
   const [data, setData] = useState([]);
@@ -15,6 +16,10 @@ const KodeBagianList = () => {
     kodeEksternal: "",
     namaBagian: "",
   });
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchData();
@@ -61,6 +66,11 @@ const KodeBagianList = () => {
     setEditingId(null);
   };
 
+  // Paginate data
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+
   return (
     <div className="min-h-screen">
       <Header title="Master Data Kode Bagian" />
@@ -96,7 +106,7 @@ const KodeBagianList = () => {
                       </td>
                     </tr>
                   ) : (
-                    data.map((item) => (
+                    currentItems.map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50">
                         <td className="p-4 text-sm font-medium text-gray-700">
                           {handleDisplayRole(item.role)}
@@ -187,6 +197,18 @@ const KodeBagianList = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination */}
+            {data.length > 0 && (
+              <div className="px-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalItems={data.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
           </Card.Body>
         </Card>
       </div>

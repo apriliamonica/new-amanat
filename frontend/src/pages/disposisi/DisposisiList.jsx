@@ -8,6 +8,7 @@ import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import { STATUS_DISPOSISI, ROLE_SHORT_NAMES } from "../../utils/constants";
 import { formatDateTime, truncateText } from "../../utils/helpers";
+import Pagination from "../../components/common/Pagination";
 
 const DisposisiList = () => {
   const { user } = useAuth();
@@ -15,6 +16,10 @@ const DisposisiList = () => {
   const [disposisiList, setDisposisiList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("");
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchDisposisi();
@@ -55,6 +60,19 @@ const DisposisiList = () => {
     const status = getEffectiveStatus(d);
     return !filterStatus || status === filterStatus;
   });
+
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus]);
+
+  // Paginate filtered data
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredDisposisi.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -113,7 +131,7 @@ const DisposisiList = () => {
           </Card>
         ) : (
           <div className="grid gap-4">
-            {filteredDisposisi.map((disposisi) => {
+            {currentItems.map((disposisi) => {
               const effectiveStatus = getEffectiveStatus(disposisi);
               return (
                 <Card
@@ -212,6 +230,14 @@ const DisposisiList = () => {
                 </Card>
               );
             })}
+
+            {/* Pagination */}
+            <Pagination
+              currentPage={currentPage}
+              totalItems={filteredDisposisi.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+            />
           </div>
         )}
       </div>
