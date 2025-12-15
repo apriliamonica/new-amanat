@@ -34,7 +34,7 @@ const getStats = async (req, res) => {
       };
     } else {
       // Other roles see their own stats
-      const [disposisiDiterima, disposisiSelesai, suratTerkait] =
+      const [disposisiDiterima, disposisiSelesai, suratTerkait, mySuratKeluar] =
         await Promise.all([
           prisma.disposisi.count({
             where: { toUserId: userId, status: "PENDING" },
@@ -43,21 +43,15 @@ const getStats = async (req, res) => {
             where: { toUserId: userId, status: "SELESAI" },
           }),
           prisma.disposisi.count({ where: { toUserId: userId } }),
+          prisma.suratKeluar.count({ where: { createdById: userId } }),
         ]);
 
       stats = {
         disposisiDiterima,
         disposisiSelesai,
         suratTerkait,
+        mySuratKeluar,
       };
-
-      // Add validation/signature stats for specific roles
-      if (role === "KETUA_PENGURUS") {
-        const menungguTTD = await prisma.suratKeluar.count({
-          where: { status: "MENUNGGU_TTD" },
-        });
-        stats.menungguTTD = menungguTTD;
-      }
 
       if (role === "SEKRETARIS_PENGURUS" || role === "BENDAHARA") {
         const menungguValidasi = await prisma.suratKeluar.count({

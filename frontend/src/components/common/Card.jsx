@@ -1,8 +1,8 @@
-const Card = ({ children, className = '', hover = false, onClick }) => {
+const Card = ({ children, className = "", hover = false, onClick }) => {
   return (
     <div
-      className={`bg-white rounded-xl shadow-sm border border-gray-100 ${
-        hover ? 'card-hover cursor-pointer' : ''
+      className={`bg-white rounded-2xl shadow-sm border border-gray-200/60 ${
+        hover ? "card-hover cursor-pointer" : ""
       } ${className}`}
       onClick={onClick}
     >
@@ -11,7 +11,7 @@ const Card = ({ children, className = '', hover = false, onClick }) => {
   );
 };
 
-const CardHeader = ({ children, className = '' }) => {
+const CardHeader = ({ children, className = "" }) => {
   return (
     <div className={`px-6 py-4 border-b border-gray-100 ${className}`}>
       {children}
@@ -19,11 +19,11 @@ const CardHeader = ({ children, className = '' }) => {
   );
 };
 
-const CardBody = ({ children, className = '' }) => {
+const CardBody = ({ children, className = "" }) => {
   return <div className={`px-6 py-4 ${className}`}>{children}</div>;
 };
 
-const CardFooter = ({ children, className = '' }) => {
+const CardFooter = ({ children, className = "" }) => {
   return (
     <div className={`px-6 py-4 border-t border-gray-100 ${className}`}>
       {children}

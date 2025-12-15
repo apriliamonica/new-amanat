@@ -91,53 +91,47 @@ const JenisSuratManager = () => {
               </Button>
             </div>
           </Card.Header>
-          <Card.Body>
+          <Card.Body className="p-0">
             {loading ? (
               <div className="text-center py-8">Loading...</div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
+                <table className="table-modern">
+                  <thead>
                     <tr>
-                      <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                        Kode
-                      </th>
-                      <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                        Nama Jenis Surat
-                      </th>
-                      <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                        Preview Nomor
-                      </th>
-                      <th className="text-right px-4 py-3 text-sm font-semibold text-gray-600">
-                        Aksi
-                      </th>
+                      <th className="text-left w-24">Kode</th>
+                      <th className="text-left">Nama Jenis Surat</th>
+                      <th className="text-left w-64">Preview Nomor</th>
+                      <th className="text-right w-32">Aksi</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y">
+                  <tbody>
                     {jenisSuratList.map((item) => (
-                      <tr key={item.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium font-mono text-blue-600">
+                      <tr key={item.id}>
+                        <td className="font-medium font-mono text-blue-600">
                           {item.kode}
                         </td>
-                        <td className="px-4 py-3">{item.nama}</td>
-                        <td className="px-4 py-3 text-sm text-gray-500 font-mono">
+                        <td>{item.nama}</td>
+                        <td className="text-gray-500 font-mono text-sm">
                           XXX/{item.kode}/YPD/...
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="text-right">
                           <div className="flex justify-end gap-2">
                             <Button
                               variant="ghost"
                               size="small"
                               onClick={() => handleEdit(item)}
+                              className="hover:bg-orange-50 hover:text-orange-600"
                             >
-                              <Edit2 size={16} className="text-orange-500" />
+                              <Edit2 size={16} />
                             </Button>
                             <Button
                               variant="ghost"
                               size="small"
                               onClick={() => handleDelete(item.id)}
+                              className="hover:bg-red-50 hover:text-red-600"
                             >
-                              <Trash2 size={16} className="text-red-500" />
+                              <Trash2 size={16} />
                             </Button>
                           </div>
                         </td>
@@ -147,7 +141,7 @@ const JenisSuratManager = () => {
                       <tr>
                         <td
                           colSpan={4}
-                          className="px-4 py-8 text-center text-gray-500"
+                          className="p-8 text-center text-gray-400 italic"
                         >
                           Belum ada data jenis surat.
                         </td>

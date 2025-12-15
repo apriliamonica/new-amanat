@@ -55,33 +55,23 @@ const KodeBagianManager = () => {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead className="bg-gray-50 border-b">
+      <table className="table-modern">
+        <thead>
           <tr>
-            <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-              Role
-            </th>
-            <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-              Nama Bagian
-            </th>
-            <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-              Internal
-            </th>
-            <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-              Eksternal
-            </th>
-            <th className="text-center px-4 py-3 text-sm font-semibold text-gray-600">
-              Aksi
-            </th>
+            <th className="text-left">Role</th>
+            <th className="text-left">Nama Bagian</th>
+            <th className="text-left w-24">Internal</th>
+            <th className="text-left w-24">Eksternal</th>
+            <th className="text-center w-32">Aksi</th>
           </tr>
         </thead>
-        <tbody className="divide-y">
+        <tbody>
           {data.map((item) => (
-            <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-              <td className="px-4 py-3 text-sm font-medium text-gray-700">
+            <tr key={item.id}>
+              <td className="font-medium text-gray-700">
                 {ROLE_NAMES[item.role] || item.role}
               </td>
-              <td className="px-4 py-3 text-sm text-gray-600">
+              <td>
                 {editingId === item.id ? (
                   <input
                     className="form-input text-sm py-1"
@@ -94,7 +84,7 @@ const KodeBagianManager = () => {
                   item.namaBagian
                 )}
               </td>
-              <td className="px-4 py-3">
+              <td>
                 {editingId === item.id ? (
                   <input
                     className="form-input text-sm py-1 w-20"
@@ -104,12 +94,12 @@ const KodeBagianManager = () => {
                     }
                   />
                 ) : (
-                  <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-mono font-semibold">
+                  <span className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md text-xs font-mono font-semibold border border-blue-100">
                     {item.kodeInternal}
                   </span>
                 )}
               </td>
-              <td className="px-4 py-3">
+              <td>
                 {editingId === item.id ? (
                   <input
                     className="form-input text-sm py-1 w-20"
@@ -122,34 +112,40 @@ const KodeBagianManager = () => {
                     }
                   />
                 ) : (
-                  <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-mono font-semibold">
+                  <span className="bg-purple-50 text-purple-700 px-2.5 py-1 rounded-md text-xs font-mono font-semibold border border-purple-100">
                     {item.kodeEksternal}
                   </span>
                 )}
               </td>
-              <td className="px-4 py-3 text-center">
+              <td className="text-center">
                 {editingId === item.id ? (
                   <div className="flex justify-center gap-2">
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="small"
                       onClick={() => handleSave(item.id)}
-                      className="text-green-600 hover:text-green-800"
+                      className="text-green-600 hover:bg-green-50"
                     >
-                      <Save size={18} />
-                    </button>
-                    <button
+                      <Save size={16} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="small"
                       onClick={() => setEditingId(null)}
-                      className="text-red-600 hover:text-red-800"
+                      className="text-red-600 hover:bg-red-50"
                     >
-                      <X size={18} />
-                    </button>
+                      <X size={16} />
+                    </Button>
                   </div>
                 ) : (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="small"
                     onClick={() => handleEdit(item)}
-                    className="text-blue-600 hover:text-blue-800"
+                    className="text-blue-600 hover:bg-blue-50"
                   >
-                    <Edit size={18} />
-                  </button>
+                    <Edit size={16} />
+                  </Button>
                 )}
               </td>
             </tr>
@@ -294,24 +290,18 @@ const GenericCodeManager = ({
       )}
 
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b">
+        <table className="table-modern">
+          <thead>
             <tr>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                {titleCode}
-              </th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                {titleName}
-              </th>
-              <th className="text-center px-4 py-3 text-sm font-semibold text-gray-600">
-                Aksi
-              </th>
+              <th className="text-left w-32">{titleCode}</th>
+              <th className="text-left">{titleName}</th>
+              <th className="text-center w-32">Aksi</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody>
             {filteredData.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-4 py-3">
+              <tr key={item.id}>
+                <td>
                   {editingId === item.id ? (
                     <input
                       className="form-input text-sm py-1 w-24"
@@ -321,12 +311,12 @@ const GenericCodeManager = ({
                       }
                     />
                   ) : (
-                    <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm font-mono font-semibold">
+                    <span className="bg-gray-50 text-gray-700 px-2.5 py-1 rounded-md text-sm font-mono font-semibold border border-gray-200">
                       {item.kode}
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
+                <td className="text-gray-600">
                   {editingId === item.id ? (
                     <input
                       className="form-input text-sm py-1 w-full"
@@ -339,39 +329,47 @@ const GenericCodeManager = ({
                     item.nama
                   )}
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="text-center">
                   {editingId === item.id ? (
                     <div className="flex justify-center gap-2">
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="small"
                         onClick={() => handleUpdate(item.id)}
-                        className="text-green-600 hover:text-green-800"
+                        className="text-green-600 hover:bg-green-50"
                       >
-                        <Save size={18} />
-                      </button>
-                      <button
+                        <Save size={16} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="small"
                         onClick={() => setEditingId(null)}
-                        className="text-red-600 hover:text-red-800"
+                        className="text-red-600 hover:bg-red-50"
                       >
-                        <X size={18} />
-                      </button>
+                        <X size={16} />
+                      </Button>
                     </div>
                   ) : (
-                    <div className="flex justify-center gap-3">
-                      <button
+                    <div className="flex justify-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="small"
                         onClick={() => {
                           setEditingId(item.id);
                           setEditForm({ kode: item.kode, nama: item.nama });
                         }}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-blue-600 hover:bg-blue-50"
                       >
-                        <Edit size={18} />
-                      </button>
-                      <button
+                        <Edit size={16} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="small"
                         onClick={() => handleDelete(item.id)}
-                        className="text-red-600 hover:text-red-800"
+                        className="text-red-600 hover:bg-red-50"
                       >
-                        <Trash size={18} />
-                      </button>
+                        <Trash size={16} />
+                      </Button>
                     </div>
                   )}
                 </td>
@@ -425,7 +423,7 @@ const MasterData = () => {
         </div>
 
         <Card>
-          <Card.Body>
+          <Card.Body className="p-0">
             {activeTab === "kode-bagian" && <KodeBagianManager />}
             {activeTab === "jenis-surat" && (
               <GenericCodeManager

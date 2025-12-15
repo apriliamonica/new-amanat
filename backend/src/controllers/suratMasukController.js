@@ -180,8 +180,8 @@ const createSuratMasuk = async (req, res) => {
           fromUserId: req.user.id,
           toUserId: actualDisposisiTargetId,
           status: "PENDING",
-          catatan: keterangan || "Disposisi awal",
-          instruksi: "Mohon ditindaklanjuti",
+          catatan: keterangan || "Penerima Surat",
+          instruksi: "-",
         },
       });
 

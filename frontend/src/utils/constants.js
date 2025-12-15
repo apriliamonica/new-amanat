@@ -69,7 +69,6 @@ export const STATUS_CLASSES = {
   [STATUS_SURAT.DISPOSISI]: "status-disposisi",
   [STATUS_SURAT.DITINDAKLANJUTI]: "status-ditindaklanjuti",
   [STATUS_SURAT.MENUNGGU_VALIDASI]: "status-menunggu-validasi",
-  [STATUS_SURAT.MENUNGGU_TTD]: "status-menunggu-ttd",
   [STATUS_SURAT.DITANDATANGANI]: "status-ditandatangani",
   [STATUS_SURAT.SELESAI]: "status-selesai",
   [STATUS_SURAT.DITOLAK]: "status-ditolak",

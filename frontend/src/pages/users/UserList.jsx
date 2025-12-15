@@ -1,24 +1,24 @@
-import { useState, useEffect } from 'react';
-import { Plus, Search, Edit, Trash2, UserCheck, UserX } from 'lucide-react';
-import { userAPI } from '../../api/axios';
-import Header from '../../components/layout/Header';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import Modal from '../../components/common/Modal';
-import { ROLES, ROLE_NAMES } from '../../utils/constants';
-import { formatDate } from '../../utils/helpers';
+import { useState, useEffect } from "react";
+import { Plus, Search, Edit, Trash2, UserCheck, UserX } from "lucide-react";
+import { userAPI } from "../../api/axios";
+import Header from "../../components/layout/Header";
+import Card from "../../components/common/Card";
+import Button from "../../components/common/Button";
+import Modal from "../../components/common/Modal";
+import { ROLES, ROLE_NAMES } from "../../utils/constants";
+import { formatDate } from "../../utils/helpers";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    nama: '',
+    email: "",
+    password: "",
+    nama: "",
     role: ROLES.SEKRETARIS_KANTOR,
   });
 
@@ -31,7 +31,7 @@ const UserList = () => {
       const response = await userAPI.getAll();
       setUsers(response.data.users);
     } catch (error) {
-      console.error('Fetch users error:', error);
+      console.error("Fetch users error:", error);
     } finally {
       setLoading(false);
     }
@@ -44,13 +44,23 @@ const UserList = () => {
 
   const openCreateModal = () => {
     setEditingUser(null);
-    setFormData({ email: '', password: '', nama: '', role: ROLES.SEKRETARIS_KANTOR });
+    setFormData({
+      email: "",
+      password: "",
+      nama: "",
+      role: ROLES.SEKRETARIS_KANTOR,
+    });
     setShowModal(true);
   };
 
   const openEditModal = (user) => {
     setEditingUser(user);
-    setFormData({ email: user.email, password: '', nama: user.nama, role: user.role });
+    setFormData({
+      email: user.email,
+      password: "",
+      nama: user.nama,
+      role: user.role,
+    });
     setShowModal(true);
   };
 
@@ -69,8 +79,8 @@ const UserList = () => {
       setShowModal(false);
       fetchUsers();
     } catch (error) {
-      console.error('Submit user error:', error);
-      alert(error.response?.data?.message || 'Gagal menyimpan user');
+      console.error("Submit user error:", error);
+      alert(error.response?.data?.message || "Gagal menyimpan user");
     } finally {
       setSubmitting(false);
     }
@@ -81,7 +91,7 @@ const UserList = () => {
       await userAPI.update(user.id, { isActive: !user.isActive });
       fetchUsers();
     } catch (error) {
-      console.error('Toggle active error:', error);
+      console.error("Toggle active error:", error);
     }
   };
 
@@ -107,7 +117,10 @@ const UserList = () => {
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="text"
               placeholder="Cari nama atau email..."
@@ -123,76 +136,77 @@ const UserList = () => {
         </div>
 
         {/* User Table */}
-        <Card>
+        <Card className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
+            <table className="table-modern">
+              <thead>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                    Nama
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                    Role
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                    Dibuat
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
-                    Aksi
-                  </th>
+                  <th className="text-left w-1/4">Nama</th>
+                  <th className="text-left w-1/4">Email</th>
+                  <th className="text-left">Role</th>
+                  <th className="text-left">Status</th>
+                  <th className="text-left">Dibuat</th>
+                  <th className="text-center">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody>
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 font-medium text-gray-800">{user.nama}</td>
-                    <td className="px-6 py-4 text-gray-600">{user.email}</td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
+                  <tr key={user.id}>
+                    <td className="font-medium text-gray-800">{user.nama}</td>
+                    <td className="text-gray-600 font-mono text-sm">
+                      {user.email}
+                    </td>
+                    <td>
+                      <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-50 text-blue-700 border border-blue-100">
                         {ROLE_NAMES[user.role]}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td>
                       <span
-                        className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border ${
                           user.isActive
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-red-100 text-red-700'
+                            ? "bg-green-50 text-green-700 border-green-100"
+                            : "bg-red-50 text-red-700 border-red-100"
                         }`}
                       >
-                        {user.isActive ? <UserCheck size={12} /> : <UserX size={12} />}
-                        {user.isActive ? 'Aktif' : 'Nonaktif'}
+                        {user.isActive ? (
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                        ) : (
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                        )}
+                        {user.isActive ? "Aktif" : "Nonaktif"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-gray-500 text-sm">
+                    <td className="text-gray-500 text-sm">
                       {formatDate(user.createdAt)}
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button
+                    <td className="text-center">
+                      <div className="flex justify-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="small"
                           onClick={() => openEditModal(user)}
-                          className="p-2 hover:bg-gray-100 rounded-lg text-gray-600"
-                          title="Edit"
+                          className="hover:bg-blue-50 hover:text-blue-600"
                         >
                           <Edit size={16} />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="small"
                           onClick={() => handleToggleActive(user)}
-                          className={`p-2 rounded-lg ${
+                          className={
                             user.isActive
-                              ? 'hover:bg-red-50 text-red-600'
-                              : 'hover:bg-green-50 text-green-600'
-                          }`}
-                          title={user.isActive ? 'Nonaktifkan' : 'Aktifkan'}
+                              ? "hover:bg-red-50 hover:text-red-600"
+                              : "hover:bg-green-50 hover:text-green-600"
+                          }
+                          title={user.isActive ? "Nonaktifkan" : "Aktifkan"}
                         >
-                          {user.isActive ? <UserX size={16} /> : <UserCheck size={16} />}
-                        </button>
+                          {user.isActive ? (
+                            <UserX size={16} />
+                          ) : (
+                            <UserCheck size={16} />
+                          )}
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -207,7 +221,7 @@ const UserList = () => {
       <Modal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        title={editingUser ? 'Edit User' : 'Tambah User Baru'}
+        title={editingUser ? "Edit User" : "Tambah User Baru"}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -234,7 +248,7 @@ const UserList = () => {
           </div>
           <div>
             <label className="form-label">
-              Password {editingUser ? '(Kosongkan jika tidak diubah)' : '*'}
+              Password {editingUser ? "(Kosongkan jika tidak diubah)" : "*"}
             </label>
             <input
               type="password"
@@ -270,7 +284,7 @@ const UserList = () => {
               Batal
             </Button>
             <Button variant="primary" type="submit" loading={submitting}>
-              {editingUser ? 'Update' : 'Simpan'}
+              {editingUser ? "Update" : "Simpan"}
             </Button>
           </div>
         </form>

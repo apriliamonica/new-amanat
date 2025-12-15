@@ -188,7 +188,19 @@ const SuratMasukDetail = () => {
                     </p>
                   </div>
 
-                  {/* Kategori removed */}
+                  <div>
+                    <p className="text-sm text-gray-500">Sifat Surat</p>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                        surat.jenisSurat === "INTERNAL"
+                          ? "bg-amber-50 text-amber-700 border-amber-200"
+                          : "bg-blue-50 text-blue-700 border-blue-200"
+                      }`}
+                    >
+                      {surat.jenisSurat}
+                    </span>
+                  </div>
+
                   <div>
                     <p className="text-sm text-gray-500">Diterima Oleh</p>
                     <p className="font-medium">{surat.createdBy?.nama}</p>

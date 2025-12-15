@@ -309,40 +309,23 @@ const SuratKeluarList = () => {
         ) : (
           <Card className="overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b">
+              <table className="table-modern">
+                <thead>
                   <tr>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                      No. Surat
-                    </th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                      Tujuan
-                    </th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                      Perihal
-                    </th>
-
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                      Tanggal
-                    </th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                      Status
-                    </th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold text-gray-600">
-                      Aksi
-                    </th>
+                    <th className="text-left">No. Surat</th>
+                    <th className="text-left">Tujuan</th>
+                    <th className="text-left">Perihal</th>
+                    <th className="text-left">Tanggal</th>
+                    <th className="text-left">Status</th>
+                    <th className="text-center">Aksi</th>
                   </tr>
                 </thead>
-
-                <tbody className="divide-y divide-gray-100">
+                <tbody>
                   {filteredSurat.map((surat) => {
                     const action = getActionLabel(surat);
                     return (
-                      <tr
-                        key={surat.id}
-                        className="hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900 border-l-4 border-transparent hover:border-blue-500">
+                      <tr key={surat.id}>
+                        <td className="font-mono font-medium text-green-700">
                           {/* 
                             Display Logic:
                             - Admin sees nomorSuratAdmin if exists (approved letter), otherwise nomorSurat
@@ -352,36 +335,35 @@ const SuratKeluarList = () => {
                             ? surat.nomorSuratAdmin
                             : surat.nomorSurat || "-"}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
-                          {surat.tujuan}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        <td>{surat.tujuan}</td>
+                        <td className="text-gray-600">
                           {truncateText(surat.perihal, 35)}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                        <td className="whitespace-nowrap text-gray-500">
                           {surat.tanggalSurat
                             ? formatDate(surat.tanggalSurat)
                             : "-"}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="whitespace-nowrap">
                           <StatusBadge status={surat.status} size="small" />
                           {surat.isSigned && (
-                            <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded inline-flex items-center gap-1">
-                              <PenTool size={10} />
+                            <span className="ml-2 text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded border border-green-200 inline-flex items-center gap-1">
+                              <PenTool size={8} />
                               Signed
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-center whitespace-nowrap">
+                        <td className="text-center whitespace-nowrap">
                           <Button
                             variant="ghost"
                             size="small"
                             onClick={() =>
                               navigate(`/surat-keluar/${surat.id}`)
                             }
+                            className="hover:bg-blue-50 hover:text-blue-600"
                           >
                             <action.icon size={16} className={action.color} />
-                            {action.label}
+                            <span className="ml-1 text-xs">{action.label}</span>
                           </Button>
                         </td>
                       </tr>

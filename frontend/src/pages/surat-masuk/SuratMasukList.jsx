@@ -202,71 +202,47 @@ const SuratMasukList = () => {
         ) : (
           <Card className="overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b">
+              <table className="table-modern">
+                <thead>
                   <tr>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                      No. Surat
-                    </th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                      Pengirim
-                    </th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                      Perihal
-                    </th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                      Tujuan
-                    </th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                      Tgl Surat
-                    </th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                      Tgl Diterima
-                    </th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">
-                      Status
-                    </th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold text-gray-600">
-                      Aksi
-                    </th>
+                    <th className="text-left">No. Surat</th>
+                    <th className="text-left">Pengirim</th>
+                    <th className="text-left">Perihal</th>
+                    <th className="text-left">Tujuan</th>
+                    <th className="text-left">Tgl Surat</th>
+                    <th className="text-left">Tgl Diterima</th>
+                    <th className="text-left">Status</th>
+                    <th className="text-center">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody>
                   {filteredSurat.map((surat) => (
-                    <tr
-                      key={surat.id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-4 py-3 text-sm font-mono text-gray-700">
+                    <tr key={surat.id}>
+                      <td className="font-mono font-medium text-green-700">
                         {surat.nomorSurat}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
-                        {truncateText(surat.pengirim, 25)}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
+                      <td>{truncateText(surat.pengirim, 25)}</td>
+                      <td className="text-gray-600">
                         {truncateText(surat.perihal, 35)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        {surat.tujuan || "-"}
-                      </td>
-
-                      <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                      <td className="text-gray-600">{surat.tujuan || "-"}</td>
+                      <td className="whitespace-nowrap text-gray-500">
                         {formatDate(surat.tanggalSurat)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                      <td className="whitespace-nowrap text-gray-500">
                         {formatDate(surat.tanggalDiterima)}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="whitespace-nowrap">
                         <StatusBadge status={surat.status} size="small" />
                       </td>
-                      <td className="px-4 py-3 text-center whitespace-nowrap">
+                      <td className="text-center whitespace-nowrap">
                         <Button
                           variant="ghost"
                           size="small"
                           onClick={() => navigate(`/surat-masuk/${surat.id}`)}
+                          className="hover:bg-blue-50 hover:text-blue-600"
                         >
                           <Eye size={16} />
-                          Lihat
                         </Button>
                       </td>
                     </tr>

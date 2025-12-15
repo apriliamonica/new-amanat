@@ -59,15 +59,15 @@ const DisposisiList = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case "PENDING":
-        return "bg-yellow-100 text-yellow-700";
+        return "bg-yellow-50 text-yellow-700 border-yellow-100";
       case "DITERUSKAN":
-        return "bg-blue-100 text-blue-700";
+        return "bg-blue-50 text-blue-700 border-blue-100";
       case "DITINDAKLANJUTI":
-        return "bg-purple-100 text-purple-700";
+        return "bg-purple-50 text-purple-700 border-purple-100";
       case "SELESAI":
-        return "bg-green-100 text-green-700";
+        return "bg-green-50 text-green-700 border-green-100";
       default:
-        return "bg-gray-100 text-gray-700";
+        return "bg-gray-50 text-gray-700 border-gray-100";
     }
   };
 
@@ -100,13 +100,15 @@ const DisposisiList = () => {
 
         {/* Disposisi List */}
         {filteredDisposisi.length === 0 ? (
-          <Card className="p-12 text-center">
-            <FileText className="mx-auto mb-4 text-gray-300" size={48} />
-            <h3 className="text-lg font-medium text-gray-600 mb-2">
+          <Card className="p-12 text-center card-modern border-0">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FileText className="text-gray-300" size={40} />
+            </div>
+            <h3 className="text-lg font-bold text-gray-700 mb-2">
               Tidak ada disposisi
             </h3>
-            <p className="text-gray-400">
-              Belum ada disposisi yang ditujukan kepada Anda
+            <p className="text-gray-400 max-w-sm mx-auto">
+              Belum ada disposisi yang ditujukan kepada Anda saat ini.
             </p>
           </Card>
         ) : (
@@ -114,19 +116,23 @@ const DisposisiList = () => {
             {filteredDisposisi.map((disposisi) => {
               const effectiveStatus = getEffectiveStatus(disposisi);
               return (
-                <Card key={disposisi.id} className="p-5">
-                  <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                <Card
+                  key={disposisi.id}
+                  className="p-6 card-modern border-0 transition-all hover:shadow-md"
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-center gap-6">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
+                      <div className="flex items-center gap-3 mb-3">
                         <span
-                          className={`px-2 py-1 text-xs rounded-full ${getStatusColor(
+                          className={`px-3 py-1 text-xs font-semibold rounded-full border ${getStatusColor(
                             effectiveStatus
                           )}`}
                         >
                           {effectiveStatus}
                         </span>
                         {disposisi.isRequestLampiran && (
-                          <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-700">
+                          <span className="px-3 py-1 text-xs font-semibold rounded-full bg-orange-50 text-orange-700 border border-orange-100 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
                             Request Lampiran
                           </span>
                         )}

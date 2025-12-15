@@ -263,7 +263,8 @@ const SuratKeluarDetail = () => {
   // Determine available actions
   const canShowValidasi =
     canValidate(user?.role) && surat.status === "MENUNGGU_VALIDASI";
-  const canShowTTD = isKetua(user?.role) && surat.status === "MENUNGGU_TTD";
+  const canShowTTD =
+    isKetua(user?.role) && surat.status === STATUS_SURAT.DIPROSES;
   const canShowKirim =
     isAdmin(user?.role) && surat.isSigned && surat.status !== "SELESAI";
   const canShowProses =
@@ -361,15 +362,6 @@ const SuratKeluarDetail = () => {
                     </div>
                   )}
                 </div>
-
-                {surat.isiSurat && (
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Isi Surat</p>
-                    <div className="p-4 bg-gray-50 rounded-lg text-sm whitespace-pre-wrap">
-                      {surat.isiSurat}
-                    </div>
-                  </div>
-                )}
 
                 {surat.fileUrl && (
                   <div className="pt-4 border-t">

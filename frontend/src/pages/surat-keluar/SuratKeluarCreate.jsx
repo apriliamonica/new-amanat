@@ -11,12 +11,10 @@ const SuratKeluarCreate = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState(null);
-  const [mode, setMode] = useState("upload"); // 'upload' or 'create'
   const [jenisSuratOptions, setJenisSuratOptions] = useState([]);
   const [formData, setFormData] = useState({
     tujuan: "",
     perihal: "",
-    isiSurat: "",
     keterangan: "",
     jenisSuratId: "",
     tanggalSurat: new Date().toISOString().split("T")[0],
@@ -107,13 +105,11 @@ const SuratKeluarCreate = () => {
   const cardTitle = isRequestMode
     ? "Form Pengajuan Surat Keluar"
     : "Buat Surat Keluar Baru";
-  const uploadLabel = isRequestMode ? "(Opsional)" : "*";
   const submitButtonText = loading
     ? "Menyimpan..."
     : isRequestMode
     ? "Kirim Pengajuan"
     : "Simpan Surat Keluar";
-  const isUploadRequired = !isRequestMode && mode === "upload";
 
   return (
     <div className="min-h-screen">
@@ -132,33 +128,6 @@ const SuratKeluarCreate = () => {
         <Card className="max-w-3xl mx-auto">
           <Card.Header>
             <h2 className="text-lg font-semibold">{cardTitle}</h2>
-            {/* Mode Toggle */}
-            <div className="flex gap-2 mt-4">
-              <button
-                type="button"
-                onClick={() => setMode("upload")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                  mode === "upload"
-                    ? "bg-blue-100 text-blue-700"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                <Upload size={18} />
-                Upload File {isRequestMode && "(Opsional)"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("create")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                  mode === "create"
-                    ? "bg-blue-100 text-blue-700"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                <Edit size={18} />
-                Buat di Aplikasi
-              </button>
-            </div>
           </Card.Header>
           <Card.Body>
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -265,66 +234,44 @@ const SuratKeluarCreate = () => {
                 </p>
               )}
 
-              {/* Content based on mode */}
-              {mode === "create" && (
-                <div>
-                  <label className="form-label">Isi Surat *</label>
-                  <textarea
-                    name="isiSurat"
-                    className="form-input font-mono"
-                    rows={12}
-                    placeholder="Tulis isi surat di sini..."
-                    value={formData.isiSurat}
-                    onChange={handleChange}
-                    required={mode === "create"}
+              <div>
+                <label className="form-label">
+                  Upload File Surat {isRequestMode ? "(Opsional)" : "*"}
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors">
+                  <input
+                    type="file"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="file-upload"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    required={!isRequestMode}
                   />
-                  <p className="text-sm text-gray-500 mt-1">
-                    Tulis isi surat secara lengkap. Format akan diproses saat
-                    pencetakan.
-                  </p>
-                </div>
-              )}
-
-              {mode === "upload" && (
-                <div>
-                  <label className="form-label">
-                    Upload File Surat {uploadLabel}
-                  </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors">
-                    <input
-                      type="file"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      id="file-upload"
-                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                      required={isUploadRequired}
-                    />
-                    <label
-                      htmlFor="file-upload"
-                      className="cursor-pointer flex flex-col items-center gap-2"
-                    >
-                      {file ? (
-                        <div className="flex items-center justify-center gap-2 text-green-600">
-                          <FileText size={24} />
-                          <span>{file.name}</span>
+                  <label
+                    htmlFor="file-upload"
+                    className="cursor-pointer flex flex-col items-center gap-2"
+                  >
+                    {file ? (
+                      <div className="flex items-center justify-center gap-2 text-green-600">
+                        <FileText size={24} />
+                        <span>{file.name}</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="bg-blue-100 p-3 rounded-full text-blue-600 mb-2">
+                          <Upload size={24} />
                         </div>
-                      ) : (
-                        <>
-                          <div className="bg-blue-100 p-3 rounded-full text-blue-600 mb-2">
-                            <Upload size={24} />
-                          </div>
-                          <p className="text-gray-600 font-medium">
-                            Klik untuk mengunggah dokumen surat
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Format: PDF, Word, Gambar (Max 10MB)
-                          </p>
-                        </>
-                      )}
-                    </label>
-                  </div>
+                        <p className="text-gray-600 font-medium">
+                          Klik untuk mengunggah dokumen surat
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Format: PDF, Word, Gambar (Max 10MB)
+                        </p>
+                      </>
+                    )}
+                  </label>
                 </div>
-              )}
+              </div>
 
               <div>
                 <label className="form-label">

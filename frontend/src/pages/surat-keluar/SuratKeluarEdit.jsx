@@ -16,7 +16,7 @@ const SuratKeluarEdit = () => {
   const [formData, setFormData] = useState({
     tujuan: "",
     perihal: "",
-    isiSurat: "",
+    perihal: "",
     keterangan: "",
     status: "",
     nomorSurat: "",
@@ -34,7 +34,7 @@ const SuratKeluarEdit = () => {
       setFormData({
         tujuan: surat.tujuan,
         perihal: surat.perihal,
-        isiSurat: surat.isiSurat || "",
+        perihal: surat.perihal,
         keterangan: surat.keterangan || "",
         status: surat.status,
         nomorSurat: surat.nomorSurat,
@@ -134,9 +134,7 @@ const SuratKeluarEdit = () => {
                   >
                     <option value={STATUS_SURAT.PENGAJUAN}>Pengajuan</option>
                     <option value={STATUS_SURAT.DIPROSES}>Diproses</option>
-                    <option value={STATUS_SURAT.MENUNGGU_TTD}>
-                      Menunggu TTD
-                    </option>
+
                     <option value={STATUS_SURAT.SELESAI}>Selesai</option>
                   </select>
                 </div>
@@ -165,18 +163,6 @@ const SuratKeluarEdit = () => {
                   value={formData.perihal}
                   onChange={handleChange}
                   required
-                />
-              </div>
-
-              <div>
-                <label className="form-label">Isi Surat / Ringkasan</label>
-                <textarea
-                  name="isiSurat"
-                  className="form-input"
-                  rows={4}
-                  placeholder="Isi ringkas surat..."
-                  value={formData.isiSurat}
-                  onChange={handleChange}
                 />
               </div>
 

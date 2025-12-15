@@ -97,14 +97,8 @@ const getSuratKeluarById = async (req, res) => {
 // Create surat keluar (Admin only)
 const createSuratKeluar = async (req, res) => {
   try {
-    const {
-      tujuan,
-      perihal,
-      isiSurat,
-      keterangan,
-      suratMasukId,
-      jenisSuratId,
-    } = req.body;
+    const { tujuan, perihal, keterangan, suratMasukId, jenisSuratId } =
+      req.body;
 
     let fileUrl = null;
     let filePublicId = null;
@@ -158,7 +152,6 @@ const createSuratKeluar = async (req, res) => {
         perihal,
         jenisSuratId: jenisSuratId || null, // Ensure empty string becomes null
         kodeArea: req.body.kodeArea || null, // Store requested area code
-        isiSurat,
         keterangan,
         fileUrl,
         filePublicId,
@@ -200,7 +193,6 @@ const updateSuratKeluar = async (req, res) => {
     const {
       tujuan,
       perihal,
-      isiSurat,
       keterangan,
       status,
       jenisSuratId,
@@ -296,7 +288,6 @@ const updateSuratKeluar = async (req, res) => {
       data: {
         tujuan,
         perihal,
-        isiSurat,
         keterangan,
         fileUrl,
         filePublicId,
@@ -353,8 +344,12 @@ const validateSuratKeluar = async (req, res) => {
     let aksi;
 
     if (isApproved) {
-      newStatus = "MENUNGGU_TTD";
-      aksi = "Surat divalidasi dan diteruskan ke Ketua";
+      // If approved, stay as DIPROSES (or change to it if coming from PENGAJUAN)
+      // The flow is: Pengajuan -> Diproses -> Ditandatangani
+      // Validation essentially just confirms it's ready for TTD, but status remains DIPROSES
+      // so Ketua can see it and sign it.
+      newStatus = "DIPROSES";
+      aksi = "Surat divalidasi (Siap Tanda Tangan)";
     } else {
       newStatus = "DIKEMBALIKAN";
       aksi = "Surat dikembalikan untuk revisi";
