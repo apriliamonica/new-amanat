@@ -12,9 +12,9 @@ export const ROLES = {
 // Role display names
 export const ROLE_NAMES = {
   [ROLES.SEKRETARIS_KANTOR]: "Sekretaris Kantor",
-  [ROLES.KETUA_PENGURUS]: "Ketua Pengurus Yayasan",
-  [ROLES.SEKRETARIS_PENGURUS]: "Sekretaris Pengurus Yayasan",
-  [ROLES.BENDAHARA]: "Bendahara Pengurus Yayasan",
+  [ROLES.KETUA_PENGURUS]: "Ketua Yayasan",
+  [ROLES.SEKRETARIS_PENGURUS]: "Sekretaris Yayasan",
+  [ROLES.BENDAHARA]: "Bendahara Yayasan",
   [ROLES.KEPALA_BAGIAN_PSDM]: "Kepala Bagian PSDM",
   [ROLES.KEPALA_BAGIAN_KEUANGAN]: "Kepala Bagian Keuangan",
   [ROLES.KEPALA_BAGIAN_UMUM]: "Kepala Bagian Umum",

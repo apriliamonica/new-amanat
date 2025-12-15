@@ -82,9 +82,9 @@ const formatDate = (date) => {
 const getRoleDisplayName = (role) => {
   const roleNames = {
     SEKRETARIS_KANTOR: "Sekretaris Kantor",
-    KETUA_PENGURUS: "Ketua Pengurus Yayasan",
-    SEKRETARIS_PENGURUS: "Sekretaris Pengurus Yayasan",
-    BENDAHARA: "Bendahara Pengurus Yayasan",
+    KETUA_PENGURUS: "Ketua Yayasan",
+    SEKRETARIS_PENGURUS: "Sekretaris Yayasan",
+    BENDAHARA: "Bendahara Yayasan",
     KEPALA_BAGIAN_PSDM: "Kepala Bagian PSDM",
     KEPALA_BAGIAN_KEUANGAN: "Kepala Bagian Keuangan",
     KEPALA_BAGIAN_UMUM: "Kepala Bagian Umum",

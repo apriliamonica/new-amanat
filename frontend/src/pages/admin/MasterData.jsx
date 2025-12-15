@@ -4,6 +4,7 @@ import axiosInstance, { jenisSuratAPI, kodeAreaAPI } from "../../api/axios";
 import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
+import Modal from "../../components/common/Modal";
 import { ROLE_NAMES } from "../../utils/constants";
 
 // Sub-component: Kode Bagian Manager
@@ -163,6 +164,7 @@ const GenericCodeManager = ({
   titleName,
   placeholderCode,
   placeholderName,
+  placeholderSearch = "Cari kode atau nama...",
 }) => {
   const [data, setData] = useState([]);
   const [isAdding, setIsAdding] = useState(false);
@@ -227,16 +229,16 @@ const GenericCodeManager = ({
   return (
     <div className="space-y-4">
       {/* Search & Add Button Row */}
-      <div className="flex flex-col md:flex-row gap-3 items-center">
+      <div className="flex flex-col md:flex-row gap-3 items-center mb-4 p-4 bg-gray-50 rounded-lg border border-gray-100">
         <div className="relative flex-1 w-full">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            size={20}
+            size={18}
           />
           <input
             type="text"
-            placeholder="Cari..."
-            className="form-input pl-10 w-full"
+            placeholder={placeholderSearch}
+            className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -250,44 +252,57 @@ const GenericCodeManager = ({
         </Button>
       </div>
 
-      {isAdding && (
-        <div className="bg-blue-50 p-4 rounded border border-blue-200 flex gap-4 items-end">
-          <div className="flex-1">
-            <label className="text-xs font-semibold text-gray-500">
-              {titleCode}
-            </label>
+      {/* Add Modal */}
+      <Modal
+        isOpen={isAdding}
+        onClose={() => {
+          setIsAdding(false);
+          setNewForm({ kode: "", nama: "" });
+        }}
+        title="Tambah Data Baru"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="form-label">{titleCode} *</label>
             <input
-              className="form-input text-sm"
+              className="form-input"
               placeholder={placeholderCode}
               value={newForm.kode}
               onChange={(e) => setNewForm({ ...newForm, kode: e.target.value })}
+              required
             />
           </div>
-          <div className="flex-[2]">
-            <label className="text-xs font-semibold text-gray-500">
-              {titleName}
-            </label>
+          <div>
+            <label className="form-label">{titleName} *</label>
             <input
-              className="form-input text-sm"
+              className="form-input"
               placeholder={placeholderName}
               value={newForm.nama}
               onChange={(e) => setNewForm({ ...newForm, nama: e.target.value })}
+              required
             />
           </div>
-          <div className="flex gap-2 pb-1">
-            <Button size="sm" onClick={handleAdd}>
-              Simpan
-            </Button>
+          <div className="flex gap-3 justify-end pt-2">
             <Button
               variant="secondary"
-              size="sm"
-              onClick={() => setIsAdding(false)}
+              onClick={() => {
+                setIsAdding(false);
+                setNewForm({ kode: "", nama: "" });
+              }}
             >
               Batal
             </Button>
+            <Button
+              variant="primary"
+              onClick={handleAdd}
+              disabled={!newForm.kode || !newForm.nama}
+            >
+              <Save size={16} />
+              Simpan
+            </Button>
           </div>
         </div>
-      )}
+      </Modal>
 
       <div className="overflow-x-auto">
         <table className="table-modern">
@@ -432,6 +447,7 @@ const MasterData = () => {
                 titleName="Keterangan / Nama"
                 placeholderCode="SK"
                 placeholderName="Surat Keputusan"
+                placeholderSearch="Cari kode atau jenis surat..."
               />
             )}
             {activeTab === "kode-area" && (
@@ -441,6 +457,7 @@ const MasterData = () => {
                 titleName="Nama Area / Tujuan"
                 placeholderCode="A"
                 placeholderName="Intern Kantor Yayasan"
+                placeholderSearch="Cari kode atau tujuan..."
               />
             )}
           </Card.Body>

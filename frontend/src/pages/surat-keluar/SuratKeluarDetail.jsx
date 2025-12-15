@@ -577,7 +577,7 @@ const SuratKeluarDetail = () => {
                     onClick={() => setShowDisposisiModal(true)}
                   >
                     <Send size={18} />
-                    Buat Disposisi
+                    Minta Lampiran
                   </Button>
                 )}
                 {(isAdmin(user?.role) || isKabag(user?.role)) && (
