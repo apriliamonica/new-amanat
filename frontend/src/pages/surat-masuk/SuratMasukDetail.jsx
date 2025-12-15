@@ -139,7 +139,7 @@ const SuratMasukDetail = () => {
     <div className="min-h-screen">
       <Header title="Detail Surat Masuk" />
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
         {/* Back Button */}
         <Button variant="ghost" onClick={() => navigate("/surat-masuk")}>
           <ArrowLeft size={20} />

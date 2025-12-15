@@ -403,7 +403,7 @@ const MasterData = () => {
   return (
     <div className="min-h-screen">
       <Header title="Pengaturan Kodefikasi Surat" />
-      <div className="p-6 space-y-6">
+      <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
         <div className="flex gap-2 border-b pb-1">
           <button
             className={`py-2 px-5 font-medium rounded-t-lg transition-all duration-200 ${

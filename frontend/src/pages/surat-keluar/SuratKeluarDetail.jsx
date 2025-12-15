@@ -311,7 +311,7 @@ const SuratKeluarDetail = () => {
     <div className="min-h-screen">
       <Header title="Detail Surat Keluar" />
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
         <Button variant="ghost" onClick={() => navigate("/surat-keluar")}>
           <ArrowLeft size={20} />
           Kembali

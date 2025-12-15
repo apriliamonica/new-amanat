@@ -157,18 +157,18 @@ const Dashboard = () => {
 
       <div className="p-6 lg:p-8 space-y-8">
         {/* Welcome Message */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-green-600 to-emerald-600 p-8 text-white shadow-xl shadow-green-900/10">
+        <div className="relative overflow-hidden rounded-2xl lg:rounded-3xl bg-gradient-to-r from-green-600 to-emerald-600 p-5 lg:p-8 text-white shadow-xl shadow-green-900/10">
           <div className="relative z-10">
-            <h2 className="text-3xl font-bold mb-2 tracking-tight">
+            <h2 className="text-xl lg:text-3xl font-bold mb-1 lg:mb-2 tracking-tight">
               Selamat Datang, {user?.nama}!
             </h2>
-            <p className="text-green-50/90 text-lg font-medium">
+            <p className="text-green-50/90 text-sm lg:text-lg font-medium">
               {ROLE_NAMES[user?.role]}
             </p>
           </div>
           {/* Decorative Circle */}
-          <div className="absolute -right-10 -top-10 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-          <div className="absolute -left-10 -bottom-10 w-48 h-48 bg-black/5 rounded-full blur-2xl"></div>
+          <div className="absolute -right-10 -top-10 w-40 lg:w-64 h-40 lg:h-64 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute -left-10 -bottom-10 w-32 lg:w-48 h-32 lg:h-48 bg-black/5 rounded-full blur-2xl"></div>
         </div>
 
         {/* Stats Cards */}

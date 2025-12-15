@@ -6,9 +6,9 @@ const Header = ({ title }) => {
   const { user } = useAuth();
 
   return (
-    <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-40 flex items-center justify-between px-8 transition-all duration-300">
-      <div className="flex-1 min-w-0 mr-4">
-        <h1 className="text-2xl font-bold text-gray-800 tracking-tight font-display">
+    <header className="h-16 lg:h-20 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-40 flex items-center justify-between px-4 lg:px-8 transition-all duration-300">
+      <div className="flex-1 min-w-0 mr-4 ml-12 lg:ml-0">
+        <h1 className="text-lg lg:text-2xl font-bold text-gray-800 tracking-tight font-display truncate">
           {title}
         </h1>
       </div>

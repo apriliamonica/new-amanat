@@ -101,7 +101,7 @@ const DisposisiList = () => {
     <div className="min-h-screen">
       <Header title="Disposisi Saya" />
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
         {/* Filter */}
         <div className="flex gap-3">
           <select

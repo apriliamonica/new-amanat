@@ -191,28 +191,28 @@ const SuratKeluarList = () => {
     <div className="min-h-screen">
       <Header title="Surat Keluar" />
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
         {/* Helper function to check for "Pending" count could be nice, currently just UI */}
 
         {/* Tabs for Admin */}
         {isAdmin(user?.role) && (
-          <div className="flex gap-2 border-b pb-1">
+          <div className="flex gap-1 lg:gap-2 border-b pb-1 overflow-x-auto">
             <button
               onClick={() => setActiveTab("surat")}
-              className={`py-2 px-5 font-medium rounded-t-lg transition-all duration-200 ${
+              className={`py-2 px-3 lg:px-5 text-sm lg:text-base font-medium rounded-t-lg transition-all duration-200 whitespace-nowrap ${
                 activeTab === "surat"
                   ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/30"
-                  : "text-gray-600 hover:bg-green-50/80 hover:text-green-600 hover:backdrop-blur-sm"
+                  : "text-gray-600 hover:bg-green-50/80 hover:text-green-600"
               }`}
             >
               Surat Keluar
             </button>
             <button
               onClick={() => setActiveTab("request")}
-              className={`py-2 px-5 font-medium rounded-t-lg transition-all duration-200 flex items-center gap-2 ${
+              className={`py-2 px-3 lg:px-5 text-sm lg:text-base font-medium rounded-t-lg transition-all duration-200 flex items-center gap-2 whitespace-nowrap ${
                 activeTab === "request"
                   ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/30"
-                  : "text-gray-600 hover:bg-green-50/80 hover:text-green-600 hover:backdrop-blur-sm"
+                  : "text-gray-600 hover:bg-green-50/80 hover:text-green-600"
               }`}
             >
               Pengajuan Surat
@@ -229,92 +229,102 @@ const SuratKeluarList = () => {
           </div>
         )}
 
-        {/* Search, Filter, Create - All in one row */}
-        <div className="flex flex-col md:flex-row gap-3 items-center">
-          {/* Search */}
-          <div className="relative flex-1 w-full">
-            <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              size={20}
-            />
-            <input
-              type="text"
-              placeholder="Cari nomor, perihal, atau tujuan..."
-              className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+        {/* Search & Filters */}
+        <Card className="p-4">
+          <div className="space-y-3">
+            {/* Search Row */}
+            <div className="relative">
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <input
+                type="text"
+                placeholder="Cari nomor, perihal, atau tujuan..."
+                className="pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 w-full text-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
 
-          {/* Status Filter Dropdown (hide in request tab for Admin) */}
-          {!(isAdmin(user?.role) && activeTab === "request") && (
-            <select
-              className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-            >
-              <option value="">Status</option>
-              {Object.values(STATUS_SURAT).map((status) => (
-                <option key={status} value={status}>
-                  {status.replace(/_/g, " ")}
-                </option>
-              ))}
-            </select>
-          )}
+            {/* Filters Row */}
+            <div className="flex flex-wrap gap-2">
+              {/* Status Filter */}
+              {!(isAdmin(user?.role) && activeTab === "request") && (
+                <select
+                  className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 flex-1 min-w-[120px]"
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                >
+                  <option value="">Semua Status</option>
+                  {Object.values(STATUS_SURAT).map((status) => (
+                    <option key={status} value={status}>
+                      {status.replace(/_/g, " ")}
+                    </option>
+                  ))}
+                </select>
+              )}
 
-          {/* Month Filter Dropdown */}
-          <select
-            className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={filterMonth}
-            onChange={(e) => setFilterMonth(e.target.value)}
-          >
-            <option value="">Bulan</option>
-            {MONTHS.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-
-          {/* User Filter Dropdown (only in request tab for Admin) */}
-          {isAdmin(user?.role) && activeTab === "request" && (
-            <select
-              className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={filterUser}
-              onChange={(e) => setFilterUser(e.target.value)}
-            >
-              <option value="">Semua Permintaan</option>
-              {userList
-                .filter((u) => u.role !== "SEKRETARIS_KANTOR")
-                .map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.nama}
+              {/* Month Filter */}
+              <select
+                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 flex-1 min-w-[120px]"
+                value={filterMonth}
+                onChange={(e) => setFilterMonth(e.target.value)}
+              >
+                <option value="">Semua Bulan</option>
+                {MONTHS.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
                   </option>
                 ))}
-            </select>
-          )}
+              </select>
 
-          {/* Export Button */}
-          <Button
-            variant="success"
-            onClick={handleExport}
-            loading={exporting}
-            className="w-full sm:w-auto"
-          >
-            <Download size={20} />
-            Export Excel
-          </Button>
+              {/* User Filter (Admin request tab only) */}
+              {isAdmin(user?.role) && activeTab === "request" && (
+                <select
+                  className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 flex-1 min-w-[140px]"
+                  value={filterUser}
+                  onChange={(e) => setFilterUser(e.target.value)}
+                >
+                  <option value="">Semua Pengaju</option>
+                  {userList
+                    .filter((u) => u.role !== "SEKRETARIS_KANTOR")
+                    .map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.nama}
+                      </option>
+                    ))}
+                </select>
+              )}
+            </div>
 
-          {/* Create Button */}
-          {canCreateSurat(user?.role) && (
-            <Link to="/surat-keluar/create">
-              <Button variant="primary" className="whitespace-nowrap">
-                <Plus size={20} />
-                {isAdmin(user?.role) ? "Buat Surat" : "Ajukan Surat"}
+            {/* Action Buttons Row */}
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Button
+                variant="success"
+                size="small"
+                onClick={handleExport}
+                loading={exporting}
+              >
+                <Download size={16} />
+                Export
               </Button>
-            </Link>
-          )}
-        </div>
+
+              {canCreateSurat(user?.role) && (
+                <Link to="/surat-keluar/create" className="flex-1 sm:flex-none">
+                  <Button
+                    variant="primary"
+                    size="small"
+                    className="w-full sm:w-auto"
+                  >
+                    <Plus size={16} />
+                    {isAdmin(user?.role) ? "Buat Surat" : "Ajukan Surat"}
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </div>
+        </Card>
 
         {/* Surat Table */}
         {filteredSurat.length === 0 ? (

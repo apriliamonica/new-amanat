@@ -126,33 +126,34 @@ const SuratMasukList = () => {
     <div className="min-h-screen">
       <Header title="Surat Masuk" />
 
-      <div className="p-6 space-y-6">
-        {/* Search, Filters, Create - All in one row */}
-        <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between mb-6">
-          {/* Search */}
-          <div className="relative flex-1 w-full">
-            <input
-              type="text"
-              placeholder="Cari nomor surat, perihal, pengirim..."
-              className="form-input !pl-12 w-full"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-              size={20}
-            />
-          </div>
+      <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
+        {/* Search & Filters */}
+        <Card className="p-4">
+          <div className="space-y-3">
+            {/* Search Row */}
+            <div className="relative">
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <input
+                type="text"
+                placeholder="Cari nomor surat, perihal, pengirim..."
+                className="pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 w-full text-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-            <div className="flex gap-3 w-full sm:w-auto">
-              {/* Status Filter Dropdown */}
+            {/* Filters Row */}
+            <div className="flex flex-wrap gap-2">
+              {/* Status Filter */}
               <select
-                className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[120px]"
+                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 flex-1 min-w-[120px]"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
               >
-                <option value="">Status</option>
+                <option value="">Semua Status</option>
                 {STATUS_OPTIONS.map((status) => (
                   <option key={status} value={status}>
                     {status}
@@ -160,13 +161,13 @@ const SuratMasukList = () => {
                 ))}
               </select>
 
-              {/* Month Filter Dropdown */}
+              {/* Month Filter */}
               <select
-                className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[120px]"
+                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 flex-1 min-w-[120px]"
                 value={filterMonth}
                 onChange={(e) => setFilterMonth(e.target.value)}
               >
-                <option value="">Bulan</option>
+                <option value="">Semua Bulan</option>
                 {MONTHS.map((m) => (
                   <option key={m.value} value={m.value}>
                     {m.label}
@@ -175,31 +176,33 @@ const SuratMasukList = () => {
               </select>
             </div>
 
-            {/* Export Button */}
-            <Button
-              variant="success"
-              onClick={handleExport}
-              loading={exporting}
-              className="w-full sm:w-auto"
-            >
-              <Download size={20} />
-              Export Excel
-            </Button>
+            {/* Action Buttons Row */}
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Button
+                variant="success"
+                size="small"
+                onClick={handleExport}
+                loading={exporting}
+              >
+                <Download size={16} />
+                Export
+              </Button>
 
-            {/* Add Button (Admin only) */}
-            {isAdmin(user?.role) && (
-              <Link to="/surat-masuk/create" className="w-full sm:w-auto">
-                <Button
-                  variant="primary"
-                  className="whitespace-nowrap w-full justify-center sm:w-auto"
-                >
-                  <Plus size={20} />
-                  Tambah Surat
-                </Button>
-              </Link>
-            )}
+              {isAdmin(user?.role) && (
+                <Link to="/surat-masuk/create" className="flex-1 sm:flex-none">
+                  <Button
+                    variant="primary"
+                    size="small"
+                    className="w-full sm:w-auto"
+                  >
+                    <Plus size={16} />
+                    Tambah Surat
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
-        </div>
+        </Card>
 
         {/* Surat Table */}
         {filteredSurat.length === 0 ? (
