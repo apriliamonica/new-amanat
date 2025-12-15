@@ -404,32 +404,32 @@ const MasterData = () => {
     <div className="min-h-screen">
       <Header title="Pengaturan Kodefikasi Surat" />
       <div className="p-6 space-y-6">
-        <div className="flex gap-4 border-b">
+        <div className="flex gap-2 border-b pb-1">
           <button
-            className={`pb-2 px-4 font-medium transition-colors ${
+            className={`py-2 px-5 font-medium rounded-t-lg transition-all duration-200 ${
               activeTab === "kode-bagian"
-                ? "border-b-2 border-primary text-primary"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/30"
+                : "text-gray-600 hover:bg-green-50/80 hover:text-green-600 hover:backdrop-blur-sm"
             }`}
             onClick={() => setActiveTab("kode-bagian")}
           >
             Kode Bagian (Unit)
           </button>
           <button
-            className={`pb-2 px-4 font-medium transition-colors ${
+            className={`py-2 px-5 font-medium rounded-t-lg transition-all duration-200 ${
               activeTab === "jenis-surat"
-                ? "border-b-2 border-primary text-primary"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/30"
+                : "text-gray-600 hover:bg-green-50/80 hover:text-green-600 hover:backdrop-blur-sm"
             }`}
             onClick={() => setActiveTab("jenis-surat")}
           >
             Kode Surat (Jenis)
           </button>
           <button
-            className={`pb-2 px-4 font-medium transition-colors ${
+            className={`py-2 px-5 font-medium rounded-t-lg transition-all duration-200 ${
               activeTab === "kode-area"
-                ? "border-b-2 border-primary text-primary"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/30"
+                : "text-gray-600 hover:bg-green-50/80 hover:text-green-600 hover:backdrop-blur-sm"
             }`}
             onClick={() => setActiveTab("kode-area")}
           >
