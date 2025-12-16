@@ -6,6 +6,7 @@ import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import Modal from "../../components/common/Modal";
 import { ROLE_NAMES } from "../../utils/constants";
+import Pagination from "../../components/common/Pagination";
 
 // Sub-component: Kode Bagian Manager
 const KodeBagianManager = () => {
@@ -17,6 +18,10 @@ const KodeBagianManager = () => {
     kodeEksternal: "",
     namaBagian: "",
   });
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Smaller default for settings
 
   useEffect(() => {
     fetchData();
@@ -67,92 +72,107 @@ const KodeBagianManager = () => {
           </tr>
         </thead>
         <tbody>
-          {data.map((item) => (
-            <tr key={item.id}>
-              <td className="font-medium text-gray-700">
-                {ROLE_NAMES[item.role] || item.role}
-              </td>
-              <td>
-                {editingId === item.id ? (
-                  <input
-                    className="form-input text-sm py-1"
-                    value={editForm.namaBagian}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, namaBagian: e.target.value })
-                    }
-                  />
-                ) : (
-                  item.namaBagian
-                )}
-              </td>
-              <td>
-                {editingId === item.id ? (
-                  <input
-                    className="form-input text-sm py-1 w-20"
-                    value={editForm.kodeInternal}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, kodeInternal: e.target.value })
-                    }
-                  />
-                ) : (
-                  <span className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md text-xs font-mono font-semibold border border-blue-100">
-                    {item.kodeInternal}
-                  </span>
-                )}
-              </td>
-              <td>
-                {editingId === item.id ? (
-                  <input
-                    className="form-input text-sm py-1 w-20"
-                    value={editForm.kodeEksternal}
-                    onChange={(e) =>
-                      setEditForm({
-                        ...editForm,
-                        kodeEksternal: e.target.value,
-                      })
-                    }
-                  />
-                ) : (
-                  <span className="bg-purple-50 text-purple-700 px-2.5 py-1 rounded-md text-xs font-mono font-semibold border border-purple-100">
-                    {item.kodeEksternal}
-                  </span>
-                )}
-              </td>
-              <td className="text-center">
-                {editingId === item.id ? (
-                  <div className="flex justify-center gap-2">
+          {data
+            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+            .map((item) => (
+              <tr key={item.id}>
+                <td className="font-medium text-gray-700">
+                  {ROLE_NAMES[item.role] || item.role}
+                </td>
+                <td>
+                  {editingId === item.id ? (
+                    <input
+                      className="form-input text-sm py-1"
+                      value={editForm.namaBagian}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, namaBagian: e.target.value })
+                      }
+                    />
+                  ) : (
+                    item.namaBagian
+                  )}
+                </td>
+                <td>
+                  {editingId === item.id ? (
+                    <input
+                      className="form-input text-sm py-1 w-20"
+                      value={editForm.kodeInternal}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          kodeInternal: e.target.value,
+                        })
+                      }
+                    />
+                  ) : (
+                    <span className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md text-xs font-mono font-semibold border border-blue-100">
+                      {item.kodeInternal}
+                    </span>
+                  )}
+                </td>
+                <td>
+                  {editingId === item.id ? (
+                    <input
+                      className="form-input text-sm py-1 w-20"
+                      value={editForm.kodeEksternal}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          kodeEksternal: e.target.value,
+                        })
+                      }
+                    />
+                  ) : (
+                    <span className="bg-purple-50 text-purple-700 px-2.5 py-1 rounded-md text-xs font-mono font-semibold border border-purple-100">
+                      {item.kodeEksternal}
+                    </span>
+                  )}
+                </td>
+                <td className="text-center">
+                  {editingId === item.id ? (
+                    <div className="flex justify-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="small"
+                        onClick={() => handleSave(item.id)}
+                        className="text-green-600 hover:bg-green-50"
+                      >
+                        <Save size={16} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="small"
+                        onClick={() => setEditingId(null)}
+                        className="text-red-600 hover:bg-red-50"
+                      >
+                        <X size={16} />
+                      </Button>
+                    </div>
+                  ) : (
                     <Button
                       variant="ghost"
                       size="small"
-                      onClick={() => handleSave(item.id)}
-                      className="text-green-600 hover:bg-green-50"
+                      onClick={() => handleEdit(item)}
+                      className="text-blue-600 hover:bg-blue-50"
                     >
-                      <Save size={16} />
+                      <Edit size={16} />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="small"
-                      onClick={() => setEditingId(null)}
-                      className="text-red-600 hover:bg-red-50"
-                    >
-                      <X size={16} />
-                    </Button>
-                  </div>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    size="small"
-                    onClick={() => handleEdit(item)}
-                    className="text-blue-600 hover:bg-blue-50"
-                  >
-                    <Edit size={16} />
-                  </Button>
-                )}
-              </td>
-            </tr>
-          ))}
+                  )}
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
+
+      {/* Pagination */}
+      <div className="p-4 border-t border-gray-100">
+        <Pagination
+          currentPage={currentPage}
+          totalItems={data.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+        />
+      </div>
     </div>
   );
 };
@@ -172,6 +192,10 @@ const GenericCodeManager = ({
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ kode: "", nama: "" });
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     fetchData();
@@ -225,6 +249,15 @@ const GenericCodeManager = ({
       item.kode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.nama.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Reset page on search
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentData = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="space-y-4">
@@ -314,7 +347,7 @@ const GenericCodeManager = ({
             </tr>
           </thead>
           <tbody>
-            {filteredData.map((item) => (
+            {currentData.map((item) => (
               <tr key={item.id}>
                 <td>
                   {editingId === item.id ? (
@@ -392,6 +425,14 @@ const GenericCodeManager = ({
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="p-4 border-t border-gray-100">
+        <Pagination
+          currentPage={currentPage}
+          totalItems={filteredData.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );

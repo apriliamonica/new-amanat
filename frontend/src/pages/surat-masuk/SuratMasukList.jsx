@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Search, Eye, FileText, Download } from "lucide-react";
+import { Plus, Search, Eye, FileText, Download, Trash2 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { suratMasukAPI } from "../../api/axios";
 import Header from "../../components/layout/Header";
@@ -75,6 +75,18 @@ const SuratMasukList = () => {
       console.error("Export error:", error);
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Apakah Anda yakin ingin menghapus surat ini?")) return;
+
+    try {
+      await suratMasukAPI.delete(id);
+      fetchSurat();
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("Gagal menghapus surat");
     }
   };
 
@@ -259,9 +271,21 @@ const SuratMasukList = () => {
                           size="small"
                           onClick={() => navigate(`/surat-masuk/${surat.id}`)}
                           className="hover:bg-blue-50 hover:text-blue-600"
+                          title="Lihat Detail"
                         >
                           <Eye size={16} />
                         </Button>
+                        {isAdmin(user?.role) && (
+                          <Button
+                            variant="ghost"
+                            size="small"
+                            onClick={() => handleDelete(surat.id)}
+                            className="hover:bg-red-50 hover:text-red-600 text-gray-400"
+                            title="Hapus Surat"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        )}
                       </td>
                     </tr>
                   ))}

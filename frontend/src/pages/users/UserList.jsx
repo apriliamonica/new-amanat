@@ -234,7 +234,7 @@ const UserList = () => {
           </div>
 
           {/* Pagination */}
-          <div className="px-6">
+          <div className="px-6 py-4 border-t border-gray-100">
             <Pagination
               currentPage={currentPage}
               totalItems={filteredUsers.length}

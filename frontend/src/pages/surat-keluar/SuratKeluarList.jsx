@@ -9,6 +9,7 @@ import {
   PenTool,
   Clock,
   Download,
+  Trash2,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { suratKeluarAPI, userAPI } from "../../api/axios";
@@ -73,6 +74,18 @@ const SuratKeluarList = () => {
       console.error("Export error:", error);
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Apakah Anda yakin ingin menghapus surat ini?")) return;
+
+    try {
+      await suratKeluarAPI.delete(id);
+      fetchSurat();
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("Gagal menghapus surat");
     }
   };
 
@@ -412,10 +425,22 @@ const SuratKeluarList = () => {
                               navigate(`/surat-keluar/${surat.id}`)
                             }
                             className="hover:bg-blue-50 hover:text-blue-600"
+                            title={action.label}
                           >
                             <action.icon size={16} className={action.color} />
                             <span className="ml-1 text-xs">{action.label}</span>
                           </Button>
+                          {isAdmin(user?.role) && (
+                            <Button
+                              variant="ghost"
+                              size="small"
+                              onClick={() => handleDelete(surat.id)}
+                              className="ml-1 hover:bg-red-50 hover:text-red-600 text-gray-400"
+                              title="Hapus Surat"
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          )}
                         </td>
                       </tr>
                     );

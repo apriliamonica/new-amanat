@@ -15,37 +15,27 @@ const generateNomorSurat = async (
   // This allows Admin to use their counter ("SEK") but display user's code ("PSDM") in the string
   const scope = counterScope || kodeBagian;
 
-  // Get or create counter for current year AND scope
-  let counter = await prisma.nomorSuratCounter.findUnique({
+  // Get or create counter for current year AND scope using atomic upsert
+  const counterRecord = await prisma.nomorSuratCounter.upsert({
     where: {
       tahun_kodeBagian: {
         tahun: year,
         kodeBagian: scope,
       },
     },
+    update: {
+      counter: {
+        increment: 1,
+      },
+    },
+    create: {
+      tahun: year,
+      kodeBagian: scope,
+      counter: 1,
+    },
   });
 
-  if (!counter) {
-    counter = await prisma.nomorSuratCounter.create({
-      data: {
-        tahun: year,
-        kodeBagian: scope,
-        counter: 1,
-      },
-    });
-  } else {
-    counter = await prisma.nomorSuratCounter.update({
-      where: {
-        tahun_kodeBagian: {
-          tahun: year,
-          kodeBagian: scope,
-        },
-      },
-      data: { counter: counter.counter + 1 },
-    });
-  }
-
-  const nomorUrut = String(counter.counter).padStart(3, "0");
+  const nomorUrut = String(counterRecord.counter).padStart(3, "0");
   // Format: 001/SK/A/PERS/IV/2023 (Uses kodeBagian for display)
   return `${nomorUrut}/${kodeJenis}/${kodeArea}/${kodeBagian}/${month}/${year}`;
 };
