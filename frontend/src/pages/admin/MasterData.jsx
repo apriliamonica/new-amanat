@@ -55,7 +55,7 @@ const KodeBagianManager = () => {
       setEditingId(null);
       fetchData();
     } catch (error) {
-      alert("Gagal mengupdate data");
+      alert(error.response?.data?.message || "Gagal mengupdate data");
     }
   };
 
@@ -85,7 +85,10 @@ const KodeBagianManager = () => {
                       className="form-input text-sm py-1"
                       value={editForm.namaBagian}
                       onChange={(e) =>
-                        setEditForm({ ...editForm, namaBagian: e.target.value })
+                        setEditForm((prev) => ({
+                          ...prev,
+                          namaBagian: e.target.value,
+                        }))
                       }
                     />
                   ) : (
@@ -98,10 +101,10 @@ const KodeBagianManager = () => {
                       className="form-input text-sm py-1 w-20"
                       value={editForm.kodeInternal}
                       onChange={(e) =>
-                        setEditForm({
-                          ...editForm,
+                        setEditForm((prev) => ({
+                          ...prev,
                           kodeInternal: e.target.value,
-                        })
+                        }))
                       }
                     />
                   ) : (
@@ -116,10 +119,10 @@ const KodeBagianManager = () => {
                       className="form-input text-sm py-1 w-20"
                       value={editForm.kodeEksternal}
                       onChange={(e) =>
-                        setEditForm({
-                          ...editForm,
+                        setEditForm((prev) => ({
+                          ...prev,
                           kodeEksternal: e.target.value,
-                        })
+                        }))
                       }
                     />
                   ) : (
@@ -219,7 +222,7 @@ const GenericCodeManager = ({
       setNewForm({ kode: "", nama: "" });
       fetchData();
     } catch (error) {
-      alert("Gagal menambah data");
+      alert(error.response?.data?.message || "Gagal menambah data");
     }
   };
 
@@ -229,7 +232,7 @@ const GenericCodeManager = ({
       setEditingId(null);
       fetchData();
     } catch (error) {
-      alert("Gagal update data");
+      alert(error.response?.data?.message || "Gagal update data");
     }
   };
 
@@ -355,7 +358,10 @@ const GenericCodeManager = ({
                       className="form-input text-sm py-1 w-24"
                       value={editForm.kode}
                       onChange={(e) =>
-                        setEditForm({ ...editForm, kode: e.target.value })
+                        setEditForm((prev) => ({
+                          ...prev,
+                          kode: e.target.value,
+                        }))
                       }
                     />
                   ) : (
@@ -370,7 +376,10 @@ const GenericCodeManager = ({
                       className="form-input text-sm py-1 w-full"
                       value={editForm.nama}
                       onChange={(e) =>
-                        setEditForm({ ...editForm, nama: e.target.value })
+                        setEditForm((prev) => ({
+                          ...prev,
+                          nama: e.target.value,
+                        }))
                       }
                     />
                   ) : (
