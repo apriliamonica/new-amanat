@@ -327,6 +327,13 @@ const deleteSuratMasuk = async (req, res) => {
     await prisma.lampiran.deleteMany({ where: { suratMasukId: id } });
     await prisma.disposisi.deleteMany({ where: { suratMasukId: id } });
 
+    // 4. Disconnect Surat Keluar (Surat Balasan)
+    await prisma.suratKeluar.updateMany({
+      where: { suratMasukId: id },
+      data: { suratMasukId: null },
+    });
+
+    // 5. Delete the Surat Masuk
     await prisma.suratMasuk.delete({ where: { id } });
 
     res.json({ message: "Surat masuk berhasil dihapus" });
