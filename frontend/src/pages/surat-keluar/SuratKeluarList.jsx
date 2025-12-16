@@ -12,7 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { suratKeluarAPI, userAPI } from "../../api/axios";
+import { suratKeluarAPI, userAPI, jenisSuratAPI } from "../../api/axios";
 import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
@@ -43,7 +43,19 @@ const SuratKeluarList = () => {
 
   useEffect(() => {
     fetchSurat();
+    fetchJenisSurat();
   }, []);
+
+  const fetchJenisSurat = async () => {
+    try {
+      const response = await jenisSuratAPI.getAll();
+      if (response.data.success) {
+        setJenisSuratList(response.data.data);
+      }
+    } catch (error) {
+      console.error("Fetch jenis surat error:", error);
+    }
+  };
 
   const fetchSurat = async () => {
     try {
@@ -93,7 +105,9 @@ const SuratKeluarList = () => {
   const [filterStatus, setFilterStatus] = useState("");
   const [filterUser, setFilterUser] = useState("");
   const [filterMonth, setFilterMonth] = useState("");
+  const [filterJenisSurat, setFilterJenisSurat] = useState("");
   const [userList, setUserList] = useState([]);
+  const [jenisSuratList, setJenisSuratList] = useState([]);
 
   const MONTHS = [
     { value: "1", label: "Januari" },
@@ -165,13 +179,25 @@ const SuratKeluarList = () => {
       }
     }
 
+    // 6. Jenis Surat Filter
+    if (filterJenisSurat && surat.jenisSuratId !== filterJenisSurat) {
+      return false;
+    }
+
     return true;
   });
 
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filterStatus, filterUser, filterMonth, activeTab]);
+  }, [
+    searchTerm,
+    filterStatus,
+    filterUser,
+    filterMonth,
+    activeTab,
+    filterJenisSurat,
+  ]);
 
   // Paginate filtered data
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -262,21 +288,19 @@ const SuratKeluarList = () => {
 
             {/* Filters Row */}
             <div className="flex flex-wrap gap-2">
-              {/* Status Filter */}
-              {!(isAdmin(user?.role) && activeTab === "request") && (
-                <select
-                  className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 flex-1 min-w-[120px]"
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                >
-                  <option value="">Semua Status</option>
-                  {Object.values(STATUS_SURAT).map((status) => (
-                    <option key={status} value={status}>
-                      {status.replace(/_/g, " ")}
-                    </option>
-                  ))}
-                </select>
-              )}
+              {/* Jenis Surat Filter */}
+              <select
+                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 flex-1 min-w-[120px]"
+                value={filterJenisSurat}
+                onChange={(e) => setFilterJenisSurat(e.target.value)}
+              >
+                <option value="">Semua Jenis Surat</option>
+                {jenisSuratList.map((j) => (
+                  <option key={j.id} value={j.id}>
+                    {j.kode} - {j.nama}
+                  </option>
+                ))}
+              </select>
 
               {/* Month Filter */}
               <select
