@@ -300,7 +300,10 @@ const SuratKeluarDetail = () => {
 
   // Determine available actions
   const canShowValidasi =
-    canValidate(user?.role) && surat.status === "MENUNGGU_VALIDASI";
+    canValidate(user?.role) &&
+    [STATUS_SURAT.MENUNGGU_VALIDASI, STATUS_SURAT.PENGAJUAN].includes(
+      surat.status
+    );
   const canShowTTD =
     isKetua(user?.role) && surat.status === STATUS_SURAT.DIPROSES;
   const canShowKirim =

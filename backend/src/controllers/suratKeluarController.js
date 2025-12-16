@@ -10,13 +10,29 @@ const getAllSuratKeluar = async (req, res) => {
     let whereCondition = {};
 
     // Admin sees all, others see only disposed to them or created by them
+    // Admin sees all, others see only disposed to them or created by them
     if (role !== "SEKRETARIS_KANTOR") {
+      const orConditions = [
+        { disposisi: { some: { toUserId: userId } } },
+        { disposisi: { some: { fromUserId: userId } } },
+        { createdById: userId },
+      ];
+
+      // Ketua sees letters waiting for signature (DIPROSES) or Signed/Rejected
+      if (role === "KETUA_PENGURUS") {
+        orConditions.push({ status: "DIPROSES" });
+        orConditions.push({ status: "DITANDATANGANI" });
+        orConditions.push({ status: "DITOLAK" });
+      }
+
+      // Sekpeng/Bendahara sees letters waiting for validation (PENGAJUAN/MENUNGGU_VALIDASI)
+      if (["SEKRETARIS_PENGURUS", "BENDAHARA"].includes(role)) {
+        orConditions.push({ status: "PENGAJUAN" });
+        orConditions.push({ status: "MENUNGGU_VALIDASI" });
+      }
+
       whereCondition = {
-        OR: [
-          { disposisi: { some: { toUserId: userId } } },
-          { disposisi: { some: { fromUserId: userId } } },
-          { createdById: userId },
-        ],
+        OR: orConditions,
       };
     }
 

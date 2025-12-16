@@ -51,6 +51,11 @@ const Dashboard = () => {
     };
 
     fetchData();
+
+    // Polling every 30 seconds
+    const interval = setInterval(fetchData, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Stats cards based on role
@@ -107,15 +112,15 @@ const Dashboard = () => {
       // },
     ];
 
-    // if (isKetua(user?.role)) {
-    //   cards.push({
-    //     title: "Menunggu Tanda Tangan",
-    //     value: stats.menungguTTD || 0,
-    //     icon: PenTool,
-    //     color: "bg-orange-500",
-    //     bgColor: "bg-orange-50",
-    //   });
-    // }
+    if (isKetua(user?.role)) {
+      cards.push({
+        title: "Menunggu Tanda Tangan",
+        value: stats.menungguTTD || 0,
+        icon: PenTool,
+        color: "bg-orange-500",
+        bgColor: "bg-orange-50",
+      });
+    }
 
     if (canValidate(user?.role)) {
       cards.push({

@@ -59,6 +59,13 @@ const getStats = async (req, res) => {
         });
         stats.menungguValidasi = menungguValidasi;
       }
+
+      if (role === "KETUA_PENGURUS") {
+        const menungguTTD = await prisma.suratKeluar.count({
+          where: { status: "DIPROSES" },
+        });
+        stats.menungguTTD = menungguTTD;
+      }
     }
 
     res.json({ stats });

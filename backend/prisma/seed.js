@@ -12,43 +12,43 @@ async function main() {
   // Create users for each role
   const users = [
     {
-      email: "sekretaris@amanat.id",
+      email: "sekretaris@amanat.com",
       password: hashedPassword,
       nama: "Admin Sekretaris Kantor",
       role: "SEKRETARIS_KANTOR",
     },
     {
-      email: "ketua@amanat.id",
+      email: "ketua@amanat.com",
       password: hashedPassword,
       nama: "Ketua Pengurus Yayasan",
       role: "KETUA_PENGURUS",
     },
     {
-      email: "sekpeng@amanat.id",
+      email: "sekpeng@amanat.com",
       password: hashedPassword,
       nama: "Sekretaris Pengurus Yayasan",
       role: "SEKRETARIS_PENGURUS",
     },
     {
-      email: "bendahara@amanat.id",
+      email: "bendahara@amanat.com",
       password: hashedPassword,
       nama: "Bendahara Pengurus Yayasan",
       role: "BENDAHARA",
     },
     {
-      email: "kabag.psdm@amanat.id",
+      email: "kabag.psdm@amanat.com",
       password: hashedPassword,
       nama: "Kepala Bagian PSDM",
       role: "KEPALA_BAGIAN_PSDM",
     },
     {
-      email: "kabag.keuangan@amanat.id",
+      email: "kabag.keuangan@amanat.com",
       password: hashedPassword,
       nama: "Kepala Bagian Keuangan",
       role: "KEPALA_BAGIAN_KEUANGAN",
     },
     {
-      email: "kabag.umum@amanat.id",
+      email: "kabag.umum@amanat.com",
       password: hashedPassword,
       nama: "Kepala Bagian Umum",
       role: "KEPALA_BAGIAN_UMUM",
@@ -162,7 +162,82 @@ async function main() {
     console.log(`Created kode bagian for role: ${kb.role}`);
   }
 
+  // Get created users
+  const kabagPsdm = await prisma.user.findUnique({
+    where: { email: "kabag.psdm@amanat.com" },
+  });
+  const kabagKeuangan = await prisma.user.findUnique({
+    where: { email: "kabag.keuangan@amanat.com" },
+  });
+  const kabagUmum = await prisma.user.findUnique({
+    where: { email: "kabag.umum@amanat.com" },
+  });
+  const sekpeng = await prisma.user.findUnique({
+    where: { email: "sekpeng@amanat.com" },
+  });
+
+  const sk = await prisma.jenisSurat.findUnique({ where: { kode: "SK" } });
+  const sm = await prisma.jenisSurat.findUnique({ where: { kode: "SM" } });
+
+  // Seed Surat Keluar drafts for testing
+  // 1. PENGAJUAN (Created by Kabag PSDM, ready for Validation)
+  await prisma.suratKeluar.create({
+    data: {
+      perihal: "Permohonan Rekrutmen Staff Baru",
+      tujuan: "Ketua Yayasan",
+      isiSurat: "Mohon izin melakukan rekrutmen...", // Legacy field
+      status: "PENGAJUAN",
+      jenisSuratId: sk.id,
+      createdById: kabagPsdm.id,
+      kodeArea: "A",
+      tanggalSurat: new Date(),
+      fileUrl:
+        "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", // Dummy PDF
+      tracking: {
+        create: {
+          aksi: "Surat Dibuat",
+          keterangan: "Draft surat diajukan oleh Kabag PSDM",
+          userId: kabagPsdm.id,
+        },
+      },
+    },
+  });
+
+  // 2. DIPROSES (Ready for Tanda Tangan Ketua)
+  await prisma.suratKeluar.create({
+    data: {
+      perihal: "Laporan Keuangan Bulanan",
+      tujuan: "Ketua Yayasan",
+      status: "DIPROSES",
+      jenisSuratId: sm.id,
+      createdById: kabagKeuangan.id,
+      kodeArea: "A",
+      tanggalSurat: new Date(),
+      fileUrl:
+        "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+      tracking: {
+        createMany: {
+          data: [
+            {
+              aksi: "Surat Dibuat",
+              keterangan: "Diajukan oleh Kabag Keuangan",
+              userId: kabagKeuangan.id,
+            },
+            {
+              aksi: "Validasi Sekretaris",
+              keterangan: "Disetujui. Lanjut ke Ketua.",
+              userId: sekpeng.id,
+            },
+          ],
+        },
+      },
+    },
+  });
+
+  console.log("Seeding Surat Keluar completed.");
+
   // Seed Kode Area
+
   const kodeAreaList = [
     { kode: "A", nama: "Intern Kantor Yayasan" },
     { kode: "B", nama: "Univ De La Salle Luar Negeri" },
