@@ -55,7 +55,7 @@ const KodeBagianManager = () => {
       setEditingId(null);
       fetchData();
     } catch (error) {
-      alert(error.response?.data?.message || "Gagal mengupdate data");
+      alert(error.response?.data?.message || "Gagal memperbarui data");
     }
   };
 
@@ -232,17 +232,17 @@ const GenericCodeManager = ({
       setEditingId(null);
       fetchData();
     } catch (error) {
-      alert(error.response?.data?.message || "Gagal update data");
+      alert(error.response?.data?.message || "Gagal memperbarui data");
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Yakin hapus data ini?")) return;
+    if (!window.confirm("Apakah Anda yakin ingin menghapus data ini?")) return;
     try {
       await api.delete(id);
       fetchData();
     } catch (error) {
-      alert(error.response?.data?.message || "Gagal hapus data");
+      alert(error.response?.data?.message || "Gagal menghapus data");
     }
   };
 

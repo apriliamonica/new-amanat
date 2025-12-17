@@ -197,7 +197,7 @@ const SuratMasukList = () => {
                 loading={exporting}
               >
                 <Download size={16} />
-                Export
+                Ekspor
               </Button>
 
               {isAdmin(user?.role) && (

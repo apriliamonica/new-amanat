@@ -85,7 +85,7 @@ const UserList = () => {
       fetchUsers();
     } catch (error) {
       console.error("Submit user error:", error);
-      alert(error.response?.data?.message || "Gagal menyimpan user");
+      alert(error.response?.data?.message || "Gagal menyimpan pengguna");
     } finally {
       setSubmitting(false);
     }
@@ -126,7 +126,7 @@ const UserList = () => {
 
   return (
     <div className="min-h-screen">
-      <Header title="Kelola User" />
+      <Header title="Kelola Pengguna" />
 
       <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
         {/* Search & Actions */}
@@ -148,7 +148,7 @@ const UserList = () => {
             </div>
             <Button variant="primary" size="small" onClick={openCreateModal}>
               <Plus size={16} />
-              Tambah User
+              Tambah Pengguna
             </Button>
           </div>
         </Card>
@@ -249,7 +249,7 @@ const UserList = () => {
       <Modal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        title={editingUser ? "Edit User" : "Tambah User Baru"}
+        title={editingUser ? "Edit Pengguna" : "Tambah Pengguna Baru"}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -312,7 +312,7 @@ const UserList = () => {
               Batal
             </Button>
             <Button variant="primary" type="submit" loading={submitting}>
-              {editingUser ? "Update" : "Simpan"}
+              {editingUser ? "Perbarui" : "Simpan"}
             </Button>
           </div>
         </form>
