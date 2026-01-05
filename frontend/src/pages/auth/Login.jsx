@@ -66,40 +66,40 @@ const Login = () => {
             <div>
               <label className="form-label">Email</label>
               <div className="relative">
-                <Mail
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                  size={20}
-                />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="form-input pl-10"
+                  className="form-input pl-14 transition-all duration-200 focus:bg-white"
                   placeholder="contoh@email.com"
                   required
                 />
+                {/* <Mail
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                  size={20}
+                /> */}
               </div>
             </div>
 
             <div>
               <label className="form-label">Kata Sandi</label>
               <div className="relative">
-                <Lock
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                  size={20}
-                />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="form-input pl-10 pr-10"
+                  className="form-input pl-14 pr-14 transition-all duration-200 focus:bg-white"
                   placeholder="••••••••"
                   required
                 />
+                {/* <Lock
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                  size={20}
+                /> */}
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-green-600 transition-colors"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>

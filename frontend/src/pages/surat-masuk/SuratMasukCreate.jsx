@@ -61,7 +61,16 @@ const SuratMasukCreate = () => {
   };
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      if (selectedFile.size > 10 * 1024 * 1024) {
+        alert("Ukuran file melebihi 10MB. Harap unggah file yang lebih kecil.");
+        e.target.value = null; // Reset input
+        setFile(null);
+        return;
+      }
+      setFile(selectedFile);
+    }
   };
 
   const handleSubmit = async (e) => {

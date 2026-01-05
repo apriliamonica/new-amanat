@@ -16,7 +16,6 @@ const SuratKeluarEdit = () => {
   const [formData, setFormData] = useState({
     tujuan: "",
     perihal: "",
-    perihal: "",
     keterangan: "",
     status: "",
     nomorSurat: "",
@@ -33,7 +32,6 @@ const SuratKeluarEdit = () => {
       const surat = response.data.suratKeluar;
       setFormData({
         tujuan: surat.tujuan,
-        perihal: surat.perihal,
         perihal: surat.perihal,
         keterangan: surat.keterangan || "",
         status: surat.status,
