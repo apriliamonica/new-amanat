@@ -47,13 +47,31 @@ const UserList = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Calculate occupied roles
+  const occupiedRoles = new Set(
+    users.filter((u) => u.isActive).map((u) => u.role)
+  );
+
+  // Calculate available roles
+  const availableRoles = Object.keys(ROLES).filter(
+    (role) => !occupiedRoles.has(role)
+  );
+
+  const handleCreateClick = () => {
+    if (availableRoles.length === 0) {
+      alert("Semua role sudah terisi. Tidak dapat menambah pengguna baru.");
+      return;
+    }
+    openCreateModal();
+  };
+
   const openCreateModal = () => {
     setEditingUser(null);
     setFormData({
       email: "",
       password: "",
       nama: "",
-      role: ROLES.SEKRETARIS_KANTOR,
+      role: availableRoles[0] || ROLES.SEKRETARIS_KANTOR, // Default to first available
     });
     setShowModal(true);
   };
@@ -67,6 +85,22 @@ const UserList = () => {
       role: user.role,
     });
     setShowModal(true);
+  };
+
+  const handleDelete = async (user) => {
+    if (
+      window.confirm(
+        `Apakah Anda yakin ingin menghapus pengguna "${user.nama}" secara permanen?`
+      )
+    ) {
+      try {
+        await userAPI.delete(user.id);
+        fetchUsers();
+      } catch (error) {
+        console.error("Delete user error:", error);
+        alert("Gagal menghapus pengguna");
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -146,7 +180,7 @@ const UserList = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button variant="primary" size="small" onClick={openCreateModal}>
+            <Button variant="primary" size="small" onClick={handleCreateClick}>
               <Plus size={16} />
               Tambah Pengguna
             </Button>
@@ -214,16 +248,25 @@ const UserList = () => {
                           onClick={() => handleToggleActive(user)}
                           className={
                             user.isActive
-                              ? "hover:bg-red-50 hover:text-red-600"
+                              ? "hover:bg-yellow-50 hover:text-yellow-600"
                               : "hover:bg-green-50 hover:text-green-600"
                           }
                           title={user.isActive ? "Nonaktifkan" : "Aktifkan"}
                         >
                           {user.isActive ? (
-                            <UserX size={16} />
-                          ) : (
                             <UserCheck size={16} />
+                          ) : (
+                            <UserX size={16} />
                           )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="small"
+                          onClick={() => handleDelete(user)}
+                          className="hover:bg-red-50 hover:text-red-600"
+                          title="Hapus Permanen"
+                        >
+                          <Trash2 size={16} />
                         </Button>
                       </div>
                     </td>
@@ -296,11 +339,19 @@ const UserList = () => {
               onChange={handleChange}
               required
             >
-              {Object.entries(ROLE_NAMES).map(([key, value]) => (
-                <option key={key} value={key}>
-                  {value}
-                </option>
-              ))}
+              {Object.entries(ROLE_NAMES)
+                .filter(([key]) => {
+                  // Show if role is available OR if it's the role currently being held by the user being edited
+                  return (
+                    availableRoles.includes(key) ||
+                    (editingUser && editingUser.role === key)
+                  );
+                })
+                .map(([key, value]) => (
+                  <option key={key} value={key}>
+                    {value}
+                  </option>
+                ))}
             </select>
           </div>
           <div className="flex gap-3 justify-end pt-4">

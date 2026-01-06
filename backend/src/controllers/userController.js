@@ -1,5 +1,5 @@
-const bcrypt = require('bcryptjs');
-const prisma = require('../config/database');
+const bcrypt = require("bcryptjs");
+const prisma = require("../config/database");
 
 // Get all users
 const getAllUsers = async (req, res) => {
@@ -13,13 +13,13 @@ const getAllUsers = async (req, res) => {
         isActive: true,
         createdAt: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     res.json({ users });
   } catch (error) {
-    console.error('Get users error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Get users error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -41,13 +41,13 @@ const getUserById = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: 'User tidak ditemukan' });
+      return res.status(404).json({ message: "User tidak ditemukan" });
     }
 
     res.json({ user });
   } catch (error) {
-    console.error('Get user error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Get user error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -68,8 +68,8 @@ const getUsersByRole = async (req, res) => {
 
     res.json({ users });
   } catch (error) {
-    console.error('Get users by role error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Get users by role error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -79,7 +79,7 @@ const createUser = async (req, res) => {
     const { email, password, nama, role } = req.body;
 
     if (!email || !password || !nama || !role) {
-      return res.status(400).json({ message: 'Semua field wajib diisi' });
+      return res.status(400).json({ message: "Semua field wajib diisi" });
     }
 
     // Check if email already exists
@@ -88,7 +88,25 @@ const createUser = async (req, res) => {
     });
 
     if (existingUser) {
-      return res.status(400).json({ message: 'Email sudah terdaftar' });
+      return res.status(400).json({ message: "Email sudah terdaftar" });
+    }
+
+    // Check if role is already taken by an active user
+    // Note: SEKRETARIS_KANTOR (Admin) might be an exception if multiple admins are allowed,
+    // but based on "all roles filled" requirement, we assume 1 user per role for now.
+    // If Admin allows multiple, we can add a condition here.
+    // Assuming strict 1-to-1 mapping for now based on user request.
+    const existingRoleUser = await prisma.user.findFirst({
+      where: {
+        role: role,
+        isActive: true,
+      },
+    });
+
+    if (existingRoleUser) {
+      return res.status(400).json({
+        message: `Role ${role} sudah terisi oleh pengguna aktif lain.`,
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -111,12 +129,12 @@ const createUser = async (req, res) => {
     });
 
     res.status(201).json({
-      message: 'User berhasil dibuat',
+      message: "User berhasil dibuat",
       user,
     });
   } catch (error) {
-    console.error('Create user error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Create user error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -131,7 +149,7 @@ const updateUser = async (req, res) => {
     });
 
     if (!existingUser) {
-      return res.status(404).json({ message: 'User tidak ditemukan' });
+      return res.status(404).json({ message: "User tidak ditemukan" });
     }
 
     // Check if email is being changed and already exists
@@ -140,7 +158,7 @@ const updateUser = async (req, res) => {
         where: { email },
       });
       if (emailExists) {
-        return res.status(400).json({ message: 'Email sudah digunakan' });
+        return res.status(400).json({ message: "Email sudah digunakan" });
       }
     }
 
@@ -148,7 +166,7 @@ const updateUser = async (req, res) => {
     if (email) updateData.email = email;
     if (nama) updateData.nama = nama;
     if (role) updateData.role = role;
-    if (typeof isActive === 'boolean') updateData.isActive = isActive;
+    if (typeof isActive === "boolean") updateData.isActive = isActive;
     if (password) {
       updateData.password = await bcrypt.hash(password, 10);
     }
@@ -167,16 +185,16 @@ const updateUser = async (req, res) => {
     });
 
     res.json({
-      message: 'User berhasil diupdate',
+      message: "User berhasil diupdate",
       user,
     });
   } catch (error) {
-    console.error('Update user error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Update user error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// Delete user
+// Delete user (Hard Delete)
 const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -186,19 +204,18 @@ const deleteUser = async (req, res) => {
     });
 
     if (!existingUser) {
-      return res.status(404).json({ message: 'User tidak ditemukan' });
+      return res.status(404).json({ message: "User tidak ditemukan" });
     }
 
-    // Soft delete by setting isActive to false
-    await prisma.user.update({
+    // Hard delete
+    await prisma.user.delete({
       where: { id },
-      data: { isActive: false },
     });
 
-    res.json({ message: 'User berhasil dihapus' });
+    res.json({ message: "User berhasil dihapus permanen" });
   } catch (error) {
-    console.error('Delete user error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Delete user error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
