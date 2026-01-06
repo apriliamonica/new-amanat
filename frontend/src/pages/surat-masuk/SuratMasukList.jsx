@@ -40,7 +40,7 @@ const SuratMasukList = () => {
     { value: "12", label: "Desember" },
   ];
 
-  const STATUS_OPTIONS = ["DITERIMA", "DIDISPOSISI", "SELESAI"];
+  const STATUS_OPTIONS = ["DITERIMA", "DISPOSISI", "SELESAI"];
 
   useEffect(() => {
     fetchSurat();

@@ -7,7 +7,13 @@ const NotificationDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notifications, setNotifications] = useState({ total: 0, items: [] });
+  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
+
+  // Load last viewed timestamp
+  const [lastViewed, setLastViewed] = useState(() => {
+    return localStorage.getItem("notificationLastViewed") || null;
+  });
 
   const fetchNotifications = async () => {
     try {
@@ -17,6 +23,29 @@ const NotificationDropdown = () => {
       console.error("Failed to fetch notifications", error);
     }
   };
+
+  // Calculate unread count whenever notifications or lastViewed changes
+  useEffect(() => {
+    if (notifications.items.length > 0) {
+      if (!lastViewed) {
+        setUnreadCount(notifications.total);
+      } else {
+        const lastViewedDate = new Date(lastViewed);
+        const newItems = notifications.items.filter(
+          (item) => new Date(item.time) > lastViewedDate
+        );
+        // Only count actionable items as 'badge' worthy?
+        // Or simply all new items? User said "tanda atau angka", usually implies count.
+        // Let's count items that match the "total" criteria (actionable) but also are new.
+        // But backend `total` is just actionable. `items` includes tracking.
+        // Let's assume badge follows backend `total` logic but checks time.
+        // Actually, simplest is: count how many items in the list are newer than lastViewed.
+        setUnreadCount(newItems.length);
+      }
+    } else {
+      setUnreadCount(0);
+    }
+  }, [notifications, lastViewed]);
 
   useEffect(() => {
     fetchNotifications();
@@ -36,6 +65,20 @@ const NotificationDropdown = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleToggle = (e) => {
+    e.stopPropagation();
+    const newIsOpen = !isOpen;
+    setIsOpen(newIsOpen);
+
+    if (newIsOpen) {
+      // Mark as read
+      const now = new Date().toISOString();
+      localStorage.setItem("notificationLastViewed", now);
+      setLastViewed(now);
+      // setUnreadCount(0); // This will happen automatically via effect, but we can force it for instant feedback
+    }
+  };
+
   const getIcon = (type, subtype) => {
     if (type === "history") return <Info size={16} className="text-blue-500" />;
     switch (subtype) {
@@ -52,17 +95,20 @@ const NotificationDropdown = () => {
     }
   };
 
+  // Helper to check if an item is unread (for styling)
+  const isItemUnread = (itemTime) => {
+    if (!lastViewed) return true;
+    return new Date(itemTime) > new Date(lastViewed);
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsOpen(!isOpen);
-        }}
+        onClick={handleToggle}
         className="relative p-2.5 rounded-xl hover:bg-gray-100/80 transition-all text-gray-600 hover:text-green-600 hover:shadow-sm"
       >
         <Bell size={20} />
-        {notifications.total > 0 && (
+        {unreadCount > 0 && (
           <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white animate-pulse"></span>
         )}
       </button>
@@ -91,7 +137,7 @@ const NotificationDropdown = () => {
                   <div
                     key={item.id}
                     className={`block p-4 hover:bg-gray-50 transition-colors ${
-                      item.type === "action" ? "bg-white" : "bg-gray-50/30"
+                      isItemUnread(item.time) ? "bg-blue-50/30" : "bg-white"
                     }`}
                   >
                     <div className="flex gap-3">
