@@ -88,24 +88,38 @@ const getRecentActivities = async (req, res) => {
 
     // Time filter: 24 hours ago
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    whereCondition.timestamp = { gte: twentyFourHoursAgo };
 
-    // Add time filter strictly
-    whereCondition.timestamp = {
-      gte: twentyFourHoursAgo,
-    };
+    const [activitiesMasuk, activitiesKeluar] = await Promise.all([
+      prisma.trackingSurat.findMany({
+        where: {
+          ...whereCondition,
+          suratMasukId: { not: null },
+        },
+        include: {
+          user: { select: { id: true, nama: true, role: true } },
+          suratMasuk: { select: { id: true, nomorSurat: true, perihal: true } },
+        },
+        orderBy: { timestamp: "desc" },
+        take: 10,
+      }),
+      prisma.trackingSurat.findMany({
+        where: {
+          ...whereCondition,
+          suratKeluarId: { not: null },
+        },
+        include: {
+          user: { select: { id: true, nama: true, role: true } },
+          suratKeluar: {
+            select: { id: true, nomorSurat: true, perihal: true },
+          },
+        },
+        orderBy: { timestamp: "desc" },
+        take: 10,
+      }),
+    ]);
 
-    const activities = await prisma.trackingSurat.findMany({
-      where: whereCondition,
-      include: {
-        user: { select: { id: true, nama: true, role: true } },
-        suratMasuk: { select: { id: true, nomorSurat: true, perihal: true } },
-        suratKeluar: { select: { id: true, nomorSurat: true, perihal: true } },
-      },
-      orderBy: { timestamp: "desc" },
-      take: 10,
-    });
-
-    res.json({ activities });
+    res.json({ activitiesMasuk, activitiesKeluar });
   } catch (error) {
     console.error("Get activities error:", error);
     res.status(500).json({ message: "Server error" });

@@ -46,7 +46,7 @@ const getSummary = async (req, res) => {
         id: d.id,
         type: "action",
         subtype: "disposisi",
-        message: `Disposisi baru dari ${d.fromUser.nama}`,
+        message: `Disposisi baru dari ${d.fromUser?.nama || "Unknown"}`,
         detail:
           d.suratMasuk?.perihal || d.suratKeluar?.perihal || "Tanpa Perihal",
         time: d.createdAt,
@@ -72,7 +72,7 @@ const getSummary = async (req, res) => {
           id: req.id,
           type: "action",
           subtype: "request",
-          message: `Permintaan Surat dari ${req.createdBy.nama}`,
+          message: `Permintaan Surat dari ${req.createdBy?.nama || "Unknown"}`,
           detail: req.perihal,
           time: req.createdAt,
           link: `/surat-keluar/detail/${req.id}`,
@@ -103,7 +103,7 @@ const getSummary = async (req, res) => {
           id: track.id,
           type: "history",
           subtype: "tracking",
-          message: `${track.aksi} oleh ${track.user.nama}`,
+          message: `${track.aksi} oleh ${track.user?.nama || "Sistem"}`,
           detail: `${suratRef}: ${track.keterangan || ""}`,
           time: track.timestamp,
         });

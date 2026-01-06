@@ -5,7 +5,6 @@ import api from "../../api/axios";
 
 const NotificationDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [notifications, setNotifications] = useState({ total: 0, items: [] });
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
@@ -26,7 +25,7 @@ const NotificationDropdown = () => {
 
   // Calculate unread count whenever notifications or lastViewed changes
   useEffect(() => {
-    if (notifications.items.length > 0) {
+    if (notifications?.items && notifications.items.length > 0) {
       if (!lastViewed) {
         setUnreadCount(notifications.total);
       } else {
@@ -34,12 +33,6 @@ const NotificationDropdown = () => {
         const newItems = notifications.items.filter(
           (item) => new Date(item.time) > lastViewedDate
         );
-        // Only count actionable items as 'badge' worthy?
-        // Or simply all new items? User said "tanda atau angka", usually implies count.
-        // Let's count items that match the "total" criteria (actionable) but also are new.
-        // But backend `total` is just actionable. `items` includes tracking.
-        // Let's assume badge follows backend `total` logic but checks time.
-        // Actually, simplest is: count how many items in the list are newer than lastViewed.
         setUnreadCount(newItems.length);
       }
     } else {
@@ -75,7 +68,6 @@ const NotificationDropdown = () => {
       const now = new Date().toISOString();
       localStorage.setItem("notificationLastViewed", now);
       setLastViewed(now);
-      // setUnreadCount(0); // This will happen automatically via effect, but we can force it for instant feedback
     }
   };
 
@@ -126,7 +118,7 @@ const NotificationDropdown = () => {
           </div>
 
           <div className="max-h-[70vh] overflow-y-auto">
-            {notifications.items.length === 0 ? (
+            {!notifications?.items || notifications.items.length === 0 ? (
               <div className="p-8 text-center text-gray-500">
                 <Bell size={32} className="mx-auto mb-2 text-gray-300" />
                 <p className="text-sm">Belum ada notifikasi baru</p>

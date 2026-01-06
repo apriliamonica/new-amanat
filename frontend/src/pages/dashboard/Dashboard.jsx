@@ -27,12 +27,14 @@ import Pagination from "../../components/common/Pagination";
 const Dashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
-  const [activities, setActivities] = useState([]);
+  const [activitiesMasuk, setActivitiesMasuk] = useState([]);
+  const [activitiesKeluar, setActivitiesKeluar] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Pagination for Activities
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Smaller for dashboard
+  const [pageMasuk, setPageMasuk] = useState(1);
+  const [pageKeluar, setPageKeluar] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,7 +44,8 @@ const Dashboard = () => {
           dashboardAPI.getRecent(),
         ]);
         setStats(statsRes.data.stats);
-        setActivities(activitiesRes.data.activities);
+        setActivitiesMasuk(activitiesRes.data.activitiesMasuk || []);
+        setActivitiesKeluar(activitiesRes.data.activitiesKeluar || []);
       } catch (error) {
         console.error("Dashboard fetch error:", error);
       } finally {
@@ -68,22 +71,22 @@ const Dashboard = () => {
           title: "Total Surat Masuk",
           value: stats.totalSuratMasuk || 0,
           icon: Mail,
-          color: "bg-blue-500",
-          bgColor: "bg-blue-50",
+          color: "bg-gray-600",
+          bgColor: "bg-gray-50",
         },
         {
           title: "Total Surat Keluar",
           value: stats.totalSuratKeluar || 0,
           icon: Send,
-          color: "bg-green-500",
-          bgColor: "bg-green-50",
+          color: "bg-gray-600",
+          bgColor: "bg-gray-50",
         },
         {
           title: "Disposisi Saat Ini",
           value: stats.disposisiPending || 0,
           icon: Clock,
-          color: "bg-purple-500",
-          bgColor: "bg-purple-50",
+          color: "bg-gray-600",
+          bgColor: "bg-gray-50",
         },
       ];
     }
@@ -93,23 +96,16 @@ const Dashboard = () => {
         title: "Surat Masuk hari ini",
         value: stats.disposisiDiterima || 0,
         icon: FileText,
-        color: "bg-blue-500",
-        bgColor: "bg-blue-50",
+        color: "bg-gray-600",
+        bgColor: "bg-gray-50",
       },
       {
         title: "Surat Keluar hari ini",
         value: stats.mySuratKeluar || 0,
         icon: CheckCircle,
-        color: "bg-green-500",
-        bgColor: "bg-green-50",
+        color: "bg-gray-600",
+        bgColor: "bg-gray-50",
       },
-      // {
-      //   title: "Total Surat Terkait",
-      //   value: stats.suratTerkait || 0,
-      //   icon: Mail,
-      //   color: "bg-purple-500",
-      //   bgColor: "bg-purple-50",
-      // },
     ];
 
     if (isKetua(user?.role)) {
@@ -117,8 +113,8 @@ const Dashboard = () => {
         title: "Menunggu Tanda Tangan",
         value: stats.menungguTTD || 0,
         icon: PenTool,
-        color: "bg-orange-500",
-        bgColor: "bg-orange-50",
+        color: "bg-gray-600",
+        bgColor: "bg-gray-50",
       });
     }
 
@@ -127,8 +123,8 @@ const Dashboard = () => {
         title: "Menunggu Validasi",
         value: stats.menungguValidasi || 0,
         icon: AlertCircle,
-        color: "bg-yellow-500",
-        bgColor: "bg-yellow-50",
+        color: "bg-gray-600",
+        bgColor: "bg-gray-50",
       });
     }
 
@@ -137,13 +133,15 @@ const Dashboard = () => {
 
   const statsCards = getStatsCards();
 
-  // Paginate activities
-  const indexOfLastActivity = currentPage * itemsPerPage;
-  const indexOfFirstActivity = indexOfLastActivity - itemsPerPage;
-  const currentActivities = activities.slice(
-    indexOfFirstActivity,
-    indexOfLastActivity
-  );
+  // Paginate Masuk
+  const lastMasuk = pageMasuk * itemsPerPage;
+  const firstMasuk = lastMasuk - itemsPerPage;
+  const currentMasuk = activitiesMasuk.slice(firstMasuk, lastMasuk);
+
+  // Paginate Keluar
+  const lastKeluar = pageKeluar * itemsPerPage;
+  const firstKeluar = lastKeluar - itemsPerPage;
+  const currentKeluar = activitiesKeluar.slice(firstKeluar, lastKeluar);
 
   if (loading) {
     return (
@@ -217,172 +215,135 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* Recent Activities & Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Recent Activities */}
-          <div className="lg:col-span-2">
-            <Card className="h-full border-0 shadow-md hover:shadow-lg transition-shadow duration-300">
-              <Card.Header className="border-b border-gray-100 pb-4 pt-6 px-6 bg-gradient-to-r from-white to-gray-50/50 rounded-t-xl">
-                <h3 className="font-bold text-gray-800 flex items-center gap-3 text-lg">
-                  <div className="p-2 bg-green-50 rounded-lg">
-                    <Clock size={20} className="text-green-600" />
-                  </div>
-                  Aktivitas Terbaru
-                </h3>
-              </Card.Header>
-              <Card.Body className="p-0">
-                {activities.length === 0 ? (
-                  <div className="p-12 text-center">
-                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Clock size={32} className="text-gray-300" />
-                    </div>
-                    <p className="text-gray-500 font-medium">
-                      Belum ada aktivitas
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="divide-y divide-gray-50">
-                      {currentActivities.map((activity) => (
-                        <div
-                          key={activity.id}
-                          className="p-5 border-b border-gray-50 last:border-0"
-                        >
-                          {/* Left border accent removed */}
-
-                          <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm border border-blue-100/50">
-                              <FileText size={18} className="text-blue-600" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex justify-between items-start">
-                                <p className="text-sm font-bold text-gray-900">
-                                  {activity.aksi}
-                                </p>
-                                <span className="text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">
-                                  {formatRelativeTime(activity.timestamp)}
-                                </span>
-                              </div>
-                              <p className="text-sm text-gray-500 truncate mt-1">
-                                {activity.suratMasuk?.perihal ||
-                                  activity.suratKeluar?.perihal ||
-                                  "-"}
+        {/* Recent Activities - Split */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Surat Masuk Activities */}
+          <Card className="h-full border-0 shadow-md hover:shadow-lg transition-shadow duration-300">
+            <Card.Header className="border-b border-gray-100 pb-4 pt-6 px-6 bg-gradient-to-r from-white to-gray-50/50 rounded-t-xl">
+              <h3 className="font-bold text-gray-800 flex items-center gap-3 text-lg">
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <Mail size={20} className="text-blue-600" />
+                </div>
+                Aktivitas Surat Masuk
+              </h3>
+            </Card.Header>
+            <Card.Body className="p-0">
+              {activitiesMasuk.length === 0 ? (
+                <div className="p-8 text-center">
+                  <p className="text-gray-500 font-medium text-sm">
+                    Belum ada aktivitas (24 jam terakhir)
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="divide-y divide-gray-50">
+                    {currentMasuk.map((activity) => (
+                      <div
+                        key={activity.id}
+                        className="p-4 border-b border-gray-50 last:border-0"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
+                            <CheckCircle size={14} className="text-blue-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start">
+                              <p className="text-sm font-bold text-gray-900">
+                                {activity.aksi}
                               </p>
-                              <div className="mt-2 flex items-center gap-2">
-                                <span className="inline-flex items-center gap-1 text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
-                                  <Users size={10} />
-                                  {activity.user?.nama || "Sistem"}
-                                </span>
-                              </div>
+                              <span className="text-[10px] text-gray-400">
+                                {formatRelativeTime(activity.timestamp)}
+                              </span>
                             </div>
+                            <p className="text-xs text-gray-500 truncate mt-0.5">
+                              {activity.suratMasuk?.perihal || "-"}
+                            </p>
+                            <p className="text-[10px] text-gray-400 mt-1">
+                              Oleh: {activity.user?.nama || "Sistem"}
+                            </p>
                           </div>
                         </div>
-                      ))}
-                    </div>
-
-                    {/* Pagination */}
-                    <div className="p-4 border-t border-gray-100 bg-gray-50/30 rounded-b-xl">
+                      </div>
+                    ))}
+                  </div>
+                  {activitiesMasuk.length > itemsPerPage && (
+                    <div className="p-3 border-t border-gray-100 bg-gray-50/30">
                       <Pagination
-                        currentPage={currentPage}
-                        totalItems={activities.length}
+                        currentPage={pageMasuk}
+                        totalItems={activitiesMasuk.length}
                         itemsPerPage={itemsPerPage}
-                        onPageChange={setCurrentPage}
+                        onPageChange={setPageMasuk}
                       />
                     </div>
-                  </>
-                )}
-              </Card.Body>
-            </Card>
-          </div>
-
-          {/* Quick Actions */}
-          <div>
-            <Card className="h-full border-0 shadow-md hover:shadow-lg transition-shadow duration-300">
-              <Card.Header className="border-b border-gray-100 pb-4 pt-6 px-6 bg-gradient-to-r from-white to-gray-50/50 rounded-t-xl">
-                <h3 className="font-bold text-gray-800 flex items-center gap-3 text-lg">
-                  <div className="p-2 bg-yellow-50 rounded-lg">
-                    <TrendingUp size={20} className="text-yellow-600" />
-                  </div>
-                  Aksi Cepat
-                </h3>
-              </Card.Header>
-              <Card.Body className="p-6">
-                <div className="grid gap-4">
-                  <a
-                    href="/surat-masuk"
-                    className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-50/30 rounded-2xl border border-blue-100/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
-                  >
-                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-blue-600 group-hover:text-blue-700 group-hover:scale-110 transition-transform">
-                      <Mail size={24} />
-                    </div>
-                    <div>
-                      <span className="font-bold text-gray-800 group-hover:text-blue-700 transition-colors block">
-                        Surat Masuk
-                      </span>
-                      <span className="text-xs text-blue-600/70 font-medium">
-                        Kelola surat masuk
-                      </span>
-                    </div>
-                  </a>
-
-                  <a
-                    href="/surat-keluar"
-                    className="flex items-center gap-4 p-4 bg-gradient-to-r from-green-50 to-green-50/30 rounded-2xl border border-green-100/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
-                  >
-                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-green-600 group-hover:text-green-700 group-hover:scale-110 transition-transform">
-                      <Send size={24} />
-                    </div>
-                    <div>
-                      <span className="font-bold text-gray-800 group-hover:text-green-700 transition-colors block">
-                        Surat Keluar
-                      </span>
-                      <span className="text-xs text-green-600/70 font-medium">
-                        Kelola surat keluar
-                      </span>
-                    </div>
-                  </a>
-
-                  {!isAdmin(user?.role) && (
-                    <a
-                      href="/disposisi"
-                      className="flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-purple-50/30 rounded-2xl border border-purple-100/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
-                    >
-                      <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-purple-600 group-hover:text-purple-700 group-hover:scale-110 transition-transform">
-                        <FileText size={24} />
-                      </div>
-                      <div>
-                        <span className="font-bold text-gray-800 group-hover:text-purple-700 transition-colors block">
-                          Disposisi Saya
-                        </span>
-                        <span className="text-xs text-purple-600/70 font-medium">
-                          Cek disposisi masuk
-                        </span>
-                      </div>
-                    </a>
                   )}
+                </>
+              )}
+            </Card.Body>
+          </Card>
 
-                  {isAdmin(user?.role) && (
-                    <a
-                      href="/users"
-                      className="flex items-center gap-4 p-4 bg-gradient-to-r from-orange-50 to-orange-50/30 rounded-2xl border border-orange-100/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
-                    >
-                      <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-orange-600 group-hover:text-orange-700 group-hover:scale-110 transition-transform">
-                        <Users size={24} />
-                      </div>
-                      <div>
-                        <span className="font-bold text-gray-800 group-hover:text-orange-700 transition-colors block">
-                          Kelola User
-                        </span>
-                        <span className="text-xs text-orange-600/70 font-medium">
-                          Manajemen pengguna
-                        </span>
-                      </div>
-                    </a>
-                  )}
+          {/* Surat Keluar Activities */}
+          <Card className="h-full border-0 shadow-md hover:shadow-lg transition-shadow duration-300">
+            <Card.Header className="border-b border-gray-100 pb-4 pt-6 px-6 bg-gradient-to-r from-white to-gray-50/50 rounded-t-xl">
+              <h3 className="font-bold text-gray-800 flex items-center gap-3 text-lg">
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <Send size={20} className="text-green-600" />
                 </div>
-              </Card.Body>
-            </Card>
-          </div>
+                Aktivitas Surat Keluar
+              </h3>
+            </Card.Header>
+            <Card.Body className="p-0">
+              {activitiesKeluar.length === 0 ? (
+                <div className="p-8 text-center">
+                  <p className="text-gray-500 font-medium text-sm">
+                    Belum ada aktivitas (24 jam terakhir)
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="divide-y divide-gray-50">
+                    {currentKeluar.map((activity) => (
+                      <div
+                        key={activity.id}
+                        className="p-4 border-b border-gray-50 last:border-0"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
+                            <CheckCircle size={14} className="text-green-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start">
+                              <p className="text-sm font-bold text-gray-900">
+                                {activity.aksi}
+                              </p>
+                              <span className="text-[10px] text-gray-400">
+                                {formatRelativeTime(activity.timestamp)}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-500 truncate mt-0.5">
+                              {activity.suratKeluar?.perihal || "-"}
+                            </p>
+                            <p className="text-[10px] text-gray-400 mt-1">
+                              Oleh: {activity.user?.nama || "Sistem"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {activitiesKeluar.length > itemsPerPage && (
+                    <div className="p-3 border-t border-gray-100 bg-gray-50/30">
+                      <Pagination
+                        currentPage={pageKeluar}
+                        totalItems={activitiesKeluar.length}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={setPageKeluar}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+            </Card.Body>
+          </Card>
         </div>
       </div>
     </div>
