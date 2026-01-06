@@ -207,15 +207,82 @@ const deleteUser = async (req, res) => {
       return res.status(404).json({ message: "User tidak ditemukan" });
     }
 
-    // Hard delete
-    await prisma.user.delete({
-      where: { id },
+    // Identify Surats created by this user
+    const suratMasuk = await prisma.suratMasuk.findMany({
+      where: { createdById: id },
+      select: { id: true },
+    });
+    const suratMasukIds = suratMasuk.map((s) => s.id);
+
+    const suratKeluar = await prisma.suratKeluar.findMany({
+      where: { createdById: id },
+      select: { id: true },
+    });
+    const suratKeluarIds = suratKeluar.map((s) => s.id);
+
+    // Run cascade delete in transaction
+    await prisma.$transaction(async (tx) => {
+      // 1. Delete Disposisi relation
+      await tx.disposisi.deleteMany({
+        where: {
+          OR: [
+            { fromUserId: id },
+            { toUserId: id },
+            { suratMasukId: { in: suratMasukIds } },
+            { suratKeluarId: { in: suratKeluarIds } },
+          ],
+        },
+      });
+
+      // 2. Delete Tracking
+      await tx.trackingSurat.deleteMany({
+        where: {
+          OR: [
+            { userId: id },
+            { suratMasukId: { in: suratMasukIds } },
+            { suratKeluarId: { in: suratKeluarIds } },
+          ],
+        },
+      });
+
+      // 3. Delete Lampiran
+      await tx.lampiran.deleteMany({
+        where: {
+          OR: [
+            { uploadedById: id },
+            { suratMasukId: { in: suratMasukIds } },
+            { suratKeluarId: { in: suratKeluarIds } },
+          ],
+        },
+      });
+
+      // 4. Handle SuratBalasan (disconnect BEFORE deleting surats)
+      await tx.suratKeluar.updateMany({
+        where: { suratMasukId: { in: suratMasukIds } },
+        data: { suratMasukId: null },
+      });
+
+      // 5. Delete Surats
+      await tx.suratKeluar.deleteMany({
+        where: { id: { in: suratKeluarIds } },
+      });
+
+      await tx.suratMasuk.deleteMany({
+        where: { id: { in: suratMasukIds } },
+      });
+
+      // 6. Finally Delete User
+      await tx.user.delete({
+        where: { id },
+      });
     });
 
-    res.json({ message: "User berhasil dihapus permanen" });
+    res.json({
+      message: "User berhasil dihapus permanen beserta data terkait",
+    });
   } catch (error) {
     console.error("Delete user error:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 

@@ -86,6 +86,14 @@ const getRecentActivities = async (req, res) => {
       whereCondition = { userId };
     }
 
+    // Time filter: 24 hours ago
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    // Add time filter strictly
+    whereCondition.timestamp = {
+      gte: twentyFourHoursAgo,
+    };
+
     const activities = await prisma.trackingSurat.findMany({
       where: whereCondition,
       include: {

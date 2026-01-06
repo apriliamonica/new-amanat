@@ -12,6 +12,7 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const jenisSuratRoutes = require("./routes/jenisSuratRoutes");
 const kodeBagianRoutes = require("./routes/kodeBagianRoutes");
 const kodeAreaRoutes = require("./routes/kodeAreaRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use("/api/jenis-surat", jenisSuratRoutes);
 app.use("/api/kode-bagian", kodeBagianRoutes);
 app.use("/api/kode-area", kodeAreaRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
