@@ -18,12 +18,9 @@ const getAllSuratKeluar = async (req, res) => {
         { createdById: userId },
       ];
 
-      // Ketua sees letters waiting for signature (DIPROSES) or Signed/Rejected
-      if (role === "KETUA_PENGURUS") {
-        orConditions.push({ status: "DIPROSES" });
-        orConditions.push({ status: "DITANDATANGANI" });
-        orConditions.push({ status: "DITOLAK" });
-      }
+      // Ketua only sees letters that have been disposed to them
+      // No additional status-based visibility for Ketua Surat Keluar
+      // (They must receive disposisi from Sekpeng/Bendahara first)
 
       // Sekpeng/Bendahara sees letters waiting for validation (PENGAJUAN/MENUNGGU_VALIDASI)
       if (["SEKRETARIS_PENGURUS", "BENDAHARA"].includes(role)) {
@@ -418,8 +415,8 @@ const validateSuratKeluar = async (req, res) => {
   }
 };
 
-// Sign surat keluar (Ketua only)
-const signSuratKeluar = async (req, res) => {
+// Approve surat keluar (Ketua only) - ACC untuk tanda tangan
+const approveSuratKeluar = async (req, res) => {
   try {
     const { id } = req.params;
     const { isApproved, catatan } = req.body;
@@ -436,18 +433,17 @@ const signSuratKeluar = async (req, res) => {
     let aksi;
 
     if (isApproved) {
-      const nomorSurat = await generateNomorSurat();
+      // Ketua approves - status becomes DISETUJUI, isSigned true
+      // No new number generated - keep existing number from Admin
       updateData = {
-        status: "DITANDATANGANI",
+        status: "DISETUJUI",
         isSigned: true,
         signedAt: new Date(),
-        nomorSurat,
-        tanggalSurat: new Date(),
       };
-      aksi = `Surat ditandatangani dengan nomor ${nomorSurat}`;
+      aksi = "Surat disetujui oleh Ketua Yayasan (ACC Tanda Tangan)";
     } else {
       updateData = { status: "DIKEMBALIKAN" };
-      aksi = "Surat ditolak oleh Ketua";
+      aksi = "Surat ditolak oleh Ketua Yayasan";
     }
 
     const suratKeluar = await prisma.suratKeluar.update({
@@ -466,11 +462,11 @@ const signSuratKeluar = async (req, res) => {
     });
 
     res.json({
-      message: isApproved ? "Surat ditandatangani" : "Surat ditolak",
+      message: isApproved ? "Surat disetujui" : "Surat ditolak",
       suratKeluar,
     });
   } catch (error) {
-    console.error("Sign surat error:", error);
+    console.error("Approve surat error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -489,8 +485,11 @@ const sendSuratKeluar = async (req, res) => {
       return res.status(404).json({ message: "Surat tidak ditemukan" });
     }
 
-    if (!existingSurat.isSigned) {
-      return res.status(400).json({ message: "Surat belum ditandatangani" });
+    // Check if letter has been approved by Ketua (status DISETUJUI)
+    if (existingSurat.status !== "DISETUJUI") {
+      return res
+        .status(400)
+        .json({ message: "Surat belum disetujui oleh Ketua Yayasan" });
     }
 
     const suratKeluar = await prisma.suratKeluar.update({
@@ -639,7 +638,7 @@ module.exports = {
   createSuratKeluar,
   updateSuratKeluar,
   validateSuratKeluar,
-  signSuratKeluar,
+  approveSuratKeluar,
   sendSuratKeluar,
   deleteSuratKeluar,
   exportSuratKeluar,

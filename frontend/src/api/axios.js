@@ -82,7 +82,7 @@ export const suratKeluarAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     }),
   validate: (id, data) => api.put(`/surat-keluar/${id}/validasi`, data),
-  sign: (id, data) => api.put(`/surat-keluar/${id}/tanda-tangan`, data),
+  approve: (id, data) => api.put(`/surat-keluar/${id}/approve`, data),
   send: (id, data) => api.put(`/surat-keluar/${id}/kirim`, data),
   delete: (id) => api.delete(`/surat-keluar/${id}`),
 };

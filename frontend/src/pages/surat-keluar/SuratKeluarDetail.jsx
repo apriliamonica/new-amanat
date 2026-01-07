@@ -51,7 +51,7 @@ const SuratKeluarDetail = () => {
   const [surat, setSurat] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showValidasiModal, setShowValidasiModal] = useState(false);
-  const [showTTDModal, setShowTTDModal] = useState(false);
+  const [showApproveModal, setShowApproveModal] = useState(false);
   const [showKirimModal, setShowKirimModal] = useState(false);
   const [showDisposisiModal, setShowDisposisiModal] = useState(false);
   const [showLampiranModal, setShowLampiranModal] = useState(false);
@@ -166,15 +166,15 @@ const SuratKeluarDetail = () => {
     }
   };
 
-  const handleTTD = async (isApproved) => {
+  const handleApprove = async (isApproved) => {
     setSubmitting(true);
     try {
-      await suratKeluarAPI.sign(id, { isApproved, catatan });
-      setShowTTDModal(false);
+      await suratKeluarAPI.approve(id, { isApproved, catatan });
+      setShowApproveModal(false);
       setCatatan("");
       fetchSurat();
     } catch (error) {
-      console.error("TTD error:", error);
+      console.error("Approve error:", error);
     } finally {
       setSubmitting(false);
     }
@@ -304,12 +304,27 @@ const SuratKeluarDetail = () => {
     [STATUS_SURAT.MENUNGGU_VALIDASI, STATUS_SURAT.PENGAJUAN].includes(
       surat.status
     );
-  const canShowTTD =
-    isKetua(user?.role) && surat.status === STATUS_SURAT.DIPROSES;
+  // Ketua can approve if letter was disposed to them and status is DIPROSES
+  const isDisposedToKetua = surat.disposisi?.some(
+    (d) => d.toUserId === user?.id
+  );
+  const canShowApprove =
+    isKetua(user?.role) &&
+    surat.status === STATUS_SURAT.DIPROSES &&
+    isDisposedToKetua;
+  // Admin can send if status is DISETUJUI (approved by Ketua)
   const canShowKirim =
-    isAdmin(user?.role) && surat.isSigned && surat.status !== "SELESAI";
+    isAdmin(user?.role) && surat.status === STATUS_SURAT.DISETUJUI;
+
   const canShowProses =
     isAdmin(user?.role) && surat.status === STATUS_SURAT.PENGAJUAN;
+
+  // Disposisi button logic:
+  // Admin: Only if NOT PENGAJUAN (Must process first to generate number)
+  // Others: Follow standard canDisposisi rule
+  const canShowDisposisi =
+    canDisposisi(user?.role) &&
+    (!isAdmin(user?.role) || surat.status !== STATUS_SURAT.PENGAJUAN);
 
   return (
     <div className="min-h-screen">
@@ -528,26 +543,31 @@ const SuratKeluarDetail = () => {
                     Proses Permintaan
                   </Button>
                 )}
-                {(isAdmin(user?.role) ||
-                  (![
-                    ROLES.KETUA_PENGURUS,
-                    ROLES.SEKRETARIS_PENGURUS,
-                    ROLES.BENDAHARA,
-                  ].includes(user?.role) &&
-                    surat.createdById === user?.id &&
-                    [
-                      STATUS_SURAT.PENGAJUAN,
-                      STATUS_SURAT.DITOLAK,
-                      STATUS_SURAT.DIKEMBALIKAN,
-                    ].includes(surat.status))) && (
-                  <Button
-                    variant="secondary"
-                    onClick={() => navigate(`/surat-keluar/edit/${surat.id}`)}
-                  >
-                    <Edit size={18} />
-                    Edit Surat
-                  </Button>
-                )}
+                {
+                  /* Edit Button: Hide for Admin if status is PENGAJUAN (must process instead) */
+                  /* Also hide for others who are not creators or if status is constrained */
+                  (isAdmin(user?.role)
+                    ? surat.status !== STATUS_SURAT.PENGAJUAN // Admin: Hide if Pengajuan
+                    : ![
+                        ROLES.KETUA_PENGURUS,
+                        ROLES.SEKRETARIS_PENGURUS,
+                        ROLES.BENDAHARA,
+                      ].includes(user?.role) &&
+                      surat.createdById === user?.id &&
+                      [
+                        STATUS_SURAT.PENGAJUAN,
+                        STATUS_SURAT.DITOLAK,
+                        STATUS_SURAT.DIKEMBALIKAN,
+                      ].includes(surat.status)) && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => navigate(`/surat-keluar/edit/${surat.id}`)}
+                    >
+                      <Edit size={18} />
+                      Edit Surat
+                    </Button>
+                  )
+                }
                 {canShowValidasi && (
                   <Button
                     variant="success"
@@ -557,13 +577,13 @@ const SuratKeluarDetail = () => {
                     Validasi Surat
                   </Button>
                 )}
-                {canShowTTD && (
+                {canShowApprove && (
                   <Button
-                    variant="warning"
-                    onClick={() => setShowTTDModal(true)}
+                    variant="success"
+                    onClick={() => setShowApproveModal(true)}
                   >
-                    <PenTool size={18} />
-                    Tanda Tangan
+                    <CheckCircle size={18} />
+                    Setujui / ACC
                   </Button>
                 )}
                 {canShowKirim && (
@@ -575,7 +595,7 @@ const SuratKeluarDetail = () => {
                     Kirim Surat
                   </Button>
                 )}
-                {canDisposisi(user?.role) && (
+                {canShowDisposisi && (
                   <Button
                     variant="secondary"
                     onClick={() => setShowDisposisiModal(true)}
@@ -584,15 +604,20 @@ const SuratKeluarDetail = () => {
                     Disposisi Surat
                   </Button>
                 )}
-                {(isAdmin(user?.role) || isKabag(user?.role)) && (
-                  <Button
-                    variant="ghost"
-                    onClick={() => setShowLampiranModal(true)}
-                  >
-                    <Paperclip size={18} />
-                    Upload Lampiran
-                  </Button>
-                )}
+                {
+                  /* Upload Lampiran: Hide for Admin if status is PENGAJUAN */
+                  (isAdmin(user?.role)
+                    ? surat.status !== STATUS_SURAT.PENGAJUAN
+                    : isKabag(user?.role)) && (
+                    <Button
+                      variant="ghost"
+                      onClick={() => setShowLampiranModal(true)}
+                    >
+                      <Paperclip size={18} />
+                      Upload Lampiran
+                    </Button>
+                  )
+                }
               </Card.Footer>
             </Card>
 
@@ -777,15 +802,16 @@ const SuratKeluarDetail = () => {
         </div>
       </Modal>
 
-      {/* TTD Modal */}
+      {/* Approve Modal */}
       <Modal
-        isOpen={showTTDModal}
-        onClose={() => setShowTTDModal(false)}
-        title="Tanda Tangan Surat"
+        isOpen={showApproveModal}
+        onClose={() => setShowApproveModal(false)}
+        title="Persetujuan Surat Keluar"
       >
         <div className="space-y-4">
           <p className="text-gray-600">
-            Tanda tangani surat ini? Nomor surat akan digenerate otomatis.
+            Apakah Anda menyetujui surat ini untuk dikeluarkan? Status akan
+            berubah menjadi DISETUJUI dan Admin dapat melanjutkan pengiriman.
           </p>
           <div>
             <label className="form-label">Catatan (Opsional)</label>
@@ -800,19 +826,19 @@ const SuratKeluarDetail = () => {
           <div className="flex gap-3 justify-end">
             <Button
               variant="danger"
-              onClick={() => handleTTD(false)}
+              onClick={() => handleApprove(false)}
               loading={submitting}
             >
               <XCircle size={18} />
               Tolak
             </Button>
             <Button
-              variant="warning"
-              onClick={() => handleTTD(true)}
+              variant="success"
+              onClick={() => handleApprove(true)}
               loading={submitting}
             >
-              <PenTool size={18} />
-              Tanda Tangani
+              <CheckCircle size={18} />
+              Setujui
             </Button>
           </div>
         </div>

@@ -44,8 +44,8 @@ router.put(
   suratKeluarController.validateSuratKeluar
 );
 
-// Sign (Ketua only)
-router.put("/:id/tanda-tangan", isKetua, suratKeluarController.signSuratKeluar);
+// Approve (Ketua only) - ACC untuk tanda tangan
+router.put("/:id/approve", isKetua, suratKeluarController.approveSuratKeluar);
 
 // Send (Admin only)
 router.put("/:id/kirim", isAdmin, suratKeluarController.sendSuratKeluar);

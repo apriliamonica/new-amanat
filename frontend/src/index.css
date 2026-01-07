@@ -164,6 +164,9 @@ body {
 .status-dikembalikan {
   @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border shadow-sm bg-rose-50 text-rose-700 border-rose-100;
 }
+.status-disetujui {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border shadow-sm bg-teal-50 text-teal-700 border-teal-100;
+}
 
 /* --- Animations --- */
 @keyframes fadeInUp {
