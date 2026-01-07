@@ -14,6 +14,7 @@ import {
   Truck,
   Edit,
   Trash2,
+  Eye,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -195,6 +196,51 @@ const SuratKeluarDetail = () => {
     }
   };
 
+  const getPreviewUrl = (url) => {
+    if (!url) return "#";
+    // Clean URL query params
+    const cleanUrl = url.split("?")[0];
+    const extension = cleanUrl.split(".").pop().toLowerCase();
+    // Only allow images to be previewed natively. PDF and others go to GDocs to avoid "force download" headers
+    const browserPreviewable = ["jpg", "jpeg", "png", "webp", "gif"];
+
+    if (browserPreviewable.includes(extension)) {
+      return url;
+    }
+
+    // Fallback to Google Docs Viewer for office files or unknown types
+    return `https://docs.google.com/viewer?url=${encodeURIComponent(
+      url
+    )}&embedded=true`;
+  };
+
+  const getDownloadUrl = (url, prefix = "Surat_Keluar") => {
+    if (!url) return "#";
+    // Check if it's a Cloudinary URL
+    if (url.includes("cloudinary.com")) {
+      // Clean filename from URL
+      const cleanUrl = url.split("?")[0];
+      const extension = cleanUrl.split(".").pop().toLowerCase();
+
+      // Sanitize Perihal/Number for filename
+      const safePerihal = (surat?.perihal || "Dokumen")
+        .replace(/[^a-zA-Z0-9]/g, "_")
+        .substring(0, 30);
+      const safeNomor = (
+        surat?.nomorSurat ||
+        surat?.nomorSuratAdmin ||
+        "No_Num"
+      ).replace(/[^a-zA-Z0-9]/g, "_");
+
+      const filename = `${prefix}_${safeNomor}_${safePerihal}`;
+
+      // Insert fl_attachment:[filename] before /v[version]/
+      // Pattern: .../upload/v... -> .../upload/fl_attachment:[filename]/v...
+      return url.replace(/\/upload\//, `/upload/fl_attachment:${filename}/`);
+    }
+    return url;
+  };
+
   const handleDisposisi = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -310,7 +356,8 @@ const SuratKeluarDetail = () => {
   );
   const canShowApprove =
     isKetua(user?.role) &&
-    surat.status === STATUS_SURAT.DIPROSES &&
+    (surat.status === STATUS_SURAT.DIPROSES ||
+      surat.status === STATUS_SURAT.DISPOSISI) &&
     isDisposedToKetua;
   // Admin can send if status is DISETUJUI (approved by Ketua)
   const canShowKirim =
@@ -427,20 +474,30 @@ const SuratKeluarDetail = () => {
                       <p className="text-sm text-gray-500 mb-2">
                         File Pengajuan (Draft)
                       </p>
-                      <a
-                        href={surat.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="file-link inline-flex items-center gap-2"
-                        onClick={() => handleFileOpen(surat.fileUrl)}
-                      >
-                        <Download size={18} />
-                        Lihat/Download Draft
-                      </a>
+                      <div className="flex gap-2">
+                        <a
+                          href={getPreviewUrl(surat.fileUrl)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="file-link inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200 text-sm no-underline"
+                          onClick={() => handleFileOpen(surat.fileUrl)}
+                        >
+                          <Eye size={16} />
+                          Lihat Surat
+                        </a>
+                        <a
+                          href={getDownloadUrl(surat.fileUrl, "Draft")}
+                          download
+                          className="file-link inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-sm no-underline"
+                        >
+                          <Download size={16} />
+                          Download
+                        </a>
+                      </div>
                       {openedFiles.includes(surat.fileUrl) && (
-                        <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                          ✓ Sudah dibuka
-                        </span>
+                        <p className="mt-1 text-xs text-green-600 flex items-center gap-1">
+                          <CheckCircle size={12} /> Sudah dilihat
+                        </p>
                       )}
                     </div>
                   )}
@@ -464,20 +521,30 @@ const SuratKeluarDetail = () => {
                       </div>
                       {surat.finalFileUrl ? (
                         <div>
-                          <a
-                            href={surat.finalFileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="file-link inline-flex items-center gap-2 text-blue-700 bg-blue-50 border-blue-200"
-                            onClick={() => handleFileOpen(surat.finalFileUrl)}
-                          >
-                            <CheckCircle size={18} />
-                            Lihat/Download Surat Resmi
-                          </a>
+                          <div className="flex gap-2">
+                            <a
+                              href={getPreviewUrl(surat.finalFileUrl)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="file-link inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-sm no-underline"
+                              onClick={() => handleFileOpen(surat.finalFileUrl)}
+                            >
+                              <Eye size={16} />
+                              Lihat Surat
+                            </a>
+                            <a
+                              href={getDownloadUrl(surat.finalFileUrl)}
+                              download
+                              className="file-link inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-sm no-underline"
+                            >
+                              <Download size={16} />
+                              Download
+                            </a>
+                          </div>
                           {openedFiles.includes(surat.finalFileUrl) && (
-                            <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                              ✓ Sudah dibuka
-                            </span>
+                            <p className="mt-1 text-xs text-emerald-600 flex items-center gap-1">
+                              <CheckCircle size={12} /> Sudah dilihat
+                            </p>
                           )}
                         </div>
                       ) : (
@@ -922,16 +989,40 @@ const SuratKeluarDetail = () => {
             </select>
           </div>
           <div>
-            <label className="form-label">Catatan</label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="form-label mb-0">Catatan</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isPersetujuan"
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setDisposisiForm((prev) => ({
+                        ...prev,
+                        instruksi:
+                          "Mohon diperiksa dan disetujui/ditandatangani.",
+                      }));
+                    }
+                  }}
+                />
+                <label
+                  htmlFor="isPersetujuan"
+                  className="text-xs text-gray-600 cursor-pointer select-none"
+                >
+                  Minta Persetujuan/TTD
+                </label>
+              </div>
+            </div>
             <textarea
               className="form-input"
               rows={3}
-              placeholder="Masukkan catatan..."
-              value={disposisiForm.catatan}
+              placeholder="Masukkan instruksi..."
+              value={disposisiForm.instruksi}
               onChange={(e) =>
                 setDisposisiForm({
                   ...disposisiForm,
-                  catatan: e.target.value,
+                  instruksi: e.target.value,
                 })
               }
               required
