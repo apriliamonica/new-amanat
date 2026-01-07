@@ -345,7 +345,13 @@ const SuratKeluarDetail = () => {
   }
 
   // Determine available actions
+  // If status is DIKEMBALIKAN or SELESAI, all actions are disabled (read-only mode)
+  const isReadOnly = [STATUS_SURAT.DIKEMBALIKAN, STATUS_SURAT.SELESAI].includes(
+    surat.status
+  );
+
   const canShowValidasi =
+    !isReadOnly &&
     canValidate(user?.role) &&
     [STATUS_SURAT.MENUNGGU_VALIDASI, STATUS_SURAT.PENGAJUAN].includes(
       surat.status
@@ -360,6 +366,7 @@ const SuratKeluarDetail = () => {
     ROLES.BENDAHARA,
   ].includes(user?.role);
   const canShowApprove =
+    !isReadOnly &&
     canApproveOrRejectRole &&
     [
       STATUS_SURAT.DIPROSES,
@@ -370,17 +377,26 @@ const SuratKeluarDetail = () => {
     (isDisposedToUser || !isKetua(user?.role)); // Ketua needs disposisi, others can see directly
   // Admin can send if status is DISETUJUI (approved by Ketua)
   const canShowKirim =
-    isAdmin(user?.role) && surat.status === STATUS_SURAT.DISETUJUI;
+    !isReadOnly &&
+    isAdmin(user?.role) &&
+    surat.status === STATUS_SURAT.DISETUJUI;
 
   const canShowProses =
-    isAdmin(user?.role) && surat.status === STATUS_SURAT.PENGAJUAN;
+    !isReadOnly &&
+    isAdmin(user?.role) &&
+    surat.status === STATUS_SURAT.PENGAJUAN;
 
   // Disposisi button logic:
   // Admin: Only if NOT PENGAJUAN (Must process first to generate number)
   // Others: Follow standard canDisposisi rule
   const canShowDisposisi =
+    !isReadOnly &&
     canDisposisi(user?.role) &&
     (!isAdmin(user?.role) || surat.status !== STATUS_SURAT.PENGAJUAN);
+
+  // Edit and Upload Lampiran also disabled when read-only (DIKEMBALIKAN or SELESAI)
+  const canShowEdit = !isReadOnly;
+  const canShowUploadLampiran = !isReadOnly;
 
   return (
     <div className="min-h-screen">
@@ -620,29 +636,29 @@ const SuratKeluarDetail = () => {
                   </Button>
                 )}
                 {
-                  /* Edit Button: Hide for Admin if status is PENGAJUAN (must process instead) */
-                  /* Also hide for others who are not creators or if status is constrained */
-                  (isAdmin(user?.role)
-                    ? surat.status !== STATUS_SURAT.PENGAJUAN // Admin: Hide if Pengajuan
-                    : ![
-                        ROLES.KETUA_PENGURUS,
-                        ROLES.SEKRETARIS_PENGURUS,
-                        ROLES.BENDAHARA,
-                      ].includes(user?.role) &&
-                      surat.createdById === user?.id &&
-                      [
-                        STATUS_SURAT.PENGAJUAN,
-                        STATUS_SURAT.DITOLAK,
-                        STATUS_SURAT.DIKEMBALIKAN,
-                      ].includes(surat.status)) && (
-                    <Button
-                      variant="secondary"
-                      onClick={() => navigate(`/surat-keluar/edit/${surat.id}`)}
-                    >
-                      <Edit size={18} />
-                      Edit Surat
-                    </Button>
-                  )
+                  /* Edit Button: Hide when rejected or for Admin if status is PENGAJUAN */
+                  canShowEdit &&
+                    (isAdmin(user?.role)
+                      ? surat.status !== STATUS_SURAT.PENGAJUAN // Admin: Hide if Pengajuan
+                      : ![
+                          ROLES.KETUA_PENGURUS,
+                          ROLES.SEKRETARIS_PENGURUS,
+                          ROLES.BENDAHARA,
+                        ].includes(user?.role) &&
+                        surat.createdById === user?.id &&
+                        [STATUS_SURAT.PENGAJUAN, STATUS_SURAT.DITOLAK].includes(
+                          surat.status
+                        )) && (
+                      <Button
+                        variant="secondary"
+                        onClick={() =>
+                          navigate(`/surat-keluar/edit/${surat.id}`)
+                        }
+                      >
+                        <Edit size={18} />
+                        Edit Surat
+                      </Button>
+                    )
                 }
                 {canShowValidasi && (
                   <Button
@@ -681,18 +697,19 @@ const SuratKeluarDetail = () => {
                   </Button>
                 )}
                 {
-                  /* Upload Lampiran: Hide for Admin if status is PENGAJUAN */
-                  (isAdmin(user?.role)
-                    ? surat.status !== STATUS_SURAT.PENGAJUAN
-                    : isKabag(user?.role)) && (
-                    <Button
-                      variant="ghost"
-                      onClick={() => setShowLampiranModal(true)}
-                    >
-                      <Paperclip size={18} />
-                      Upload Lampiran
-                    </Button>
-                  )
+                  /* Upload Lampiran: Hide when rejected or for Admin if status is PENGAJUAN */
+                  canShowUploadLampiran &&
+                    (isAdmin(user?.role)
+                      ? surat.status !== STATUS_SURAT.PENGAJUAN
+                      : isKabag(user?.role)) && (
+                      <Button
+                        variant="ghost"
+                        onClick={() => setShowLampiranModal(true)}
+                      >
+                        <Paperclip size={18} />
+                        Upload Lampiran
+                      </Button>
+                    )
                 }
               </Card.Footer>
             </Card>

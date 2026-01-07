@@ -431,11 +431,12 @@ const validateSuratKeluar = async (req, res) => {
   }
 };
 
-// Approve surat keluar (Ketua only) - ACC untuk tanda tangan
+// Approve surat keluar (Ketua, Sekpeng, Bendahara)
 const approveSuratKeluar = async (req, res) => {
   try {
     const { id } = req.params;
     const { isApproved, catatan } = req.body;
+    const userRole = req.user.role;
 
     const existingSurat = await prisma.suratKeluar.findUnique({
       where: { id },
@@ -445,27 +446,37 @@ const approveSuratKeluar = async (req, res) => {
       return res.status(404).json({ message: "Surat tidak ditemukan" });
     }
 
-    let updateData;
+    let updateData = {};
     let aksi;
+    const isKetua = userRole === "KETUA_PENGURUS";
+    const roleName = isKetua
+      ? "Ketua Yayasan"
+      : userRole === "SEKRETARIS_PENGURUS"
+      ? "Sekretaris Yayasan"
+      : "Bendahara Yayasan";
 
     if (isApproved) {
-      // Ketua approves - status becomes DISETUJUI, isSigned true
-      // No new number generated - keep existing number from Admin
+      // All three roles (Ketua, Sekpeng, Bendahara) can approve with signature
       updateData = {
         status: "DISETUJUI",
         isSigned: true,
         signedAt: new Date(),
       };
-      aksi = "Surat disetujui oleh Ketua Yayasan (ACC Tanda Tangan)";
+      aksi = `Surat disetujui oleh ${roleName} (ACC Tanda Tangan)`;
     } else {
+      // All three roles can reject - status becomes DIKEMBALIKAN
       updateData = { status: "DIKEMBALIKAN" };
-      aksi = "Surat ditolak oleh Ketua Yayasan";
+      aksi = `Surat ditolak oleh ${roleName}`;
     }
 
-    const suratKeluar = await prisma.suratKeluar.update({
-      where: { id },
-      data: updateData,
-    });
+    // Only update if there's data to update
+    let suratKeluar = existingSurat;
+    if (Object.keys(updateData).length > 0) {
+      suratKeluar = await prisma.suratKeluar.update({
+        where: { id },
+        data: updateData,
+      });
+    }
 
     // Create tracking entry
     await prisma.trackingSurat.create({
@@ -478,7 +489,7 @@ const approveSuratKeluar = async (req, res) => {
     });
 
     res.json({
-      message: isApproved ? "Surat disetujui" : "Surat ditolak",
+      message: isApproved ? "Surat disetujui" : "Surat dikembalikan",
       suratKeluar,
     });
   } catch (error) {
