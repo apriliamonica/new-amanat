@@ -350,15 +350,24 @@ const SuratKeluarDetail = () => {
     [STATUS_SURAT.MENUNGGU_VALIDASI, STATUS_SURAT.PENGAJUAN].includes(
       surat.status
     );
-  // Ketua can approve if letter was disposed to them and status is DIPROSES
-  const isDisposedToKetua = surat.disposisi?.some(
+  // Ketua, Sekpeng, Bendahara can approve/reject
+  const isDisposedToUser = surat.disposisi?.some(
     (d) => d.toUserId === user?.id
   );
+  const canApproveOrRejectRole = [
+    ROLES.KETUA_PENGURUS,
+    ROLES.SEKRETARIS_PENGURUS,
+    ROLES.BENDAHARA,
+  ].includes(user?.role);
   const canShowApprove =
-    isKetua(user?.role) &&
-    (surat.status === STATUS_SURAT.DIPROSES ||
-      surat.status === STATUS_SURAT.DISPOSISI) &&
-    isDisposedToKetua;
+    canApproveOrRejectRole &&
+    [
+      STATUS_SURAT.DIPROSES,
+      STATUS_SURAT.DISPOSISI,
+      STATUS_SURAT.MENUNGGU_VALIDASI,
+      STATUS_SURAT.PENGAJUAN,
+    ].includes(surat.status) &&
+    (isDisposedToUser || !isKetua(user?.role)); // Ketua needs disposisi, others can see directly
   // Admin can send if status is DISETUJUI (approved by Ketua)
   const canShowKirim =
     isAdmin(user?.role) && surat.status === STATUS_SURAT.DISETUJUI;

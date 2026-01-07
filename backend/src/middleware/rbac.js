@@ -64,6 +64,13 @@ const isPetinggi = hasRole(
   "BENDAHARA"
 );
 
+// Can approve or reject surat keluar (Ketua, Sekpeng, Bendahara)
+const canApproveOrReject = hasRole(
+  "KETUA_PENGURUS",
+  "SEKRETARIS_PENGURUS",
+  "BENDAHARA"
+);
+
 module.exports = {
   hasRole,
   isAdmin,
@@ -75,4 +82,5 @@ module.exports = {
   canDisposisi,
   canCreateSurat,
   isPetinggi,
+  canApproveOrReject,
 };

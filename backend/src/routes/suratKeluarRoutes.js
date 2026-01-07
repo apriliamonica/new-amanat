@@ -7,6 +7,7 @@ const {
   isKetua,
   canValidate,
   canCreateSurat,
+  canApproveOrReject,
 } = require("../middleware/rbac");
 const { upload } = require("../config/cloudinary");
 
@@ -44,8 +45,12 @@ router.put(
   suratKeluarController.validateSuratKeluar
 );
 
-// Approve (Ketua only) - ACC untuk tanda tangan
-router.put("/:id/approve", isKetua, suratKeluarController.approveSuratKeluar);
+// Approve (Ketua, Sekpeng, Bendahara)
+router.put(
+  "/:id/approve",
+  canApproveOrReject,
+  suratKeluarController.approveSuratKeluar
+);
 
 // Send (Admin only)
 router.put("/:id/kirim", isAdmin, suratKeluarController.sendSuratKeluar);
