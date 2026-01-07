@@ -351,6 +351,22 @@ const updateSuratKeluar = async (req, res) => {
       });
     }
 
+    // Add tracking if file was uploaded
+    if (req.file) {
+      const fileType =
+        req.body.isFinalFile === "true"
+          ? "Surat Resmi (Final)"
+          : "Surat Pengajuan (Draft)";
+      await prisma.trackingSurat.create({
+        data: {
+          aksi: `Upload File: ${fileType}`,
+          keterangan: `File diupload oleh ${req.user.nama}`,
+          userId: req.user.id,
+          suratKeluarId: suratKeluar.id,
+        },
+      });
+    }
+
     res.json({
       message: "Surat keluar berhasil diupdate",
       suratKeluar,

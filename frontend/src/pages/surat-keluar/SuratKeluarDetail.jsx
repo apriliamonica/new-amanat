@@ -900,7 +900,7 @@ const SuratKeluarDetail = () => {
       <Modal
         isOpen={showDisposisiModal}
         onClose={() => setShowDisposisiModal(false)}
-        title="Pengajuan Lampiran"
+        title="Disposisi Surat"
       >
         <form onSubmit={handleDisposisi} className="space-y-4">
           <div>
