@@ -534,7 +534,7 @@ const SuratKeluarDetail = () => {
                         <p className="text-sm text-gray-500">
                           File Surat Resmi (Final)
                         </p>
-                        {isAdmin(user?.role) && (
+                        {isAdmin(user?.role) && !isReadOnly && (
                           <button
                             onClick={() => setShowUploadFinalModal(true)}
                             className="text-xs text-blue-600 hover:underline flex items-center gap-1"

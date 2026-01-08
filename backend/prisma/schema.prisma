@@ -5,6 +5,11 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "./ERD.svg"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -26,13 +31,9 @@ enum StatusSurat {
   DITERIMA
   DIPROSES
   DISPOSISI
-  DITINDAKLANJUTI
   MENUNGGU_VALIDASI
-  MENUNGGU_TTD
   DISETUJUI
-  DITANDATANGANI
   SELESAI
-  DITOLAK
   DIKEMBALIKAN
 }
 

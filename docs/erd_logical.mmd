@@ -1,0 +1,126 @@
+erDiagram
+    User {
+        string id PK
+        string email UK
+        string password
+        string nama
+        enum role
+        boolean isActive
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    SuratMasuk {
+        string id PK
+        string nomorSurat
+        datetime tanggalSurat
+        datetime tanggalDiterima
+        string pengirim
+        string perihal
+        enum jenisSurat
+        enum status
+        string tujuan
+        string fileUrl
+        string keterangan
+        boolean isLengkap
+        string createdById FK
+    }
+
+    SuratKeluar {
+        string id PK
+        string nomorSurat
+        string nomorSuratAdmin
+        datetime tanggalSurat
+        string tujuan
+        string perihal
+        string kodeArea
+        enum status
+        string isiSurat
+        string fileUrl
+        string finalFileUrl
+        boolean isSigned
+        datetime signedAt
+        string createdById FK
+        string jenisSuratId FK
+        string suratMasukId FK
+    }
+
+    Disposisi {
+        string id PK
+        string instruksi
+        string catatan
+        enum status
+        datetime tanggalDisposisi
+        datetime tanggalSelesai
+        boolean isRequestLampiran
+        string fromUserId FK
+        string toUserId FK
+        string suratMasukId FK
+        string suratKeluarId FK
+    }
+
+    Lampiran {
+        string id PK
+        string fileUrl
+        string fileName
+        string fileType
+        datetime uploadedAt
+        string uploadedById FK
+        string suratMasukId FK
+        string suratKeluarId FK
+    }
+
+    TrackingSurat {
+        string id PK
+        datetime timestamp
+        string aksi
+        string keterangan
+        string userId FK
+        string suratMasukId FK
+        string suratKeluarId FK
+    }
+
+    JenisSurat {
+        string id PK
+        string kode UK
+        string nama
+        string format
+    }
+
+    KodeBagian {
+        string id PK
+        string role UK
+        string kodeInternal
+        string kodeEksternal
+        string namaBagian
+    }
+
+    KodeArea {
+        string id PK
+        string kode UK
+        string nama
+    }
+
+    NomorSuratCounter {
+        string id PK
+        int tahun
+        string kodeBagian
+        int counter
+    }
+
+    User ||--o{ SuratMasuk : "creates"
+    User ||--o{ SuratKeluar : "creates"
+    User ||--o{ Disposisi : "sends"
+    User ||--o{ Disposisi : "receives"
+    User ||--o{ Lampiran : "uploads"
+    User ||--o{ TrackingSurat : "performs"
+
+    SuratMasuk ||--o{ Disposisi : "has"
+    SuratMasuk ||--o{ Lampiran : "has"
+    SuratMasuk ||--o{ TrackingSurat : "has"
+    SuratMasuk ||--o| SuratKeluar : "replied"
+
+    SuratKeluar ||--o{ Disposisi : "has"
+    SuratKeluar ||--o{ Lampiran : "has"
+    SuratKeluar ||--o{ TrackingSurat : "has"
+    SuratKeluar }o--|| JenisSurat : "type"

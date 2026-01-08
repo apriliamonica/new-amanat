@@ -37,13 +37,9 @@ export const STATUS_SURAT = {
   DITERIMA: "DITERIMA",
   DIPROSES: "DIPROSES",
   DISPOSISI: "DISPOSISI",
-  DITINDAKLANJUTI: "DITINDAKLANJUTI",
   MENUNGGU_VALIDASI: "MENUNGGU_VALIDASI",
-  MENUNGGU_TTD: "MENUNGGU_TTD",
   DISETUJUI: "DISETUJUI",
-  DITANDATANGANI: "DITANDATANGANI",
   SELESAI: "SELESAI",
-  DITOLAK: "DITOLAK",
   DIKEMBALIKAN: "DIKEMBALIKAN",
 };
 
@@ -53,13 +49,9 @@ export const STATUS_NAMES = {
   [STATUS_SURAT.DITERIMA]: "Diterima",
   [STATUS_SURAT.DIPROSES]: "Diproses",
   [STATUS_SURAT.DISPOSISI]: "Disposisi",
-  [STATUS_SURAT.DITINDAKLANJUTI]: "Ditindaklanjuti",
   [STATUS_SURAT.MENUNGGU_VALIDASI]: "Menunggu Validasi",
-  [STATUS_SURAT.MENUNGGU_TTD]: "Menunggu TTD",
-  [STATUS_SURAT.DISETUJUI]: "Disetujui Ketua",
-  [STATUS_SURAT.DITANDATANGANI]: "Ditandatangani",
+  [STATUS_SURAT.DISETUJUI]: "Disetujui",
   [STATUS_SURAT.SELESAI]: "Selesai",
-  [STATUS_SURAT.DITOLAK]: "Ditolak",
   [STATUS_SURAT.DIKEMBALIKAN]: "Dikembalikan",
 };
 
@@ -69,12 +61,9 @@ export const STATUS_CLASSES = {
   [STATUS_SURAT.DITERIMA]: "status-diterima",
   [STATUS_SURAT.DIPROSES]: "status-diproses",
   [STATUS_SURAT.DISPOSISI]: "status-disposisi",
-  [STATUS_SURAT.DITINDAKLANJUTI]: "status-ditindaklanjuti",
   [STATUS_SURAT.MENUNGGU_VALIDASI]: "status-menunggu-validasi",
   [STATUS_SURAT.DISETUJUI]: "status-disetujui",
-  [STATUS_SURAT.DITANDATANGANI]: "status-ditandatangani",
   [STATUS_SURAT.SELESAI]: "status-selesai",
-  [STATUS_SURAT.DITOLAK]: "status-ditolak",
   [STATUS_SURAT.DIKEMBALIKAN]: "status-dikembalikan",
 };
 

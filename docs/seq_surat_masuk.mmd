@@ -1,0 +1,22 @@
+sequenceDiagram
+    actor Admin
+    actor Ketua as Ketua Yayasan
+    actor Penerima
+    participant Halaman as Halaman Surat Masuk
+    participant Controller as SuratMasukController
+    participant DB as PostgreSQL
+
+    Admin->>Halaman: Input data surat + pilih tujuan
+    Halaman->>Controller: Simpan surat baru
+    Controller->>DB: INSERT surat (status: DISPOSISI)
+    Controller->>DB: INSERT disposisi ke Ketua
+    DB-->>Controller: OK
+    Controller-->>Halaman: Berhasil
+    Controller-->>Ketua: Notifikasi surat baru
+    Ketua->>Halaman: Buka detail surat
+    Ketua->>Halaman: Disposisi ke Penerima
+    Halaman->>Controller: Buat disposisi baru
+    Controller->>DB: INSERT disposisi
+    Penerima->>Halaman: Klik Selesai
+    Halaman->>Controller: Selesaikan disposisi
+    Controller->>DB: UPDATE status = SELESAI
