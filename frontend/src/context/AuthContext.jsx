@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { authAPI } from '../api/axios';
+import { createContext, useContext, useState, useEffect } from "react";
+import { authAPI } from "../api/axios";
 import {
   getToken,
   setToken,
@@ -8,14 +8,14 @@ import {
   setUser,
   removeUser,
   clearAuth,
-} from '../utils/helpers';
+} from "../utils/helpers";
 
 const AuthContext = createContext(null);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
           setUserState(response.data.user);
           setUser(response.data.user);
         } catch (err) {
-          console.error('Auth init error:', err);
+          console.error("Auth init error:", err);
           clearAuth();
           setUserState(null);
         }
@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (err) {
-      const message = err.response?.data?.message || 'Login gagal';
+      const message = err.response?.data?.message || "Login gagal";
       setError(message);
       return { success: false, message };
     }
@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await authAPI.logout();
     } catch (err) {
-      console.error('Logout error:', err);
+      console.error("Logout error:", err);
     } finally {
       clearAuth();
       setUserState(null);
