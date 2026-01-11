@@ -167,6 +167,15 @@ body {
 .status-disetujui {
   @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border shadow-sm bg-teal-50 text-teal-700 border-teal-100;
 }
+.status-menunggu-persetujuan {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border shadow-sm bg-purple-50 text-purple-700 border-purple-100;
+}
+.status-menunggu-verifikasi {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border shadow-sm bg-orange-50 text-orange-700 border-orange-100;
+}
+.status-menunggu-ttd {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border shadow-sm bg-indigo-50 text-indigo-700 border-indigo-100;
+}
 
 /* --- Animations --- */
 @keyframes fadeInUp {

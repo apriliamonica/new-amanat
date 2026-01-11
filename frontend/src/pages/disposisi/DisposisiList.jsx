@@ -1,12 +1,28 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, CheckCircle, Clock, Send, Filter } from "lucide-react";
+import {
+  FileText,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Send,
+  Filter,
+  Download,
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { disposisiAPI } from "../../api/axios";
+import { disposisiAPI, suratKeluarAPI, trackingAPI } from "../../api/axios";
 import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
-import { STATUS_DISPOSISI, ROLE_SHORT_NAMES } from "../../utils/constants";
+import Modal from "../../components/common/Modal";
+import {
+  STATUS_DISPOSISI,
+  ROLE_SHORT_NAMES,
+  STATUS_SURAT,
+  isKetua,
+  isAdmin,
+  canDisposisi,
+} from "../../utils/constants";
 import { formatDateTime, truncateText } from "../../utils/helpers";
 import Pagination from "../../components/common/Pagination";
 
@@ -21,6 +37,15 @@ const DisposisiList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // Approval Modal State
+  const [approvalModal, setApprovalModal] = useState({
+    isOpen: false,
+    type: null,
+    suratId: null,
+    step: "CHOICE", // CHOICE | REJECT
+  });
+  const [rejectReason, setRejectReason] = useState("");
+
   useEffect(() => {
     fetchDisposisi();
   }, []);
@@ -33,6 +58,82 @@ const DisposisiList = () => {
       console.error("Fetch disposisi error:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownload = async (url, suratMasukId, suratKeluarId) => {
+    try {
+      await trackingAPI.create({
+        aksi: "Mendownload Surat",
+        keterangan: "Download dari Disposisi",
+        suratMasukId,
+        suratKeluarId,
+      });
+    } catch (error) {
+      console.error("Tracking download error:", error);
+    }
+    window.open(url, "_blank");
+  };
+
+  const openApprovalModal = (type, suratId) => {
+    setApprovalModal({ isOpen: true, type, suratId, step: "CHOICE" });
+    setRejectReason("");
+  };
+
+  const closeApprovalModal = () => {
+    setApprovalModal({ ...approvalModal, isOpen: false });
+  };
+
+  const handleConfirmApprove = async () => {
+    try {
+      const { type, suratId } = approvalModal;
+      if (type === "DRAFT") {
+        await suratKeluarAPI.update(suratId, { status: STATUS_SURAT.DITERIMA });
+        await trackingAPI.create({
+          aksi: "Menyetujui Draft",
+          suratKeluarId: suratId,
+        });
+      } else if (type === "ACC") {
+        await suratKeluarAPI.approve(suratId, { isApproved: true });
+        await trackingAPI.create({
+          aksi: "Menandatangani Surat",
+          suratKeluarId: suratId,
+        });
+      }
+      fetchDisposisi();
+      closeApprovalModal();
+      alert("Surat berhasil disetujui");
+    } catch (error) {
+      console.error("Approve error:", error);
+      alert(
+        "Gagal menyetujui surat: " +
+          (error.response?.data?.message || error.message)
+      );
+    }
+  };
+
+  const handleConfirmReject = async () => {
+    if (!rejectReason.trim()) {
+      alert("Mohon isi alasan penolakan");
+      return;
+    }
+    try {
+      const { suratId } = approvalModal;
+      await suratKeluarAPI.update(suratId, {
+        status: STATUS_SURAT.DIKEMBALIKAN,
+        keterangan: rejectReason,
+      });
+      await trackingAPI.create({
+        aksi: "Menolak Surat",
+        keterangan: rejectReason,
+        suratKeluarId: suratId,
+      });
+      fetchDisposisi();
+      closeApprovalModal();
+      alert("Surat berhasil ditolak");
+    } catch (error) {
+      console.error("Reject error:", error);
+      alert("Gagal menolak surat");
     }
   };
 
@@ -188,41 +289,103 @@ const DisposisiList = () => {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-2 lg:flex-shrink-0">
-                      {disposisi.suratMasuk && (
+                      {/* Download Action */}
+                      {(disposisi.suratMasuk?.fileUrl ||
+                        disposisi.suratKeluar?.finalFileUrl ||
+                        disposisi.suratKeluar?.fileUrl) && (
                         <Button
                           variant="ghost"
                           size="small"
                           onClick={() =>
-                            navigate(`/surat-masuk/${disposisi.suratMasuk.id}`)
-                          }
-                        >
-                          <FileText size={16} />
-                          Lihat Surat
-                        </Button>
-                      )}
-                      {disposisi.suratKeluar && (
-                        <Button
-                          variant="ghost"
-                          size="small"
-                          onClick={() =>
-                            navigate(
-                              `/surat-keluar/${disposisi.suratKeluar.id}`
+                            handleDownload(
+                              disposisi.suratMasuk?.fileUrl ||
+                                disposisi.suratKeluar?.finalFileUrl ||
+                                disposisi.suratKeluar?.fileUrl,
+                              disposisi.suratMasuk?.id,
+                              disposisi.suratKeluar?.id
                             )
                           }
+                          title="Download File"
                         >
-                          <FileText size={16} />
-                          Lihat Surat
+                          <Download size={16} />
                         </Button>
                       )}
+
+                      {/* View Action */}
+                      <Button
+                        variant="ghost"
+                        size="small"
+                        onClick={() => {
+                          navigate(
+                            disposisi.suratMasuk
+                              ? `/surat-masuk/${disposisi.suratMasuk.id}`
+                              : `/surat-keluar/${disposisi.suratKeluar.id}`
+                          );
+                        }}
+                        title="Lihat Detail"
+                      >
+                        <FileText size={16} />
+                      </Button>
+
+                      {/* Approval Actions (Surat Keluar) */}
+                      {disposisi.suratKeluar && !isAdmin(user?.role) && (
+                        <>
+                          {/* Reviewer Setujui Draft */}
+                          {canDisposisi(user?.role) &&
+                            disposisi.suratKeluar.status ===
+                              STATUS_SURAT.MENUNGGU_PERSETUJUAN && (
+                              <Button
+                                variant="success"
+                                size="small"
+                                onClick={() =>
+                                  openApprovalModal(
+                                    "DRAFT",
+                                    disposisi.suratKeluar.id
+                                  )
+                                }
+                                title="Setujui / Tolak"
+                              >
+                                <CheckCircle size={16} />
+                                <span className="ml-1 hidden sm:inline">
+                                  Tinjau
+                                </span>
+                              </Button>
+                            )}
+                          {/* Ketua ACC */}
+                          {isKetua(user?.role) &&
+                            disposisi.suratKeluar.status ===
+                              STATUS_SURAT.MENUNGGU_TTD && (
+                              <Button
+                                variant="success"
+                                size="small"
+                                onClick={() =>
+                                  openApprovalModal(
+                                    "ACC",
+                                    disposisi.suratKeluar.id
+                                  )
+                                }
+                                title="ACC / Tolak"
+                              >
+                                <CheckCircle size={16} />
+                                <span className="ml-1 hidden sm:inline">
+                                  Tinjau
+                                </span>
+                              </Button>
+                            )}
+                        </>
+                      )}
+
+                      {/* Complete Disposisi Action */}
                       {effectiveStatus !== "SELESAI" &&
                         !disposisi.isForwarded && (
                           <Button
-                            variant="success"
+                            variant="primary"
                             size="small"
                             onClick={() => handleComplete(disposisi.id)}
+                            title="Tandai Selesai"
                           >
                             <CheckCircle size={16} />
-                            Selesai
+                            <span className="ml-1 hidden sm:inline">Done</span>
                           </Button>
                         )}
                     </div>
@@ -241,6 +404,75 @@ const DisposisiList = () => {
           </div>
         )}
       </div>
+
+      {/* Approval/Reject Modal */}
+      <Modal
+        isOpen={approvalModal.isOpen}
+        onClose={closeApprovalModal}
+        title={
+          approvalModal.step === "REJECT"
+            ? "Tolak Surat"
+            : "Konfirmasi Persetujuan"
+        }
+      >
+        {approvalModal.step === "CHOICE" ? (
+          <div className="space-y-4">
+            <p className="text-gray-600">
+              Silakan pilih tindakan untuk surat ini.
+              {approvalModal.type === "DRAFT"
+                ? " Anda dapat menyetujui draft atau menolaknya untuk revisi."
+                : " Anda dapat menandatangani surat atau menolaknya."}
+            </p>
+            <div className="flex gap-4 justify-center mt-6">
+              <Button
+                variant="danger"
+                className="bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
+                onClick={() =>
+                  setApprovalModal({ ...approvalModal, step: "REJECT" })
+                }
+              >
+                <XCircle size={18} className="mr-2" />
+                Tolak
+              </Button>
+              <Button variant="success" onClick={handleConfirmApprove}>
+                <CheckCircle size={18} className="mr-2" />
+                Setujui / ACC
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div>
+              <label className="form-label">Alasan Penolakan</label>
+              <textarea
+                className="form-input"
+                rows={3}
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Masukkan alasan kenapa surat ditolak/dikembalikan..."
+                required
+              />
+            </div>
+            <div className="flex justify-end gap-3 mt-4">
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  setApprovalModal({ ...approvalModal, step: "CHOICE" })
+                }
+              >
+                Kembali
+              </Button>
+              <Button
+                variant="danger"
+                className="bg-red-600 text-white hover:bg-red-700"
+                onClick={handleConfirmReject}
+              >
+                Kirim Penolakan
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

@@ -134,4 +134,8 @@ export const kodeBagianAPI = {
   getAll: () => api.get("/kode-bagian"),
 };
 
+export const trackingAPI = {
+  create: (data) => api.post("/tracking", data),
+};
+
 export default api;

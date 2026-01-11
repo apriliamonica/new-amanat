@@ -10,6 +10,7 @@ import {
   Clock,
   Download,
   Trash2,
+  Send,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { suratKeluarAPI, userAPI, jenisSuratAPI } from "../../api/axios";
@@ -23,6 +24,7 @@ import {
   canValidate,
   isKabag,
   canCreateSurat,
+  canDisposisi,
   STATUS_SURAT,
 } from "../../utils/constants";
 import { formatDate, truncateText } from "../../utils/helpers";
@@ -101,6 +103,18 @@ const SuratKeluarList = () => {
     }
   };
 
+  const handleProcess = async (id) => {
+    if (!window.confirm("Proses pengajuan surat ini?")) return;
+
+    try {
+      await suratKeluarAPI.update(id, { status: STATUS_SURAT.DIPROSES });
+      fetchSurat();
+    } catch (error) {
+      console.error("Process error:", error);
+      alert("Gagal memproses surat");
+    }
+  };
+
   // Filters
   const [filterStatus, setFilterStatus] = useState("");
   const [filterUser, setFilterUser] = useState("");
@@ -138,16 +152,50 @@ const SuratKeluarList = () => {
     // 1. Tab Filtering (Admin Only)
     if (isAdmin(user?.role)) {
       // Tab "Surat Keluar" -> Show letters created by Admin OR (Requests that have Final File)
+      // Tab "Surat Keluar" -> Show letters that are Approved, Verified, Completed, or Returned (after approval)
       if (activeTab === "surat") {
-        const isAdminCreated = surat.createdBy?.role === "SEKRETARIS_KANTOR";
-        const hasFinalFile = !!surat.finalFileUrl;
-        if (!isAdminCreated && !hasFinalFile) return false;
+        const validStatuses = [
+          STATUS_SURAT.DISETUJUI,
+          STATUS_SURAT.MENUNGGU_VERIFIKASI,
+          STATUS_SURAT.MENUNGGU_TTD,
+          STATUS_SURAT.SELESAI,
+          // If DIKEMBALIKAN has a number (nomorSuratAdmin), it belongs here (failed verification),
+          // otherwise it belongs to Request (failed approval)
+        ];
+
+        // Custom logic: If purely admin created (not request based), it's always here?
+        // Or strictly based on status?
+        // Let's stick to status based split for Admin cleanliness.
+
+        if (validStatuses.includes(surat.status)) return true;
+        // Also include DIKEMBALIKAN if it was a final rejection?
+        // Or if it has nomorSuratAdmin (meaning it reached final stage)
+        if (surat.status === STATUS_SURAT.DIKEMBALIKAN && surat.nomorSuratAdmin)
+          return true;
+
+        // Fallback: If Admin created it and it's NOT PENGAJUAN/DIPROSES/MENUNGGU_PERSETUJUAN?
+        // Actually, Admin creations start at DIPROSES (old logic) or PENGAJUAN (new logic?)
+        // Let's assume Admin creations also go through the flow if they need approval.
+
+        return false;
       }
-      // Tab "Permintaan Surat" -> Show Requests that do NOT have Final File yet
+
+      // Tab "Permintaan Surat" -> Pre-approval stages
       if (activeTab === "request") {
-        const isAdminCreated = surat.createdBy?.role === "SEKRETARIS_KANTOR";
-        const hasFinalFile = !!surat.finalFileUrl;
-        if (isAdminCreated || hasFinalFile) return false;
+        const requestStatuses = [
+          STATUS_SURAT.PENGAJUAN,
+          STATUS_SURAT.DIPROSES,
+          STATUS_SURAT.MENUNGGU_PERSETUJUAN,
+        ];
+        if (requestStatuses.includes(surat.status)) return true;
+        // Include DIKEMBALIKAN if NO nomorSuratAdmin (rejected at approval stage)
+        if (
+          surat.status === STATUS_SURAT.DIKEMBALIKAN &&
+          !surat.nomorSuratAdmin
+        )
+          return true;
+
+        return false;
       }
     }
 
@@ -209,11 +257,36 @@ const SuratKeluarList = () => {
     if (isAdmin(user?.role) && surat.status === STATUS_SURAT.PENGAJUAN) {
       return { label: "Proses", icon: PenTool, color: "text-blue-600" };
     }
-    if (isKetua(user?.role) && surat.status === "MENUNGGU_TTD") {
-      return { label: "Tanda Tangan", icon: PenTool, color: "text-orange-600" };
+    if (isAdmin(user?.role) && surat.status === STATUS_SURAT.DISETUJUI) {
+      return {
+        label: "Upload & Proses",
+        icon: PenTool,
+        color: "text-blue-600",
+      };
     }
-    if (canValidate(user?.role) && surat.status === "MENUNGGU_VALIDASI") {
-      return { label: "Validasi", icon: CheckCircle, color: "text-green-600" };
+    if (
+      isKetua(user?.role) &&
+      surat.status === STATUS_SURAT.MENUNGGU_PERSETUJUAN
+    ) {
+      // Ketua specifically needs to Approve
+      return { label: "Setujui", icon: CheckCircle, color: "text-green-600" };
+    }
+    if (
+      canValidate(user?.role) &&
+      surat.status === STATUS_SURAT.MENUNGGU_VERIFIKASI
+    ) {
+      return {
+        label: "Verifikasi",
+        icon: CheckCircle,
+        color: "text-green-600",
+      };
+    }
+    // For others in approval chain (Sek/Ben), they use Disposisi, so "Lihat" is fine, detail page has action.
+    if (
+      canDisposisi(user?.role) &&
+      surat.status === STATUS_SURAT.MENUNGGU_PERSETUJUAN
+    ) {
+      return { label: "Disposisi", icon: Send, color: "text-blue-600" };
     }
     return { label: "Lihat", icon: Eye, color: "text-gray-600" };
   };
@@ -255,12 +328,22 @@ const SuratKeluarList = () => {
               }`}
             >
               Pengajuan Surat
-              {suratList.filter((s) => s.status === STATUS_SURAT.PENGAJUAN)
-                .length > 0 && (
+              {suratList.filter((s) =>
+                [
+                  STATUS_SURAT.PENGAJUAN,
+                  STATUS_SURAT.DIPROSES,
+                  STATUS_SURAT.MENUNGGU_PERSETUJUAN,
+                ].includes(s.status)
+              ).length > 0 && (
                 <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
                   {
-                    suratList.filter((s) => s.status === STATUS_SURAT.PENGAJUAN)
-                      .length
+                    suratList.filter((s) =>
+                      [
+                        STATUS_SURAT.PENGAJUAN,
+                        STATUS_SURAT.DIPROSES,
+                        STATUS_SURAT.MENUNGGU_PERSETUJUAN,
+                      ].includes(s.status)
+                    ).length
                   }
                 </span>
               )}
@@ -445,9 +528,13 @@ const SuratKeluarList = () => {
                           <Button
                             variant="ghost"
                             size="small"
-                            onClick={() =>
-                              navigate(`/surat-keluar/${surat.id}`)
-                            }
+                            onClick={() => {
+                              if (action.label === "Proses") {
+                                handleProcess(surat.id);
+                              } else {
+                                navigate(`/surat-keluar/${surat.id}`);
+                              }
+                            }}
                             className="hover:bg-blue-50 hover:text-blue-600"
                             title={action.label}
                           >
