@@ -8,6 +8,7 @@ const {
   canValidate,
   canCreateSurat,
   canApproveOrReject,
+  isPetinggi,
 } = require("../middleware/rbac");
 const { upload } = require("../config/cloudinary");
 
@@ -32,7 +33,7 @@ router.post(
 );
 router.put(
   "/:id",
-  isAdmin,
+  isPetinggi,
   upload.single("file"),
   suratKeluarController.updateSuratKeluar
 );

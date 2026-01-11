@@ -13,8 +13,8 @@ const ROLES = {
 
 const STATUS_SURAT = {
   PENGAJUAN: "PENGAJUAN",
-  MENUNGGU_VALIDASI: "MENUNGGU_VALIDASI",
-  MENUNGGU_TTD: "MENUNGGU_TTD",
+  MENUNGGU_VERIFIKASI: "MENUNGGU_VERIFIKASI",
+  MENUNGGU_PERSETUJUAN: "MENUNGGU_PERSETUJUAN",
 };
 
 const getSummary = async (req, res) => {
@@ -108,54 +108,28 @@ const getSummary = async (req, res) => {
           time: track.timestamp,
         });
       });
-    } else if (user.role === ROLES.KETUA_PENGURUS) {
-      // KETUA: Waiting for Signature (Last 24h)
-      const needSign = await prisma.suratKeluar.findMany({
-        where: {
-          status: STATUS_SURAT.MENUNGGU_TTD,
-          isSigned: false,
-          createdAt: { gte: twentyFourHoursAgo },
-        },
-        orderBy: { createdAt: "desc" },
-      });
-
-      needSign.forEach((s) => {
-        items.push({
-          id: s.id,
-          type: "action",
-          subtype: "sign",
-          message: "Menunggu Tanda Tangan Anda",
-          detail: s.perihal,
-          time: s.createdAt,
-          link: `/surat-keluar/detail/${s.id}`,
-        });
-        actionCount++;
-      });
+      // KETUA: Rely on "Pending Disposisi" for approval requests
+      // But we can specifically highlight "Waiting for Approval" if needed.
+      // For now, let's skip direct status check to avoid duplicating Disposisi notifications.
     } else if (
       user.role === ROLES.SEKRETARIS_PENGURUS ||
       user.role === ROLES.BENDAHARA
     ) {
-      // VALIDATOR: Waiting for Validation (Last 24h)
-      const needValidate = await prisma.suratKeluar.findMany({
+      // VALIDATOR: Waiting for Verification (Last 24h)
+      // Only if they are assigned via Disposisi?
+      // Actually, Verification is usually assigned via Disposisi too.
+      // So relying on Pending Disposisi is safer for all roles in the chain.
+      // However, if we want to show "General" tasks for role:
+      /*
+      const needVerify = await prisma.suratKeluar.findMany({
         where: {
-          status: STATUS_SURAT.MENUNGGU_VALIDASI,
+          status: STATUS_SURAT.MENUNGGU_VERIFIKASI,
           createdAt: { gte: twentyFourHoursAgo },
+          // But we don't know if THIS user is the verifier unless we check Disposisi
         },
         orderBy: { createdAt: "desc" },
       });
-
-      needValidate.forEach((s) => {
-        items.push({
-          id: s.id,
-          type: "action",
-          subtype: "validate",
-          message: "Menunggu Validasi Anda",
-          detail: s.perihal,
-          time: s.createdAt,
-          link: `/surat-keluar/detail/${s.id}`,
-        });
-        actionCount++;
-      });
+      */
     }
 
     // Sort items by time desc

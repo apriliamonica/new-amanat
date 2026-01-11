@@ -13,6 +13,7 @@ const jenisSuratRoutes = require("./routes/jenisSuratRoutes");
 const kodeBagianRoutes = require("./routes/kodeBagianRoutes");
 const kodeAreaRoutes = require("./routes/kodeAreaRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const trackingRoutes = require("./routes/trackingRoutes");
 const app = express();
 
 // Middleware
@@ -37,6 +38,8 @@ app.use("/api/kode-bagian", kodeBagianRoutes);
 app.use("/api/kode-area", kodeAreaRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/tracking", trackingRoutes);
+
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "OK", message: "AMANAT API is running" });

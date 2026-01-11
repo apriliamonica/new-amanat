@@ -1,4 +1,5 @@
 const prisma = require("../config/database");
+// Trigger restart 2
 
 // Get disposisi for current user
 const getMyDisposisi = async (req, res) => {
@@ -17,6 +18,7 @@ const getMyDisposisi = async (req, res) => {
             perihal: true,
             pengirim: true,
             status: true,
+            fileUrl: true,
           },
         },
         suratKeluar: {
@@ -26,6 +28,8 @@ const getMyDisposisi = async (req, res) => {
             perihal: true,
             tujuan: true,
             status: true,
+            fileUrl: true,
+            finalFileUrl: true,
           },
         },
       },
@@ -124,10 +128,57 @@ const createDisposisi = async (req, res) => {
       });
     }
     if (suratKeluarId) {
-      await prisma.suratKeluar.update({
-        where: { id: suratKeluarId },
-        data: { status: "DISPOSISI" },
-      });
+      if (suratKeluarId) {
+        const surat = await prisma.suratKeluar.findUnique({
+          where: { id: suratKeluarId },
+        });
+
+        const recipient = await prisma.user.findUnique({
+          where: { id: toUserId },
+          select: { role: true },
+        });
+
+        if (surat && recipient) {
+          let newStatus = surat.status;
+
+          // 1. If sending to KETUA -> Always change to MENUNGGU_TTD (Final Step)
+          if (recipient.role === "KETUA_PENGURUS") {
+            newStatus = "MENUNGGU_TTD";
+          }
+          // 2. If sending to ADMIN (Sekretaris Kantor) -> Back to DIPROSES (for Upload/Revision)
+          else if (recipient.role === "SEKRETARIS_KANTOR") {
+            newStatus = "DIPROSES";
+          }
+          // 3. Logic for other transitions
+          else {
+            if (surat.status === "DIPROSES") {
+              newStatus = "MENUNGGU_PERSETUJUAN";
+            } else if (surat.status === "DISETUJUI") {
+              // Admin has uploaded final file (status was DISETUJUI/Upload), now dispositions for verification
+              newStatus = "MENUNGGU_VERIFIKASI";
+            } else if (surat.status === "DIKEMBALIKAN") {
+              // Check based on whether number exists (implies post-upload vs pre-upload)
+              if (surat.nomorSuratAdmin) {
+                newStatus = "MENUNGGU_VERIFIKASI";
+              } else {
+                newStatus = "MENUNGGU_PERSETUJUAN";
+              }
+            } else if (surat.status === "MENUNGGU_VERIFIKASI") {
+              // If chaining verification, status stays MENUNGGU_VERIFIKASI
+              newStatus = "MENUNGGU_VERIFIKASI";
+            } else if (surat.status === "DITERIMA") {
+              newStatus = "MENUNGGU_VERIFIKASI";
+            } else if (surat.status === "PENGAJUAN") {
+              newStatus = "MENUNGGU_PERSETUJUAN";
+            }
+          }
+
+          await prisma.suratKeluar.update({
+            where: { id: suratKeluarId },
+            data: { status: newStatus },
+          });
+        }
+      }
     }
 
     // Update sender's previous pending disposisi to "DITERUSKAN"
@@ -183,7 +234,7 @@ const createDisposisi = async (req, res) => {
     });
   } catch (error) {
     console.error("Create disposisi error:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: error.message || "Server error" });
   }
 };
 

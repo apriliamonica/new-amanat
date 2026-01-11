@@ -220,6 +220,7 @@ const updateSuratKeluar = async (req, res) => {
       jenisSuratId,
       variant, // "INTERNAL" or "EKSTERNAL"
       kodeArea, // "A", "B", etc.
+      kodeBagianId, // Optional override for "Atas Nama"
     } = req.body;
 
     const existingSurat = await prisma.suratKeluar.findUnique({
@@ -234,86 +235,96 @@ const updateSuratKeluar = async (req, res) => {
     let filePublicId = existingSurat.filePublicId;
     let finalFileUrl = existingSurat.finalFileUrl;
     let finalFilePublicId = existingSurat.finalFilePublicId;
-    let nomorSurat = existingSurat.nomorSurat;
+    let nomorSuratAdmin = existingSurat.nomorSuratAdmin;
     let tanggalSurat = existingSurat.tanggalSurat;
 
+    // Handle conversions
+    if (existingSurat.status === "PENGAJUAN" && status === "DIPROSES") {
+      // Just update status, do NOT generate number yet.
+    }
+
+    // Handle Final File Upload (This is when we generate the number)
     if (req.file) {
       if (req.body.isFinalFile === "true") {
         // Upload "Surat Resmi" (Final)
+        // Ensure status is DISETUJUI or already MENUNGGU_VERIFIKASI/SELESAI before allowing upload?
+        // Actually, user flow: DISETUJUI -> Admin Uploads.
+        // Also allow re-upload if DIKEMBALIKAN (Option A: Keep same number)
+
         if (existingSurat.finalFilePublicId) {
           await cloudinary.uploader.destroy(existingSurat.finalFilePublicId);
         }
         finalFileUrl = req.file.path;
         finalFilePublicId = req.file.filename;
+
+        // GENERATE NUMBER IF NOT EXISTS
+        if (!nomorSuratAdmin) {
+          const targetJenisId = jenisSuratId || existingSurat.jenisSuratId;
+          let kodeJenis = "SK";
+          if (targetJenisId) {
+            const jenis = await prisma.jenisSurat.findUnique({
+              where: { id: targetJenisId },
+            });
+            if (jenis) kodeJenis = jenis.kode;
+          }
+
+          // Determine Display Code (Creator's Unit)
+          // Determine Display Code (Creator's Unit OR Override)
+          let displayKodeBagian = "SEK";
+          const targetVariant = variant || "INTERNAL";
+
+          if (kodeBagianId) {
+            const overrideBagian = await prisma.kodeBagian.findUnique({
+              where: { id: kodeBagianId },
+            });
+            if (overrideBagian) {
+              displayKodeBagian =
+                targetVariant === "EKSTERNAL"
+                  ? overrideBagian.kodeEksternal
+                  : overrideBagian.kodeInternal;
+            }
+          } else {
+            // Default: Based on Creator
+            const creator = await prisma.user.findUnique({
+              where: { id: existingSurat.createdById },
+            });
+            const creatorKodeData = await prisma.kodeBagian.findUnique({
+              where: { role: creator.role },
+            });
+            if (creatorKodeData) {
+              displayKodeBagian =
+                targetVariant === "EKSTERNAL"
+                  ? creatorKodeData.kodeEksternal
+                  : creatorKodeData.kodeInternal;
+            }
+          }
+
+          // Determine Counter Scope (Admin/Central)
+          const processorRole = req.user.role;
+          const processorKodeData = await prisma.kodeBagian.findUnique({
+            where: { role: processorRole },
+          });
+          const counterScope = processorKodeData
+            ? processorKodeData.kodeInternal
+            : "SEK";
+
+          const targetKodeArea = kodeArea || existingSurat.kodeArea || "A";
+
+          nomorSuratAdmin = await generateNomorSurat(
+            kodeJenis,
+            targetKodeArea,
+            displayKodeBagian,
+            counterScope
+          );
+        }
       } else {
-        // Update "Surat Pengajuan" (Draft) - standard behavior
+        // Update "Surat Pengajuan" (Draft)
         if (existingSurat.filePublicId) {
           await cloudinary.uploader.destroy(existingSurat.filePublicId);
         }
         fileUrl = req.file.path;
         filePublicId = req.file.filename;
       }
-    }
-
-    // Handle converting PENGAJUAN to DIPROSES (Admin approves)
-    let nomorSuratAdmin = existingSurat.nomorSuratAdmin;
-
-    if (existingSurat.status === "PENGAJUAN" && status === "DIPROSES") {
-      // Use provided jenisSuratId or existing one
-      const targetJenisId = jenisSuratId || existingSurat.jenisSuratId;
-      let kodeJenis = "SK";
-
-      if (targetJenisId) {
-        const jenis = await prisma.jenisSurat.findUnique({
-          where: { id: targetJenisId },
-        });
-        if (jenis) kodeJenis = jenis.kode;
-      }
-
-      // IMPORTANT: Counter should be based on WHO PROCESSES the surat (Admin)
-      // BUT Display (KodeBagian) should remain as the Creator's Unit
-      // Example: Admin approves Kabag's letter -> Number increases on Admin's counter, but label is still "PSDM"
-
-      // 1. Determine Display Code (Creator's Unit)
-      const creator = await prisma.user.findUnique({
-        where: { id: existingSurat.createdById },
-      });
-      const creatorKodeData = await prisma.kodeBagian.findUnique({
-        where: { role: creator.role },
-      });
-      // Default to "SEK" if creator has no code (e.g. admin created it)
-      let displayKodeBagian = creatorKodeData
-        ? creatorKodeData.kodeInternal
-        : "SEK";
-
-      // If variant is EKSTERNAL, use eksternal code
-      const targetVariant = variant || "INTERNAL";
-      if (creatorKodeData && targetVariant === "EKSTERNAL") {
-        displayKodeBagian = creatorKodeData.kodeEksternal;
-      }
-
-      // 2. Determine Counter Scope (Who is processing? Admin)
-      const processorRole = req.user.role; // Admin role
-      const processorKodeData = await prisma.kodeBagian.findUnique({
-        where: { role: processorRole },
-      });
-      const counterScope = processorKodeData
-        ? processorKodeData.kodeInternal
-        : "SEK";
-
-      // Use provided kodeArea or fallback to stored/default
-      const targetKodeArea = kodeArea || existingSurat.kodeArea || "A";
-
-      // Generate number for ADMIN using HYBRID logic
-      // Display: displayKodeBagian (e.g. PSDM)
-      // Counter: counterScope (e.g. SEK)
-      nomorSuratAdmin = await generateNomorSurat(
-        kodeJenis,
-        targetKodeArea,
-        displayKodeBagian,
-        counterScope
-      );
-      // tanggalSurat = new Date(); // Optional: update date or keep original
     }
 
     const suratKeluar = await prisma.suratKeluar.update({
@@ -328,8 +339,7 @@ const updateSuratKeluar = async (req, res) => {
         finalFilePublicId,
         status: status || existingSurat.status,
         jenisSuratId: jenisSuratId || undefined,
-        // nomorSurat: nomorSurat, // DO NOT UPDATE ORIGINAL NUMBER
-        nomorSuratAdmin, // Save the new Admin number
+        nomorSuratAdmin, // Save generated number (or existing)
         tanggalSurat,
       },
       include: {
@@ -377,7 +387,7 @@ const updateSuratKeluar = async (req, res) => {
   }
 };
 
-// Validate surat keluar (Sekpeng/Bendahara)
+// Validate surat keluar (Sekpeng/Bendahara/Ketua for Verification)
 const validateSuratKeluar = async (req, res) => {
   try {
     const { id } = req.params;
@@ -395,15 +405,12 @@ const validateSuratKeluar = async (req, res) => {
     let aksi;
 
     if (isApproved) {
-      // If approved, stay as DIPROSES (or change to it if coming from PENGAJUAN)
-      // The flow is: Pengajuan -> Diproses -> Ditandatangani
-      // Validation essentially just confirms it's ready for TTD, but status remains DIPROSES
-      // so Ketua can see it and sign it.
-      newStatus = "DIPROSES";
-      aksi = "Surat divalidasi (Siap Tanda Tangan)";
+      // Verification OK -> SELESAI
+      newStatus = "SELESAI";
+      aksi = "Surat diverifikasi & Selesai";
     } else {
       newStatus = "DIKEMBALIKAN";
-      aksi = "Surat dikembalikan untuk revisi";
+      aksi = "Surat dikembalikan (Gagal Verifikasi)";
     }
 
     const suratKeluar = await prisma.suratKeluar.update({
@@ -422,7 +429,7 @@ const validateSuratKeluar = async (req, res) => {
     });
 
     res.json({
-      message: isApproved ? "Surat divalidasi" : "Surat dikembalikan",
+      message: isApproved ? "Surat diverifikasi" : "Surat dikembalikan",
       suratKeluar,
     });
   } catch (error) {
@@ -431,7 +438,7 @@ const validateSuratKeluar = async (req, res) => {
   }
 };
 
-// Approve surat keluar (Ketua, Sekpeng, Bendahara)
+// Approve surat keluar (Ketua Only - Final Approval)
 const approveSuratKeluar = async (req, res) => {
   try {
     const { id } = req.params;
@@ -449,24 +456,35 @@ const approveSuratKeluar = async (req, res) => {
     let updateData = {};
     let aksi;
     const isKetua = userRole === "KETUA_PENGURUS";
-    const roleName = isKetua
-      ? "Ketua Yayasan"
-      : userRole === "SEKRETARIS_PENGURUS"
-      ? "Sekretaris Yayasan"
-      : "Bendahara Yayasan";
 
-    if (isApproved) {
-      // All three roles (Ketua, Sekpeng, Bendahara) can approve with signature
-      updateData = {
-        status: "DISETUJUI",
-        isSigned: true,
-        signedAt: new Date(),
-      };
-      aksi = `Surat disetujui oleh ${roleName} (ACC Tanda Tangan)`;
+    // Only Ketua can "Approve" (Change status to DISETUJUI)
+    // Other roles should use Disposisi
+    if (!isKetua) {
+      // Technically this endpoint shouldn't be called by others in new flow
+      // But if they reject, we should allow "DIKEMBALIKAN" maybe?
+      // User said: "Kalau sek tolak, selesai (dikembalikan)".
+      if (!isApproved) {
+        updateData = { status: "DIKEMBALIKAN" };
+        aksi = `Surat ditolak oleh ${req.user.nama}`;
+      } else {
+        return res.status(403).json({
+          message:
+            "Hanya Ketua yang dapat menyetujui surat. Gunakan Disposisi.",
+        });
+      }
     } else {
-      // All three roles can reject - status becomes DIKEMBALIKAN
-      updateData = { status: "DIKEMBALIKAN" };
-      aksi = `Surat ditolak oleh ${roleName}`;
+      // Ketua Logic
+      if (isApproved) {
+        updateData = {
+          status: "DISETUJUI",
+          isSigned: true,
+          signedAt: new Date(),
+        };
+        aksi = `Surat disetujui oleh Ketua Yayasan (ACC Tanda Tangan)`;
+      } else {
+        updateData = { status: "DIKEMBALIKAN" };
+        aksi = `Surat ditolak oleh Ketua Yayasan`;
+      }
     }
 
     // Only update if there's data to update
