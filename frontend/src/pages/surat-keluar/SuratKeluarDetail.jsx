@@ -24,6 +24,7 @@ import {
   lampiranAPI,
   jenisSuratAPI,
   kodeAreaAPI,
+  kodeBagianAPI,
 } from "../../api/axios";
 import Header from "../../components/layout/Header";
 import Card from "../../components/common/Card";
@@ -70,7 +71,13 @@ const SuratKeluarDetail = () => {
   const [selectedJenisSuratId, setSelectedJenisSuratId] = useState("");
   const [kodeAreaOptions, setKodeAreaOptions] = useState([]);
   const [selectedKodeArea, setSelectedKodeArea] = useState("");
+  const [selectedVariant, setSelectedVariant] = useState("INTERNAL");
+  const [kodeBagianOptions, setKodeBagianOptions] = useState([]);
+  const [selectedKodeBagianId, setSelectedKodeBagianId] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [trackingPage, setTrackingPage] = useState(1);
+  const [disposisiPage, setDisposisiPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
   const [openedFiles, setOpenedFiles] = useState([]);
   const [showUploadFinalModal, setShowUploadFinalModal] = useState(false);
   const [finalFile, setFinalFile] = useState(null);
@@ -85,6 +92,12 @@ const SuratKeluarDetail = () => {
       const formData = new FormData();
       formData.append("file", finalFile);
       formData.append("isFinalFile", "true");
+      if (selectedJenisSuratId)
+        formData.append("jenisSuratId", selectedJenisSuratId);
+      if (selectedKodeArea) formData.append("kodeArea", selectedKodeArea);
+      if (selectedKodeBagianId)
+        formData.append("kodeBagianId", selectedKodeBagianId);
+      if (selectedVariant) formData.append("variant", selectedVariant);
 
       await suratKeluarAPI.update(id, formData);
       setShowUploadFinalModal(false);
@@ -103,6 +116,7 @@ const SuratKeluarDetail = () => {
     if (isAdmin(user?.role)) {
       fetchJenisSurat();
       fetchKodeArea();
+      fetchKodeBagian();
     }
     // Load opened files from localStorage
     const stored = localStorage.getItem("openedFiles");
@@ -133,6 +147,15 @@ const SuratKeluarDetail = () => {
     }
   };
 
+  const fetchKodeBagian = async () => {
+    try {
+      const response = await kodeBagianAPI.getAll();
+      setKodeBagianOptions(response.data.data);
+    } catch (error) {
+      console.error("Fetch kode bagian error:", error);
+    }
+  };
+
   const fetchSurat = async () => {
     try {
       const response = await suratKeluarAPI.getById(id);
@@ -147,7 +170,11 @@ const SuratKeluarDetail = () => {
   const fetchUsers = async () => {
     try {
       const response = await userAPI.getAll();
-      setUsers(response.data.users?.filter((u) => u.id !== user.id) || []);
+      setUsers(
+        (response.data.data || response.data.users)?.filter(
+          (u) => u.id !== user.id
+        ) || []
+      );
     } catch (error) {
       console.error("Fetch users error:", error);
     }
@@ -243,6 +270,10 @@ const SuratKeluarDetail = () => {
 
   const handleDisposisi = async (e) => {
     e.preventDefault();
+    if (!disposisiForm.toUserId) {
+      alert("Mohon pilih penerima disposisi!");
+      return;
+    }
     setSubmitting(true);
     try {
       await disposisiAPI.create({
@@ -252,13 +283,17 @@ const SuratKeluarDetail = () => {
       setShowDisposisiModal(false);
       setDisposisiForm({
         toUserId: "",
-        instruksi: "",
-        catatan: "",
+        instruksi: "Mohon ditindaklanjuti",
         isRequestLampiran: false,
       });
       fetchSurat();
+      alert("Disposisi berhasil dikirim");
     } catch (error) {
-      console.error("Create disposisi error:", error);
+      console.error("Disposisi error:", error);
+      alert(
+        "Gagal mengirim disposisi: " +
+          (error.response?.data?.message || error.message)
+      );
     } finally {
       setSubmitting(false);
     }
@@ -285,32 +320,49 @@ const SuratKeluarDetail = () => {
     }
   };
 
+  const handleApproveDraft = async () => {
+    if (
+      !window.confirm(
+        "Setujui Draft surat ini? Status akan berubah menjadi DITERIMA (Siap Upload)."
+      )
+    )
+      return;
+    setSubmitting(true);
+    try {
+      await suratKeluarAPI.update(id, { status: STATUS_SURAT.DITERIMA });
+      fetchSurat();
+    } catch (e) {
+      console.error(e);
+      alert("Gagal menyetujui draft.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleProses = () => {
     setShowProsesModal(true);
   };
 
-  const [selectedVariant, setSelectedVariant] = useState("INTERNAL"); // INTERNAL or EKSTERNAL
-
   const confirmProses = async () => {
-    if (!finalFile) {
-      alert("Mohon upload surat resmi terlebih dahulu");
-      return;
-    }
-
+    // No file required for initial processing
     setSubmitting(true);
     try {
       const formData = new FormData();
       formData.append("status", STATUS_SURAT.DIPROSES);
+      // We don't generate number or save variant/jenis here anymore, but we can save them as draft properties if backend supports it.
+      // For now, let's keep sending them so they are saved for later use/display.
       if (selectedJenisSuratId)
         formData.append("jenisSuratId", selectedJenisSuratId);
       formData.append("variant", selectedVariant);
       formData.append("kodeArea", selectedKodeArea || surat?.kodeArea || "A");
-      formData.append("isFinalFile", "true");
-      formData.append("file", finalFile);
+      if (selectedKodeBagianId)
+        formData.append("kodeBagianId", selectedKodeBagianId);
+
+      // Removed file appending
 
       await suratKeluarAPI.update(id, formData);
       setShowProsesModal(false);
-      setFinalFile(null);
+      // setFinalFile(null); // No file to clear
       fetchSurat();
     } catch (error) {
       console.error("Proses error:", error);
@@ -345,41 +397,27 @@ const SuratKeluarDetail = () => {
   }
 
   // Determine available actions
-  // If status is DIKEMBALIKAN or SELESAI, all actions are disabled (read-only mode)
-  const isReadOnly = [STATUS_SURAT.DIKEMBALIKAN, STATUS_SURAT.SELESAI].includes(
-    surat.status
-  );
+  const isReadOnly = [STATUS_SURAT.SELESAI].includes(surat.status);
+  // Allow editing if DIKEMBALIKAN (to re-submit)
 
   const canShowValidasi =
     !isReadOnly &&
     canValidate(user?.role) &&
-    [STATUS_SURAT.MENUNGGU_VALIDASI, STATUS_SURAT.PENGAJUAN].includes(
-      surat.status
-    );
-  // Ketua, Sekpeng, Bendahara can approve/reject
+    [STATUS_SURAT.MENUNGGU_VERIFIKASI].includes(surat.status);
+
+  // Ketua can approve FINAL (Status MENUNGGU_PERSETUJUAN)
   const isDisposedToUser = surat.disposisi?.some(
     (d) => d.toUserId === user?.id
   );
-  const canApproveOrRejectRole = [
-    ROLES.KETUA_PENGURUS,
-    ROLES.SEKRETARIS_PENGURUS,
-    ROLES.BENDAHARA,
-  ].includes(user?.role);
+
   const canShowApprove =
     !isReadOnly &&
-    canApproveOrRejectRole &&
-    [
-      STATUS_SURAT.DIPROSES,
-      STATUS_SURAT.DISPOSISI,
-      STATUS_SURAT.MENUNGGU_VALIDASI,
-      STATUS_SURAT.PENGAJUAN,
-    ].includes(surat.status) &&
-    (isDisposedToUser || !isKetua(user?.role)); // Ketua needs disposisi, others can see directly
-  // Admin can send if status is DISETUJUI (approved by Ketua)
+    isKetua(user?.role) &&
+    surat.status === STATUS_SURAT.MENUNGGU_TTD;
+
+  // Admin can send if status is SELESAI (Finalized)
   const canShowKirim =
-    !isReadOnly &&
-    isAdmin(user?.role) &&
-    surat.status === STATUS_SURAT.DISETUJUI;
+    !isReadOnly && isAdmin(user?.role) && surat.status === STATUS_SURAT.SELESAI;
 
   const canShowProses =
     !isReadOnly &&
@@ -387,16 +425,33 @@ const SuratKeluarDetail = () => {
     surat.status === STATUS_SURAT.PENGAJUAN;
 
   // Disposisi button logic:
-  // Admin: Only if NOT PENGAJUAN (Must process first to generate number)
-  // Others: Follow standard canDisposisi rule
+  // Admin: Allowed if DIPROSES (to Sek/Ben) OR DISETUJUI (to Verifikator).
+  // Others: Allowed if MENUNGGU_PERSETUJUAN (passing chain) OR MENUNGGU_VERIFIKASI (passing chain verification).
   const canShowDisposisi =
-    !isReadOnly &&
-    canDisposisi(user?.role) &&
-    (!isAdmin(user?.role) || surat.status !== STATUS_SURAT.PENGAJUAN);
+    isAdmin(user?.role) ||
+    (canDisposisi(user?.role) &&
+      [
+        STATUS_SURAT.MENUNGGU_PERSETUJUAN,
+        STATUS_SURAT.MENUNGGU_VERIFIKASI,
+        STATUS_SURAT.DITERIMA,
+        STATUS_SURAT.DISETUJUI,
+        STATUS_SURAT.SELESAI,
+      ].includes(surat.status));
 
-  // Edit and Upload Lampiran also disabled when read-only (DIKEMBALIKAN or SELESAI)
+  // Show "Setujui" or "Verifikasi" depending on stage?
+  // Use canShowValidasi (for Menunggu Verifikasi) and canShowApprove (for Menunggu Persetujuan/Ketua).
+
+  // Edit and Upload Lampiran also disabled when read-only
   const canShowEdit = !isReadOnly;
   const canShowUploadLampiran = !isReadOnly;
+
+  // New Button: Upload Final (Admin Only) when DISETUJUI or DIKEMBALIKAN (if it has number)
+  const canShowUploadFinal =
+    !isReadOnly &&
+    isAdmin(user?.role) &&
+    (surat.status === STATUS_SURAT.DITERIMA ||
+      (surat.status === STATUS_SURAT.DISETUJUI && surat.nomorSuratAdmin) ||
+      (surat.status === STATUS_SURAT.DIKEMBALIKAN && surat.nomorSuratAdmin));
 
   return (
     <div className="min-h-screen">
@@ -427,7 +482,7 @@ const SuratKeluarDetail = () => {
                     {surat.isSigned && (
                       <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs flex items-center gap-1">
                         <PenTool size={12} />
-                        Signed
+                        Ditantangani
                       </span>
                     )}
                   </div>
@@ -516,7 +571,7 @@ const SuratKeluarDetail = () => {
                           className="file-link inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-sm no-underline"
                         >
                           <Download size={16} />
-                          Download
+                          Unduh
                         </a>
                       </div>
                       {openedFiles.includes(surat.fileUrl) && (
@@ -534,15 +589,17 @@ const SuratKeluarDetail = () => {
                         <p className="text-sm text-gray-500">
                           File Surat Resmi (Final)
                         </p>
-                        {isAdmin(user?.role) && !isReadOnly && (
-                          <button
-                            onClick={() => setShowUploadFinalModal(true)}
-                            className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                          >
-                            <Paperclip size={12} />
-                            {surat.finalFileUrl ? "Ubah File" : "Upload File"}
-                          </button>
-                        )}
+                        {isAdmin(user?.role) &&
+                          !isReadOnly &&
+                          surat.finalFileUrl && (
+                            <button
+                              onClick={() => setShowUploadFinalModal(true)}
+                              className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                            >
+                              <Paperclip size={12} />
+                              {"Ubah File"}
+                            </button>
+                          )}
                       </div>
                       {surat.finalFileUrl ? (
                         <div>
@@ -563,7 +620,7 @@ const SuratKeluarDetail = () => {
                               className="file-link inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-sm no-underline"
                             >
                               <Download size={16} />
-                              Download
+                              Unduh
                             </a>
                           </div>
                           {openedFiles.includes(surat.finalFileUrl) && (
@@ -590,11 +647,108 @@ const SuratKeluarDetail = () => {
               >
                 <form onSubmit={handleUploadFinal} className="space-y-4">
                   <div>
-                    <p className="text-sm text-gray-600 mb-2">
-                      Upload file surat resmi yang sudah diproses, diberi nomor,
-                      dan ditandatangani (jika manual). File ini akan menjadi
-                      file utama yang dilihat oleh pengaju.
+                    <p className="text-sm text-gray-600 mb-4">
+                      Upload file surat resmi yang sudah diproses. Pastikan
+                      memilih Jenis Surat dan Kode Area untuk generate nomor
+                      baru.
                     </p>
+
+                    {/* Selectors for Generation */}
+                    <div className="space-y-4 mb-4">
+                      <div>
+                        <label className="form-label">Jenis Surat</label>
+                        <select
+                          className="form-input"
+                          value={selectedJenisSuratId}
+                          onChange={(e) =>
+                            setSelectedJenisSuratId(e.target.value)
+                          }
+                        >
+                          <option value="">
+                            -- Pilih Jenis Surat (Default: SK) --
+                          </option>
+                          {jenisSuratOptions.map((jenis) => (
+                            <option key={jenis.id} value={jenis.id}>
+                              {jenis.nama} ({jenis.kode})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* New Kode Bagian Selector */}
+                      <div>
+                        <label className="form-label">
+                          Atas Nama (Kode Bagian)
+                        </label>
+                        <select
+                          className="form-input"
+                          value={selectedKodeBagianId}
+                          onChange={(e) =>
+                            setSelectedKodeBagianId(e.target.value)
+                          }
+                        >
+                          <option value="">
+                            -- Default (Sesuai Pembuat) --
+                          </option>
+                          {kodeBagianOptions.map((bagian) => (
+                            <option key={bagian.id} value={bagian.id}>
+                              {bagian.nama} ({bagian.kodeInternal}/
+                              {bagian.kodeEksternal})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="form-label">Kode Area</label>
+                        <select
+                          className="form-input"
+                          value={selectedKodeArea || surat?.kodeArea || "A"}
+                          onChange={(e) => setSelectedKodeArea(e.target.value)}
+                        >
+                          {kodeAreaOptions.map((area) => (
+                            <option key={area.id} value={area.kode}>
+                              {area.kode} - {area.nama}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="form-label">
+                          Format Lingkup Bagian
+                        </label>
+                        <div className="flex gap-4 mt-2">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="variantUpload"
+                              value="INTERNAL"
+                              checked={selectedVariant === "INTERNAL"}
+                              onChange={(e) =>
+                                setSelectedVariant(e.target.value)
+                              }
+                              className="rounded text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-sm">Internal</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="variantUpload"
+                              value="EKSTERNAL"
+                              checked={selectedVariant === "EKSTERNAL"}
+                              onChange={(e) =>
+                                setSelectedVariant(e.target.value)
+                              }
+                              className="rounded text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-sm">Eksternal</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       File Surat (PDF/Doc)
                     </label>
@@ -619,12 +773,21 @@ const SuratKeluarDetail = () => {
                       type="submit"
                       loading={submitting}
                     >
-                      Upload
+                      Unggah
                     </Button>
                   </div>
                 </form>
               </Modal>
               <Card.Footer className="flex flex-wrap gap-3">
+                {canShowUploadFinal && (
+                  <Button
+                    variant="primary"
+                    onClick={() => setShowUploadFinalModal(true)}
+                  >
+                    <Paperclip size={18} />
+                    Upload Final & Buat Nomor
+                  </Button>
+                )}
                 {canShowProses && (
                   <Button
                     variant="primary"
@@ -660,13 +823,25 @@ const SuratKeluarDetail = () => {
                       </Button>
                     )
                 }
+                {!isAdmin(user?.role) &&
+                  canDisposisi(user?.role) &&
+                  surat.status === STATUS_SURAT.MENUNGGU_PERSETUJUAN && (
+                    <Button
+                      variant="success"
+                      onClick={handleApproveDraft}
+                      loading={submitting}
+                    >
+                      <CheckCircle size={18} />
+                      Setujui Draft
+                    </Button>
+                  )}
                 {canShowValidasi && (
                   <Button
                     variant="success"
                     onClick={() => setShowValidasiModal(true)}
                   >
                     <CheckCircle size={18} />
-                    Validasi Surat
+                    Verifikasi Surat
                   </Button>
                 )}
                 {canShowApprove && (
@@ -724,36 +899,74 @@ const SuratKeluarDetail = () => {
               </Card.Header>
               <Card.Body className="p-0">
                 <div className="divide-y">
-                  {surat.tracking?.map((track, index) => (
-                    <div key={track.id} className="p-4 flex gap-4">
-                      <div className="flex flex-col items-center">
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            index === 0
-                              ? "bg-blue-100 text-blue-600"
-                              : "bg-gray-100 text-gray-400"
-                          }`}
-                        >
-                          <CheckCircle size={16} />
+                  {(surat.tracking || [])
+                    .slice(
+                      (trackingPage - 1) * ITEMS_PER_PAGE,
+                      trackingPage * ITEMS_PER_PAGE
+                    )
+                    .map((track, i) => {
+                      const absoluteIndex =
+                        (trackingPage - 1) * ITEMS_PER_PAGE + i;
+                      return (
+                        <div key={track.id} className="p-4 flex gap-4">
+                          <div className="flex flex-col items-center">
+                            <div
+                              className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                absoluteIndex === 0
+                                  ? "bg-blue-100 text-blue-600"
+                                  : "bg-gray-100 text-gray-400"
+                              }`}
+                            >
+                              <CheckCircle size={16} />
+                            </div>
+                            {absoluteIndex < surat.tracking.length - 1 && (
+                              <div className="w-0.5 h-full bg-gray-200 my-2"></div>
+                            )}
+                          </div>
+                          <div className="flex-1 pb-4">
+                            <p className="font-medium text-gray-800">
+                              {track.aksi}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {track.keterangan}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {track.user?.nama} •{" "}
+                              {formatDateTime(track.timestamp)}
+                            </p>
+                          </div>
                         </div>
-                        {index < surat.tracking.length - 1 && (
-                          <div className="w-0.5 h-full bg-gray-200 my-2"></div>
-                        )}
-                      </div>
-                      <div className="flex-1 pb-4">
-                        <p className="font-medium text-gray-800">
-                          {track.aksi}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {track.keterangan}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          {track.user?.nama} • {formatDateTime(track.timestamp)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                      );
+                    })}
                 </div>
+                {/* Pagination Controls */}
+                {surat.tracking?.length > ITEMS_PER_PAGE && (
+                  <div className="flex justify-center items-center gap-4 p-4 border-t">
+                    <Button
+                      variant="ghost"
+                      size="small"
+                      disabled={trackingPage === 1}
+                      onClick={() => setTrackingPage((p) => p - 1)}
+                    >
+                      Previous
+                    </Button>
+                    <span className="text-sm text-gray-600">
+                      Halaman {trackingPage} dari{" "}
+                      {Math.ceil(surat.tracking.length / ITEMS_PER_PAGE)}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="small"
+                      disabled={
+                        trackingPage ===
+                        Math.ceil(surat.tracking.length / ITEMS_PER_PAGE)
+                      }
+                      onClick={() => setTrackingPage((p) => p + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
               </Card.Body>
             </Card>
           </div>
@@ -774,33 +987,70 @@ const SuratKeluarDetail = () => {
                     Belum ada disposisi
                   </div>
                 ) : (
-                  <div className="divide-y">
-                    {surat.disposisi?.map((d) => (
-                      <div key={d.id} className="p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                            <User size={12} className="text-blue-600" />
+                  <>
+                    <div className="divide-y">
+                      {(surat.disposisi || [])
+                        .slice(
+                          (disposisiPage - 1) * ITEMS_PER_PAGE,
+                          disposisiPage * ITEMS_PER_PAGE
+                        )
+                        .map((d) => (
+                          <div key={d.id} className="p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                                <User size={12} className="text-blue-600" />
+                              </div>
+                              <span className="text-sm font-medium">
+                                {d.fromUser?.nama}
+                              </span>
+                              <span className="text-gray-400">→</span>
+                              <span className="text-sm font-medium text-blue-600">
+                                {d.toUser?.nama}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-700">
+                              {d.instruksi}
+                            </p>
+                            {d.isRequestLampiran && (
+                              <span className="inline-block mt-1 text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">
+                                Permintaan Lampiran
+                              </span>
+                            )}
+                            <p className="text-xs text-gray-400 mt-2">
+                              {formatDateTime(d.tanggalDisposisi)}
+                            </p>
                           </div>
-                          <span className="text-sm font-medium">
-                            {d.fromUser?.nama}
-                          </span>
-                          <span className="text-gray-400">→</span>
-                          <span className="text-sm font-medium text-blue-600">
-                            {d.toUser?.nama}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-700">{d.instruksi}</p>
-                        {d.isRequestLampiran && (
-                          <span className="inline-block mt-1 text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">
-                            Request Lampiran
-                          </span>
-                        )}
-                        <p className="text-xs text-gray-400 mt-2">
-                          {formatDateTime(d.tanggalDisposisi)}
-                        </p>
+                        ))}
+                    </div>
+                    {/* Pagination Controls */}
+                    {surat.disposisi?.length > ITEMS_PER_PAGE && (
+                      <div className="flex justify-center items-center gap-4 p-4 border-t">
+                        <Button
+                          variant="ghost"
+                          size="small"
+                          disabled={disposisiPage === 1}
+                          onClick={() => setDisposisiPage((p) => p - 1)}
+                        >
+                          Sebelumnya
+                        </Button>
+                        <span className="text-sm text-gray-600">
+                          Halaman {disposisiPage} dari{" "}
+                          {Math.ceil(surat.disposisi.length / ITEMS_PER_PAGE)}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="small"
+                          disabled={
+                            disposisiPage ===
+                            Math.ceil(surat.disposisi.length / ITEMS_PER_PAGE)
+                          }
+                          onClick={() => setDisposisiPage((p) => p + 1)}
+                        >
+                          Selanjutnya
+                        </Button>
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 )}
               </Card.Body>
             </Card>
@@ -1175,7 +1425,7 @@ const SuratKeluarDetail = () => {
             />
           </div>
           <div className="bg-blue-50 p-3 rounded text-sm text-blue-700">
-            Preview Nomor: .../
+            Pratinjau Nomor: .../
             {jenisSuratOptions.find((j) => j.id === selectedJenisSuratId)
               ?.kode || "SK"}
             /...
@@ -1193,7 +1443,7 @@ const SuratKeluarDetail = () => {
               loading={submitting}
               disabled={!finalFile}
             >
-              Proses & Generate Nomor
+              Proses & Buat Nomor
             </Button>
           </div>
         </div>
@@ -1249,7 +1499,7 @@ const SuratKeluarDetail = () => {
               disabled={!lampiranFile}
             >
               <Paperclip size={18} />
-              Upload
+              Unggah
             </Button>
           </div>
         </div>
