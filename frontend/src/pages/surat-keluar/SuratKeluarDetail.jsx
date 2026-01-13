@@ -927,9 +927,24 @@ const SuratKeluarDetail = () => {
                             <p className="font-medium text-gray-800">
                               {track.aksi}
                             </p>
-                            <p className="text-sm text-gray-500">
-                              {track.keterangan}
-                            </p>
+                            {track.keterangan &&
+                              (track.aksi.toLowerCase().includes("tolak") ||
+                              track.aksi
+                                .toLowerCase()
+                                .includes("dikembalikan") ? (
+                                <div className="mt-1 p-2 bg-red-50 border border-red-200 rounded-lg text-sm">
+                                  <span className="font-medium text-red-700">
+                                    Catatan:{" "}
+                                  </span>
+                                  <span className="text-red-600">
+                                    {track.keterangan}
+                                  </span>
+                                </div>
+                              ) : (
+                                <p className="text-sm text-gray-500">
+                                  {track.keterangan}
+                                </p>
+                              ))}
                             <p className="text-xs text-gray-400 mt-1">
                               {track.user?.nama} •{" "}
                               {formatDateTime(track.timestamp)}

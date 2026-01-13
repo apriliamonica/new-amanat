@@ -1,5 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { Bell, Info, AlertCircle, FileText, CheckCircle } from "lucide-react";
+import {
+  Bell,
+  Info,
+  AlertCircle,
+  FileText,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
 
@@ -82,6 +89,8 @@ const NotificationDropdown = () => {
         return <FileText size={16} className="text-red-500" />;
       case "validate":
         return <CheckCircle size={16} className="text-yellow-500" />;
+      case "rejection":
+        return <XCircle size={16} className="text-red-600" />;
       default:
         return <Bell size={16} className="text-gray-500" />;
     }

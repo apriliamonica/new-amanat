@@ -132,6 +132,36 @@ const getSummary = async (req, res) => {
       */
     }
 
+    // 3. ALL ROLES: Notifikasi penolakan surat (untuk pembuat surat)
+    const rejectedLetters = await prisma.trackingSurat.findMany({
+      where: {
+        OR: [
+          { aksi: { contains: "ditolak" } },
+          { aksi: { contains: "dikembalikan" } },
+        ],
+        timestamp: { gte: twentyFourHoursAgo },
+        suratKeluar: { createdById: user.id },
+      },
+      include: {
+        user: { select: { nama: true } },
+        suratKeluar: { select: { id: true, perihal: true } },
+      },
+      orderBy: { timestamp: "desc" },
+    });
+
+    rejectedLetters.forEach((track) => {
+      items.push({
+        id: `rejection-${track.id}`,
+        type: "action",
+        subtype: "rejection",
+        message: `Surat "${track.suratKeluar?.perihal}" ditolak`,
+        detail: track.keterangan || "Tidak ada catatan penolakan",
+        time: track.timestamp,
+        link: `/surat-keluar/detail/${track.suratKeluar?.id}`,
+      });
+      actionCount++;
+    });
+
     // Sort items by time desc
     items.sort((a, b) => new Date(b.time) - new Date(a.time));
 
