@@ -487,7 +487,7 @@ const SuratKeluarDetail = () => {
                     {surat.isSigned && (
                       <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs flex items-center gap-1">
                         <PenTool size={12} />
-                        Ditantangani
+                        Ditandatangani
                       </span>
                     )}
                   </div>

@@ -19,6 +19,7 @@ import {
   STATUS_DISPOSISI,
   ROLE_SHORT_NAMES,
   STATUS_SURAT,
+  DISPOSISI_STATUS_NAMES,
   isKetua,
   isAdmin,
   canDisposisi,
@@ -204,9 +205,15 @@ const DisposisiList = () => {
             onChange={(e) => setFilterStatus(e.target.value)}
           >
             <option value="">Semua Status</option>
-            <option value="PENDING">Pending</option>
-            <option value="DITINDAKLANJUTI">Ditindaklanjuti</option>
-            <option value="SELESAI">Selesai</option>
+            <option value="PENDING">
+              {DISPOSISI_STATUS_NAMES[STATUS_DISPOSISI.PENDING]}
+            </option>
+            <option value="DITINDAKLANJUTI">
+              {DISPOSISI_STATUS_NAMES[STATUS_DISPOSISI.DITINDAKLANJUTI]}
+            </option>
+            <option value="SELESAI">
+              {DISPOSISI_STATUS_NAMES[STATUS_DISPOSISI.SELESAI]}
+            </option>
           </select>
         </div>
 
@@ -240,7 +247,8 @@ const DisposisiList = () => {
                             effectiveStatus
                           )}`}
                         >
-                          {effectiveStatus}
+                          {DISPOSISI_STATUS_NAMES[effectiveStatus] ||
+                            effectiveStatus}
                         </span>
                         {disposisi.isRequestLampiran && (
                           <span className="px-3 py-1 text-xs font-semibold rounded-full bg-orange-50 text-orange-700 border border-orange-100 flex items-center gap-1">
@@ -378,7 +386,9 @@ const DisposisiList = () => {
                             title="Tandai Selesai"
                           >
                             <CheckCircle size={16} />
-                            <span className="ml-1 hidden sm:inline">Done</span>
+                            <span className="ml-1 hidden sm:inline">
+                              Selesai
+                            </span>
                           </Button>
                         )}
                     </div>

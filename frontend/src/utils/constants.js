@@ -103,6 +103,13 @@ export const STATUS_DISPOSISI = {
   SELESAI: "SELESAI",
 };
 
+export const DISPOSISI_STATUS_NAMES = {
+  [STATUS_DISPOSISI.PENDING]: "Menunggu",
+  [STATUS_DISPOSISI.DITERUSKAN]: "Diteruskan",
+  [STATUS_DISPOSISI.DITINDAKLANJUTI]: "Ditindaklanjuti",
+  [STATUS_DISPOSISI.SELESAI]: "Selesai",
+};
+
 // Check if role is admin
 export const isAdmin = (role) => role === ROLES.SEKRETARIS_KANTOR;
 

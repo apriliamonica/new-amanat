@@ -156,7 +156,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen">
-      <Header title="Dashboard" />
+      <Header title="Beranda" />
 
       <div className="p-6 lg:p-8 space-y-8">
         {/* Welcome Message */}
