@@ -351,10 +351,14 @@ const updateSuratKeluar = async (req, res) => {
 
     // Add tracking if status changed
     if (status && status !== existingSurat.status) {
+      // Use catatan from body if available (for rejection/approval notes)
+      const trackingNote =
+        req.body.catatan || `Status diubah oleh ${req.user.nama}`;
+
       await prisma.trackingSurat.create({
         data: {
           aksi: `Surat diupdate ke ${status}`,
-          keterangan: `Status diubah oleh ${req.user.nama}`,
+          keterangan: trackingNote,
           userId: req.user.id,
           suratKeluarId: suratKeluar.id,
         },

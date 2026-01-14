@@ -58,6 +58,7 @@ const SuratKeluarDetail = () => {
   const [showDisposisiModal, setShowDisposisiModal] = useState(false);
   const [showLampiranModal, setShowLampiranModal] = useState(false);
   const [users, setUsers] = useState([]);
+  const [showDraftModal, setShowDraftModal] = useState(false);
   const [catatan, setCatatan] = useState("");
   const [ekspedisi, setEkspedisi] = useState("");
   const [disposisiForm, setDisposisiForm] = useState({
@@ -320,20 +321,24 @@ const SuratKeluarDetail = () => {
     }
   };
 
-  const handleApproveDraft = async () => {
-    if (
-      !window.confirm(
-        "Setujui Draft surat ini? Status akan berubah menjadi DITERIMA (Siap Upload)."
-      )
-    )
-      return;
+  const handleProcessDraft = async (isApproved) => {
     setSubmitting(true);
     try {
-      await suratKeluarAPI.update(id, { status: STATUS_SURAT.DITERIMA });
+      const status = isApproved
+        ? STATUS_SURAT.DITERIMA
+        : STATUS_SURAT.DIKEMBALIKAN;
+
+      await suratKeluarAPI.update(id, {
+        status,
+        catatan, // Backend now supports this for tracking log
+      });
+
+      setShowDraftModal(false);
+      setCatatan("");
       fetchSurat();
     } catch (e) {
       console.error(e);
-      alert("Gagal menyetujui draft.");
+      alert("Gagal memproses draft.");
     } finally {
       setSubmitting(false);
     }
@@ -828,7 +833,7 @@ const SuratKeluarDetail = () => {
                   surat.status === STATUS_SURAT.MENUNGGU_PERSETUJUAN && (
                     <Button
                       variant="success"
-                      onClick={handleApproveDraft}
+                      onClick={() => setShowDraftModal(true)}
                       loading={submitting}
                     >
                       <CheckCircle size={18} />
@@ -1515,6 +1520,59 @@ const SuratKeluarDetail = () => {
             >
               <Paperclip size={18} />
               Unggah
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Draft Approval Modal */}
+      <Modal
+        isOpen={showDraftModal}
+        onClose={() => setShowDraftModal(false)}
+        title="Konfirmasi Persetujuan Draft"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Apakah Anda ingin menyetujui draft ini?
+            <br />
+            <span className="font-medium text-green-600">Setujui:</span> Status
+            menjadi DITERIMA (Siap diproses admin).
+            <br />
+            <span className="font-medium text-red-600">Tolak:</span> Status
+            menjadi DIKEMBALIKAN (Perlu revisi).
+          </p>
+          <div>
+            <label className="form-label">Catatan (Wajib jika menolak)</label>
+            <textarea
+              className="form-input"
+              rows={3}
+              value={catatan}
+              onChange={(e) => setCatatan(e.target.value)}
+              placeholder="Berikan catatan atau alasan..."
+            />
+          </div>
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="danger"
+              onClick={() => {
+                if (!catatan) {
+                  alert("Harap isi catatan jika menolak/mengembalikan draft!");
+                  return;
+                }
+                handleProcessDraft(false);
+              }}
+              loading={submitting}
+            >
+              <XCircle size={18} />
+              Tolak / Kembalikan
+            </Button>
+            <Button
+              variant="success"
+              onClick={() => handleProcessDraft(true)}
+              loading={submitting}
+            >
+              <CheckCircle size={18} />
+              Setujui
             </Button>
           </div>
         </div>

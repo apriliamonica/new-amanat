@@ -88,16 +88,14 @@ const DisposisiList = () => {
     try {
       const { type, suratId } = approvalModal;
       if (type === "DRAFT") {
-        await suratKeluarAPI.update(suratId, { status: STATUS_SURAT.DITERIMA });
-        await trackingAPI.create({
-          aksi: "Menyetujui Draft",
-          suratKeluarId: suratId,
+        await suratKeluarAPI.update(suratId, {
+          status: STATUS_SURAT.DITERIMA,
+          catatan: rejectReason,
         });
       } else if (type === "ACC") {
-        await suratKeluarAPI.approve(suratId, { isApproved: true });
-        await trackingAPI.create({
-          aksi: "Menandatangani Surat",
-          suratKeluarId: suratId,
+        await suratKeluarAPI.approve(suratId, {
+          isApproved: true,
+          catatan: rejectReason,
         });
       }
       fetchDisposisi();
@@ -121,12 +119,7 @@ const DisposisiList = () => {
       const { suratId } = approvalModal;
       await suratKeluarAPI.update(suratId, {
         status: STATUS_SURAT.DIKEMBALIKAN,
-        keterangan: rejectReason,
-      });
-      await trackingAPI.create({
-        aksi: "Menolak Surat",
-        keterangan: rejectReason,
-        suratKeluarId: suratId,
+        catatan: rejectReason, // Fix: Use 'catatan' for log, don't overwrite 'keterangan'
       });
       fetchDisposisi();
       closeApprovalModal();
@@ -409,69 +402,44 @@ const DisposisiList = () => {
       <Modal
         isOpen={approvalModal.isOpen}
         onClose={closeApprovalModal}
-        title={
-          approvalModal.step === "REJECT"
-            ? "Tolak Surat"
-            : "Konfirmasi Persetujuan"
-        }
+        title="Konfirmasi Persetujuan"
       >
-        {approvalModal.step === "CHOICE" ? (
-          <div className="space-y-4">
-            <p className="text-gray-600">
-              Silakan pilih tindakan untuk surat ini.
-              {approvalModal.type === "DRAFT"
-                ? " Anda dapat menyetujui draft atau menolaknya untuk revisi."
-                : " Anda dapat menandatangani surat atau menolaknya."}
-            </p>
-            <div className="flex gap-4 justify-center mt-6">
-              <Button
-                variant="danger"
-                className="bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
-                onClick={() =>
-                  setApprovalModal({ ...approvalModal, step: "REJECT" })
-                }
-              >
-                <XCircle size={18} className="mr-2" />
-                Tolak
-              </Button>
-              <Button variant="success" onClick={handleConfirmApprove}>
-                <CheckCircle size={18} className="mr-2" />
-                Setujui / ACC
-              </Button>
-            </div>
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Silakan pilih tindakan untuk surat ini.
+            {approvalModal.type === "DRAFT"
+              ? " Anda dapat menyetujui draft atau menolaknya untuk revisi."
+              : " Anda dapat menandatangani surat atau menolaknya."}
+          </p>
+
+          <div>
+            <label className="form-label">
+              Catatan (Opsional untuk Setuju, Wajib untuk Tolak)
+            </label>
+            <textarea
+              className="form-input"
+              rows={3}
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Berikan catatan, instruksi, atau alasan penolakan..."
+            />
           </div>
-        ) : (
-          <div className="space-y-4">
-            <div>
-              <label className="form-label">Alasan Penolakan</label>
-              <textarea
-                className="form-input"
-                rows={3}
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="Masukkan alasan kenapa surat ditolak/dikembalikan..."
-                required
-              />
-            </div>
-            <div className="flex justify-end gap-3 mt-4">
-              <Button
-                variant="secondary"
-                onClick={() =>
-                  setApprovalModal({ ...approvalModal, step: "CHOICE" })
-                }
-              >
-                Kembali
-              </Button>
-              <Button
-                variant="danger"
-                className="bg-red-600 text-white hover:bg-red-700"
-                onClick={handleConfirmReject}
-              >
-                Kirim Penolakan
-              </Button>
-            </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <Button
+              variant="danger"
+              className="bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
+              onClick={handleConfirmReject}
+            >
+              <XCircle size={18} className="mr-2" />
+              Tolak
+            </Button>
+            <Button variant="success" onClick={handleConfirmApprove}>
+              <CheckCircle size={18} className="mr-2" />
+              Setujui / ACC
+            </Button>
           </div>
-        )}
+        </div>
       </Modal>
     </div>
   );
